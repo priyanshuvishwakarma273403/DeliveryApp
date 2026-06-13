@@ -1,10 +1,21 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bike, DollarSign, Clock, MapPin, CheckCircle2, ShieldCheck, Zap, ArrowRight, Star } from 'lucide-react';
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 const DeliveryPartnerCTA = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'DELIVERY_PARTNER') {
+      navigate('/delivery/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const formRef = useRef(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,6 +72,12 @@ const DeliveryPartnerCTA = () => {
                 <div className="flex flex-wrap gap-4">
                   <Button onClick={scrollToForm} className="px-10 py-5 rounded-2xl text-lg shadow-2xl shadow-primary/30 font-black h-auto">
                     Become a Partner <ArrowRight className="ml-2 inline" size={20} />
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/login')} 
+                    className="px-10 py-5 rounded-2xl text-lg border-2 border-white/20 text-white hover:bg-white/5 bg-transparent font-black h-auto"
+                  >
+                    Partner Login
                   </Button>
                   <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
                     <div className="flex -space-x-3">

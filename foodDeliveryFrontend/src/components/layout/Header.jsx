@@ -22,7 +22,8 @@ import {
   ChevronRight,
   Utensils,
   Ticket,
-  Search as SearchIcon
+  Search as SearchIcon,
+  Bike
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
@@ -338,6 +339,12 @@ const Header = () => {
                         <ShoppingCart size={18} className="text-[#686B78]" /> My Orders
                         <ChevronRight size={14} className="text-[#686B78] ml-auto" />
                       </Link>
+                      {user?.role === 'DELIVERY_PARTNER' && (
+                        <Link to="/delivery/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] hover:bg-gray-50 hover:text-primary transition-colors font-medium">
+                          <Bike size={18} className="text-[#686B78]" /> Rider Dashboard
+                          <ChevronRight size={14} className="text-[#686B78] ml-auto" />
+                        </Link>
+                      )}
                       {user?.role === 'ADMIN' && (
                         <>
                           <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] hover:bg-gray-50 hover:text-primary transition-colors font-medium">

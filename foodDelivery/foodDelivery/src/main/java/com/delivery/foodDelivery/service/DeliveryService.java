@@ -4,9 +4,11 @@ import com.delivery.foodDelivery.dto.request.DeliveryActionRequest;
 import com.delivery.foodDelivery.dto.request.LocationUpdateRequest;
 import com.delivery.foodDelivery.dto.response.DeliveryResponse;
 import com.delivery.foodDelivery.dto.response.LocationMessage;
+import com.delivery.foodDelivery.dto.response.OrderResponse;
 import com.delivery.foodDelivery.entity.Delivery;
 import com.delivery.foodDelivery.entity.DeliveryPartner;
 import com.delivery.foodDelivery.entity.Order;
+import com.delivery.foodDelivery.entity.Restaurant;
 import com.delivery.foodDelivery.enums.DeliveryStatus;
 import com.delivery.foodDelivery.enums.OrderStatus;
 import com.delivery.foodDelivery.exception.BusinessException;
@@ -14,6 +16,7 @@ import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.exception.UnauthorizedException;
 import com.delivery.foodDelivery.repository.jpa.DeliveryPartnerRepository;
 import com.delivery.foodDelivery.repository.jpa.DeliveryRepository;
+import com.delivery.foodDelivery.repository.jpa.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -35,7 +38,9 @@ public class DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryPartnerRepository partnerRepository;
+    private final OrderRepository           orderRepository;
     private final OrderService               orderService;
+    private final RestaurantService          restaurantService;
     private final SimpMessagingTemplate messagingTemplate;
     private final KafkaService        kafkaService;
 
@@ -99,9 +104,17 @@ public class DeliveryService {
             case "ACCEPT" -> {
                 delivery.setStatus(DeliveryStatus.ACCEPTED);
                 delivery.setAcceptedAt(LocalDateTime.now());
-                // Move order status forward
-                orderService.updateOrderStatus(orderId, OrderStatus.OUT_FOR_DELIVERY.name());
+                // Do not update order status here; update on pickup!
                 log.info("Delivery ACCEPTED: orderId={} partnerId={}", orderId, partnerId);
+
+                // Notify user via WebSocket about the accepted delivery
+                try {
+                    Restaurant restaurant = restaurantService.findById(delivery.getOrder().getRestaurantId());
+                    OrderResponse response = orderService.toResponse(delivery.getOrder(), restaurant.getName());
+                    messagingTemplate.convertAndSend("/topic/order/" + delivery.getOrder().getCustomer().getId(), response);
+                } catch (Exception e) {
+                    log.error("Failed to notify user about accepted delivery", e);
+                }
             }
             case "REJECT" -> {
                 delivery.setStatus(DeliveryStatus.REJECTED);
@@ -131,6 +144,10 @@ public class DeliveryService {
         }
         delivery.setStatus(DeliveryStatus.PICKED_UP);
         delivery.setPickedUpAt(LocalDateTime.now());
+
+        // Update corresponding order status to OUT_FOR_DELIVERY (notifies customer)
+        orderService.updateOrderStatus(orderId, OrderStatus.OUT_FOR_DELIVERY.name());
+
         log.info("Order {} picked up by partner {}", orderId, partnerId);
         return toResponse(deliveryRepository.save(delivery));
     }
@@ -203,6 +220,69 @@ public class DeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Delivery not found for order: " + orderId));
         return toResponse(delivery);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAvailableOrdersForPickup() {
+        List<OrderResponse> available = new java.util.ArrayList<>();
+        for (OrderStatus status : List.of(OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.PACKED, OrderStatus.READY_FOR_PICKUP)) {
+            List<Order> orders = orderRepository.findByStatus(status);
+            for (Order order : orders) {
+                if (deliveryRepository.findByOrderId(order.getId()).isEmpty()) {
+                    Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
+                    String restaurantName = restaurant != null ? restaurant.getName() : "Unknown Restaurant";
+                    available.add(orderService.toResponse(order, restaurantName));
+                }
+            }
+        }
+        return available;
+    }
+
+    @Transactional
+    public DeliveryResponse acceptAvailableOrder(Long orderId, Long partnerId) {
+        Order order = orderService.findById(orderId);
+
+        if (order.getStatus() == OrderStatus.DELIVERED ||
+                order.getStatus() == OrderStatus.CANCELLED ||
+                order.getStatus() == OrderStatus.OUT_FOR_DELIVERY) {
+            throw new BusinessException("Order cannot be accepted in status: " + order.getStatus());
+        }
+
+        if (deliveryRepository.findByOrderId(orderId).isPresent()) {
+            throw new BusinessException("Order is already accepted by another rider.");
+        }
+
+        DeliveryPartner partner = partnerRepository.findById(partnerId)
+                .orElseThrow(() -> new ResourceNotFoundException("DeliveryPartner", partnerId));
+
+        if (!partner.isAvailable()) {
+            throw new BusinessException("You are already on another delivery.");
+        }
+
+        Delivery delivery = Delivery.builder()
+                .order(order)
+                .deliveryPartner(partner)
+                .status(DeliveryStatus.ACCEPTED)
+                .assignedAt(LocalDateTime.now())
+                .acceptedAt(LocalDateTime.now())
+                .build();
+
+        partner.setAvailable(false);
+        partnerRepository.save(partner);
+
+        Delivery saved = deliveryRepository.save(delivery);
+        log.info("Rider {} accepted available order {}", partnerId, orderId);
+
+        // Notify user via WebSocket that rider has accepted (sends updated OrderResponse)
+        try {
+            Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
+            OrderResponse response = orderService.toResponse(order, restaurant.getName());
+            messagingTemplate.convertAndSend("/topic/order/" + order.getCustomer().getId(), response);
+        } catch (Exception e) {
+            log.error("Failed to notify user about accepted order", e);
+        }
+
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)

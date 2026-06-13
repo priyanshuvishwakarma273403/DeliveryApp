@@ -29,7 +29,6 @@ public class FoodDeliveryApplication {
 		// cleanAndSetProperty("ELASTICSEARCH_URL", "spring.elasticsearch.uris");
 		// cleanAndSetProperty("ELASTICSEARCH_USERNAME", "spring.elasticsearch.username");
 		// cleanAndSetProperty("ELASTICSEARCH_PASSWORD", "spring.elasticsearch.password");
-
 		
 		// If KAFKA_ENABLED is explicitly false, disable Kafka auto-startup
 		String kafkaEnabled = System.getenv("KAFKA_ENABLED");

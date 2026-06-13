@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bike, DollarSign, Clock, MapPin, CheckCircle2, ShieldCheck, Zap, ArrowRight, Star } from 'lucide-react';
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 const DeliveryPartnerCTA = () => {
@@ -41,7 +41,32 @@ const DeliveryPartnerCTA = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-10 bg-[#F8F9FB]">
+    <div className="min-h-screen pb-20 md:pb-10 bg-[#F8F9FB] relative">
+      {/* Floating Header */}
+      <header className="absolute top-0 left-0 right-0 z-30 flex justify-between items-center px-6 md:px-12 py-5 bg-transparent">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <div className="bg-primary p-2 rounded-xl text-white shadow-lg shadow-primary/20">
+            <Bike size={18} className="stroke-[2.5]" />
+          </div>
+          <span className="text-white text-lg font-black tracking-tight">
+            Tomato <span className="text-primary italic">Fleet</span>
+          </span>
+        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="text-white/80 hover:text-white text-sm font-bold transition-colors hidden md:block">
+            Order Food
+          </Link>
+          <button onClick={scrollToForm} className="text-white/80 hover:text-white text-sm font-bold transition-colors cursor-pointer hidden md:block">
+            Apply Now
+          </button>
+          <Button 
+            onClick={() => navigate('/login')} 
+            className="px-5 py-2.5 rounded-full text-xs font-black bg-white text-[#02060C] hover:bg-gray-150 transition-colors shadow-lg"
+          >
+            Rider Login
+          </Button>
+        </div>
+      </header>
       {/* Hero */}
       <div className="relative h-[500px] md:h-[650px] bg-[#02060C] overflow-hidden">
         <motion.img 

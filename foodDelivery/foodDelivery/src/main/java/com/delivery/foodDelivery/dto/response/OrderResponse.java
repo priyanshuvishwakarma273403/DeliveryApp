@@ -28,6 +28,8 @@ public class OrderResponse {
     private String specialInstructions;
     private Double coinsUsed;
     private Double finalAmount;
+    private String restaurantAddress;
+    private String restaurantPhone;
     private DeliveryResponse delivery;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

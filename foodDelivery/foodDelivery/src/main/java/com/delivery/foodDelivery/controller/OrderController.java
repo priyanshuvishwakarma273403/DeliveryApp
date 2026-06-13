@@ -60,7 +60,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'DELIVERY_PARTNER')")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {

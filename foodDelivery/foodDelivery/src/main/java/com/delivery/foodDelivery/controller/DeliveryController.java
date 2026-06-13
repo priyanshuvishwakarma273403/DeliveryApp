@@ -4,7 +4,9 @@ import com.delivery.foodDelivery.dto.request.DeliveryActionRequest;
 import com.delivery.foodDelivery.dto.request.LocationUpdateRequest;
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.dto.response.DeliveryResponse;
+import com.delivery.foodDelivery.dto.response.OrderResponse;
 import com.delivery.foodDelivery.entity.DeliveryPartner;
+import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.repository.jpa.DeliveryPartnerRepository;
 import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.service.DeliveryService;
@@ -108,6 +110,23 @@ public class DeliveryController {
         return ResponseEntity.ok(ApiResponse.success("Location updated", null));
     }
 
+    @GetMapping("/partner/available")
+    @PreAuthorize("hasRole('DELIVERY_PARTNER')")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAvailableOrders() {
+        return ResponseEntity.ok(ApiResponse.success(
+                deliveryService.getAvailableOrdersForPickup()));
+    }
+
+    @PostMapping("/partner/order/{orderId}/accept")
+    @PreAuthorize("hasRole('DELIVERY_PARTNER')")
+    public ResponseEntity<ApiResponse<DeliveryResponse>> acceptOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long partnerId = resolvePartnerId(userDetails);
+        return ResponseEntity.ok(ApiResponse.success("Order accepted",
+                deliveryService.acceptAvailableOrder(orderId, partnerId)));
+    }
+
     @GetMapping("/partner/my")
     @PreAuthorize("hasRole('DELIVERY_PARTNER')")
     public ResponseEntity<ApiResponse<List<DeliveryResponse>>> myDeliveries(
@@ -124,8 +143,19 @@ public class DeliveryController {
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
         DeliveryPartner partner = partnerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Delivery partner profile not found for user: " + userId));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+                    DeliveryPartner newPartner = DeliveryPartner.builder()
+                            .user(user)
+                            .available(true)
+                            .vehicleType("Bike")
+                            .vehicleNumber("UP-16-AB-" + (1000 + new java.util.Random().nextInt(9000)))
+                            .currentCity(user.getAddress() != null ? user.getAddress() : "Delhi")
+                            .totalDeliveries(0)
+                            .build();
+                    return partnerRepository.save(newPartner);
+                });
         return partner.getId();
     }
 }

@@ -8,6 +8,7 @@ import com.delivery.foodDelivery.dto.response.PaymentResponse;
 import com.delivery.foodDelivery.entity.*;
 import com.delivery.foodDelivery.enums.OrderStatus;
 import com.delivery.foodDelivery.enums.PaymentStatus;
+import com.delivery.foodDelivery.enums.Role;
 import com.delivery.foodDelivery.exception.BusinessException;
 import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.exception.UnauthorizedException;
@@ -210,7 +211,17 @@ public class OrderService {
         Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
-        if (!order.getCustomer().getId().equals(requestingUserId)) {
+        User user = userRepository.findById(requestingUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", requestingUserId));
+
+        boolean isCustomer = order.getCustomer().getId().equals(requestingUserId);
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+        boolean isDeliveryPartner = false;
+        if (order.getDelivery() != null && order.getDelivery().getDeliveryPartner() != null) {
+            isDeliveryPartner = order.getDelivery().getDeliveryPartner().getUser().getId().equals(requestingUserId);
+        }
+
+        if (!isCustomer && !isAdmin && !isDeliveryPartner) {
             throw new UnauthorizedException("Access denied to order: " + orderId);
         }
         Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
@@ -307,6 +318,10 @@ public class OrderService {
                     .build();
         }
 
+        Restaurant restaurant = restaurantService.findById(o.getRestaurantId());
+        String restaurantAddress = restaurant != null ? restaurant.getAddress() : null;
+        String restaurantPhone = restaurant != null ? restaurant.getPhone() : null;
+
         return OrderResponse.builder()
                 .id(o.getId())
                 .customerId(o.getCustomer().getId())
@@ -314,6 +329,8 @@ public class OrderService {
                 .customerPhone(o.getCustomer().getPhone())
                 .restaurantId(o.getRestaurantId())
                 .restaurantName(restaurantName)
+                .restaurantAddress(restaurantAddress)
+                .restaurantPhone(restaurantPhone)
                 .orderItems(itemResponses)
                 .status(o.getStatus().name())
                 .totalAmount(o.getTotalAmount())

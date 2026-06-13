@@ -16,7 +16,7 @@ import {
   Star,
   Navigation
 } from 'lucide-react';
-import GoogleLiveMap from '../components/order/GoogleLiveMap';
+import LiveMap from '../components/order/LiveMap';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import orderService from '../services/orderService';
@@ -57,8 +57,8 @@ const OrderDetail = () => {
   const { user } = useAuthStore();
 
   // Positions
-  const restaurantPos = { lat: 28.6239, lng: 77.2290 };
-  const userPos = { lat: 28.6039, lng: 77.1890 };
+  const restaurantPos = { lat: 28.6295, lng: 77.3790 };
+  const userPos = { lat: 28.6210, lng: 77.3620 };
 
   const fetchOrderDetails = async () => {
     try {
@@ -282,10 +282,11 @@ const OrderDetail = () => {
           {/* Map */}
           <div className="lg:col-span-8">
             <div className="h-[300px] md:h-[500px] lg:h-full lg:min-h-[500px] rounded-2xl md:rounded-[3rem] overflow-hidden shadow-sm border-4 border-white bg-gray-100 relative">
-              <GoogleLiveMap 
+              <LiveMap 
                 riderPos={riderPos}
                 restaurantPos={restaurantPos}
                 userPos={userPos}
+                order={order}
               />
             </div>
           </div>

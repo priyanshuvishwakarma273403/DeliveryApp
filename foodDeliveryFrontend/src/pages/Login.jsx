@@ -48,7 +48,13 @@ const Login = () => {
           const { user: userData, accessToken } = response.data;
           login(userData, accessToken);
           toast.success(`Welcome back, ${userData.name}!`);
-          navigate(from, { replace: true });
+          if (userData.role === 'DELIVERY_PARTNER') {
+            navigate('/delivery/dashboard', { replace: true });
+          } else if (userData.role === 'ADMIN') {
+            navigate('/admin', { replace: true });
+          } else {
+            navigate(from, { replace: true });
+          }
         } else {
           toast.error(response.message || 'Google login failed');
         }
@@ -70,7 +76,13 @@ const Login = () => {
         const { user: userData, accessToken } = response.data;
         login(userData, accessToken);
         toast.success(`Welcome back, ${userData.name}!`);
-        navigate(from, { replace: true });
+        if (userData.role === 'DELIVERY_PARTNER') {
+          navigate('/delivery/dashboard', { replace: true });
+        } else if (userData.role === 'ADMIN') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else {
         toast.error(response.message || 'Login failed');
       }

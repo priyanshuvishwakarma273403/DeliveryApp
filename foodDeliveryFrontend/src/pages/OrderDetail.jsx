@@ -92,17 +92,31 @@ const OrderDetail = () => {
     return () => sub.unsubscribe();
   }, [client, user?.id, id]);
 
-  // Simulate rider movement
+  // Live location updates via WebSockets from rider
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRiderPos(prev => ({
-        lat: prev.lat - 0.0001,
-        lng: prev.lng - 0.0001
-      }));
-      setEta(prev => Math.max(1, prev - 1));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!client || !id) return;
+
+    // Set initial position if available in order delivery payload
+    if (order && order.delivery && order.delivery.currentLatitude && order.delivery.currentLongitude) {
+      setRiderPos({
+        lat: order.delivery.currentLatitude,
+        lng: order.delivery.currentLongitude
+      });
+    }
+
+    const sub = client.subscribe(`/topic/location/${id}`, (message) => {
+      if (message.body) {
+        const loc = JSON.parse(message.body);
+        setRiderPos({
+          lat: loc.latitude,
+          lng: loc.longitude
+        });
+        setEta(prev => Math.max(2, prev - 1));
+      }
+    });
+
+    return () => sub.unsubscribe();
+  }, [client, id, order]);
 
   if (loading) {
     return (

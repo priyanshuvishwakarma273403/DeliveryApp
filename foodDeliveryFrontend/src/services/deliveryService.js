@@ -6,6 +6,16 @@ export const deliveryService = {
     return response.data;
   },
 
+  getAvailableOrders: async () => {
+    const response = await apiClient.get('/delivery/partner/available');
+    return response.data;
+  },
+
+  acceptOrder: async (orderId) => {
+    const response = await apiClient.post(`/delivery/partner/order/${orderId}/accept`);
+    return response.data;
+  },
+
   handleAction: async (orderId, action) => {
     const response = await apiClient.post(`/delivery/partner/order/${orderId}/action`, { action });
     return response.data;

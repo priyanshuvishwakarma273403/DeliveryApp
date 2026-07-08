@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import axiosInstance from "@/api/axiosInstance";
 import { motion } from "framer-motion";
-import { FiMapPin, FiSearch, FiStar, FiClock, FiDollarSign, FiAward, FiCoffee, FiTrendingUp } from "react-icons/fi";
+import { FiMapPin, FiSearch, FiStar, FiClock, FiDollarSign, FiAward, FiCoffee, FiTrendingUp, FiCpu } from "react-icons/fi";
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
@@ -109,13 +109,20 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      {/* Search Input bar */}
-      <Link href="/customer/search" className="block">
-        <div className="flex items-center gap-3 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-textSecondary active:scale-[0.99] transition-all cursor-pointer">
-          <FiSearch className="text-lg text-textSecondary" />
-          <span className="text-sm">Search restaurant or cuisines...</span>
-        </div>
-      </Link>
+      {/* Search Input bar & AI Button Grid */}
+      <div className="grid grid-cols-5 gap-3">
+        <Link href="/customer/search" className="col-span-4 block">
+          <div className="flex items-center gap-3 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 h-[50px] text-textSecondary active:scale-[0.99] transition-all cursor-pointer">
+            <FiSearch className="text-lg text-textSecondary" />
+            <span className="text-xs truncate">Search restaurant or cuisines...</span>
+          </div>
+        </Link>
+        <Link href="/customer/ai-chat" className="col-span-1 block">
+          <div className="flex items-center justify-center bg-primary/10 border border-primary/20 rounded-xl h-[50px] text-primary active:scale-[0.99] transition-all cursor-pointer hover:bg-primary/15" title="Ask AI Assistant">
+            <FiCpu className="text-xl animate-pulse" />
+          </div>
+        </Link>
+      </div>
 
       {/* Category Selection Filter */}
       <div className="space-y-3">

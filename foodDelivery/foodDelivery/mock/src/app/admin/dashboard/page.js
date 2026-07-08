@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/api/axiosInstance";
 import useStomp from "@/hooks/useStomp";
 import { motion } from "framer-motion";
-import { FiTrendingUp, FiShoppingBag, FiUsers, FiDollarSign, FiMegaphone, FiAlertCircle } from "react-icons/fi";
+import { FiTrendingUp, FiShoppingBag, FiUsers, FiDollarSign, FiVolume2, FiAlertCircle } from "react-icons/fi";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
       <div className="glass-panel p-5 rounded-2xl space-y-4">
         <div className="flex items-center gap-3 border-b border-white/5 pb-3">
           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-            <FiMegaphone className="text-lg" />
+            <FiVolume2 className="text-lg" />
           </div>
           <div>
             <h4 className="font-bold text-sm text-textPrimary">Global Broadcaster</h4>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/js";
+import Link from "next/link";
 import axiosInstance from "@/api/axiosInstance";
 import { motion } from "framer-motion";
 import { FiSearch, FiStar, FiClock, FiMapPin, FiX } from "react-icons/fi";

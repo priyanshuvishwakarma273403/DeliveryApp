@@ -12,7 +12,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - OPENSEARCH_URL=http://opensearch:9200
       - OPENSEARCH_ENABLED=true
-      - MONGODB_URI=${MONGODB_URI:mongodb+srv://pv254424_db_user:s4VSChJ3XfgO0ms2@cluster0.kzeelbt.mongodb.net/food_delivery_db?appName=Cluster0}
+      - MONGODB_URI=${MONGODB_URI:-mongodb+srv://pv254424_db_user:s4VSChJ3XfgO0ms2@cluster0.kzeelbt.mongodb.net/food_delivery_db?appName=Cluster0}
     depends_on:
       - db
       - valkey
@@ -25,7 +25,7 @@ services:
       - MYSQL_DATABASE=food_delivery_db
       - MYSQL_ROOT_PASSWORD=pop99558$$
     ports:
-      - "3306:3306"
+      - "3307:3306"
 
   opensearch:
     image: opensearchproject/opensearch:2.11.0

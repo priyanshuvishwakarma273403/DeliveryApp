@@ -8,8 +8,15 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=pop99558$$
       - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - VALKEY_URL=redis://valkey:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - OPENSEARCH_URL=http://opensearch:9200
+      - OPENSEARCH_ENABLED=true
     depends_on:
       - db
+      - valkey
+      - kafka
+      - opensearch
 
   db:
     image: mysql:8.0
@@ -19,17 +26,18 @@ services:
     ports:
       - "3306:3306"
 
-  elasticsearch:
-    image: elasticsearch:8.10.2
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
 
-  redis:
-    image: redis:7-alpine
+  valkey:
+    image: valkey/valkey:latest
     ports:
       - "6379:6379"
 

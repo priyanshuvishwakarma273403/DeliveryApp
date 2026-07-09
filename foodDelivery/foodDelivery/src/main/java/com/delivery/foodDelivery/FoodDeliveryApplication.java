@@ -21,14 +21,73 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class FoodDeliveryApplication {
 
 	public static void main(String[] args) {
-		// Robust fix for environment variables with trailing newlines, literal "\n", or quotes
-		// cleanAndSetProperty("SPRING_DATASOURCE_URL", "spring.datasource.url"); // Using local MySQL
+		// 1. Database Configuration
+		String dbUrl = System.getenv("SPRING_DATASOURCE_URL");
+		if (dbUrl == null) {
+			dbUrl = System.getenv("MYSQL_URL");
+		}
+		if (dbUrl != null) {
+			String cleanUrl = dbUrl.trim()
+					.replace("\\n", "")
+					.replace("\\r", "")
+					.replace("\n", "")
+					.replace("\r", "");
+			if (cleanUrl.startsWith("\"") && cleanUrl.endsWith("\"")) {
+				cleanUrl = cleanUrl.substring(1, cleanUrl.length() - 1).trim();
+			}
+			if (cleanUrl.startsWith("\"") && cleanUrl.endsWith("\"")) {
+				cleanUrl = cleanUrl.substring(1, cleanUrl.length() - 1).trim();
+			}
+			if (cleanUrl.startsWith("mysql://")) {
+				cleanUrl = "jdbc:" + cleanUrl;
+			}
+			if (cleanUrl.contains("ssl-mode=")) {
+				cleanUrl = cleanUrl.replace("ssl-mode=", "sslMode=");
+			}
+			System.setProperty("spring.datasource.url", cleanUrl);
+			System.out.println("DEBUG: Cleaned SPRING_DATASOURCE_URL -> [" + cleanUrl + "]");
+		}
+		cleanAndSetProperty("SPRING_DATASOURCE_USERNAME", "spring.datasource.username");
+		cleanAndSetProperty("SPRING_DATASOURCE_PASSWORD", "spring.datasource.password");
+
+		// 2. MongoDB Configuration
 		cleanAndSetProperty("MONGODB_URI", "spring.data.mongodb.uri");
-		// cleanAndSetProperty("KAFKA_BOOTSTRAP_SERVERS", "spring.kafka.bootstrap-servers");
-		// cleanAndSetProperty("VALKEY_HOST", "spring.data.redis.host");
-		// cleanAndSetProperty("ELASTICSEARCH_URL", "spring.elasticsearch.uris");
-		// cleanAndSetProperty("ELASTICSEARCH_USERNAME", "spring.elasticsearch.username");
-		// cleanAndSetProperty("ELASTICSEARCH_PASSWORD", "spring.elasticsearch.password");
+
+		// 3. Valkey Configuration
+		cleanAndSetProperty("VALKEY_URL", "spring.data.redis.url");
+
+		// 4. OpenSearch Configuration
+		String opensearchUrl = System.getenv("OPENSEARCH_URL");
+		if (opensearchUrl != null && !opensearchUrl.trim().isEmpty()) {
+			String cleanUrl = opensearchUrl.trim()
+					.replace("\\n", "")
+					.replace("\\r", "")
+					.replace("\n", "")
+					.replace("\r", "");
+			if (cleanUrl.startsWith("\"") && cleanUrl.endsWith("\"")) {
+				cleanUrl = cleanUrl.substring(1, cleanUrl.length() - 1).trim();
+			}
+			System.setProperty("spring.elasticsearch.uris", cleanUrl);
+			System.setProperty("elasticsearch.enabled", "true");
+			System.out.println("DEBUG: Cleaned OPENSEARCH_URL -> [" + cleanUrl + "] (OpenSearch Enabled)");
+		}
+
+		// 5. Kafka Configuration
+		cleanAndSetProperty("KAFKA_BOOTSTRAP_SERVERS", "spring.kafka.bootstrap-servers");
+		String kafkaUser = System.getenv("KAFKA_USER");
+		String kafkaPassword = System.getenv("KAFKA_PASSWORD");
+		if (kafkaUser != null && kafkaPassword != null) {
+			String cleanUser = kafkaUser.trim().replace("\"", "");
+			String cleanPassword = kafkaPassword.trim().replace("\"", "");
+			String jaasConfig = String.format(
+					"org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
+					cleanUser, cleanPassword
+			);
+			System.setProperty("spring.kafka.properties.sasl.jaas.config", jaasConfig);
+			System.setProperty("spring.kafka.properties.sasl.mechanism", "SCRAM-SHA-256");
+			System.setProperty("spring.kafka.security.protocol", "SASL_SSL");
+			System.out.println("DEBUG: Configured Kafka SASL_SSL with SCRAM-SHA-256 for user " + cleanUser);
+		}
 		
 		// If KAFKA_ENABLED is explicitly false, disable Kafka auto-startup
 		String kafkaEnabled = System.getenv("KAFKA_ENABLED");

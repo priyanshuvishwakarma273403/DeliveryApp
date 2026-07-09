@@ -1,6 +1,10 @@
 package com.delivery.foodDelivery.config;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +21,7 @@ import java.net.URI;
 
 /**
  * Elasticsearch configuration that only activates when elasticsearch.enabled=true.
- * By default, Elasticsearch is DISABLED so the app can start without it.
+ * Supports basic authentication and SSL/HTTPS natively for Aiven OpenSearch.
  */
 @Configuration
 @ConditionalOnProperty(name = "elasticsearch.enabled", havingValue = "true", matchIfMissing = false)
@@ -34,6 +38,10 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
         System.out.println("DEBUG: ElasticsearchConfig - Resolving connection to: " + uriStr);
 
+        if (uriStr.contains(",")) {
+            uriStr = uriStr.split(",")[0];
+        }
+        uriStr = uriStr.trim();
         if (!uriStr.startsWith("http")) {
             uriStr = "http://" + uriStr;
         }
@@ -42,9 +50,26 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? 9200 : uri.getPort();
 
-        return ClientConfiguration.builder()
-                .connectedTo(host + ":" + port)
-                .build();
+        ClientConfiguration.TerminalClientConfigurationBuilder builder = ClientConfiguration.builder()
+                .connectedTo(host + ":" + port);
+
+        if ("https".equalsIgnoreCase(uri.getScheme())) {
+            builder = builder.usingSsl();
+        }
+
+        String userInfo = uri.getUserInfo();
+        if (userInfo != null && userInfo.contains(":")) {
+            String[] credentials = userInfo.split(":", 2);
+            builder = builder.withBasicAuth(credentials[0], credentials[1]);
+        } else {
+            String username = env.getProperty("spring.elasticsearch.username");
+            String password = env.getProperty("spring.elasticsearch.password");
+            if (username != null && !username.isEmpty()) {
+                builder = builder.withBasicAuth(username, password);
+            }
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -53,6 +78,10 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
         String uriStr = env.getProperty("spring.elasticsearch.uris", "http://localhost:9200");
 
+        if (uriStr.contains(",")) {
+            uriStr = uriStr.split(",")[0];
+        }
+        uriStr = uriStr.trim();
         if (!uriStr.startsWith("http")) {
             uriStr = "http://" + uriStr;
         }
@@ -62,6 +91,29 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         int port = uri.getPort() == -1 ? 9200 : uri.getPort();
 
         RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, uri.getScheme()));
+
+        String userInfo = uri.getUserInfo();
+        String username = null;
+        String password = null;
+
+        if (userInfo != null && userInfo.contains(":")) {
+            String[] credentials = userInfo.split(":", 2);
+            username = credentials[0];
+            password = credentials[1];
+        } else {
+            username = env.getProperty("spring.elasticsearch.username");
+            password = env.getProperty("spring.elasticsearch.password");
+        }
+
+        if (username != null && !username.isEmpty()) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(username, password));
+            
+            builder.setHttpClientConfigCallback(httpClientBuilder -> 
+                    httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+        }
+
         return builder.build();
     }
 }

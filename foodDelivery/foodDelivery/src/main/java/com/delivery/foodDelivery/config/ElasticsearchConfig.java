@@ -50,26 +50,29 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? 9200 : uri.getPort();
 
-        ClientConfiguration.TerminalClientConfigurationBuilder builder = ClientConfiguration.builder()
+        ClientConfiguration.MaybeSecureClientConfigurationBuilder builder = ClientConfiguration.builder()
                 .connectedTo(host + ":" + port);
 
+        ClientConfiguration.TerminalClientConfigurationBuilder terminalBuilder;
         if ("https".equalsIgnoreCase(uri.getScheme())) {
-            builder = builder.usingSsl();
+            terminalBuilder = builder.usingSsl();
+        } else {
+            terminalBuilder = builder;
         }
 
         String userInfo = uri.getUserInfo();
         if (userInfo != null && userInfo.contains(":")) {
             String[] credentials = userInfo.split(":", 2);
-            builder = builder.withBasicAuth(credentials[0], credentials[1]);
+            terminalBuilder = terminalBuilder.withBasicAuth(credentials[0], credentials[1]);
         } else {
             String username = env.getProperty("spring.elasticsearch.username");
             String password = env.getProperty("spring.elasticsearch.password");
             if (username != null && !username.isEmpty()) {
-                builder = builder.withBasicAuth(username, password);
+                terminalBuilder = terminalBuilder.withBasicAuth(username, password);
             }
         }
 
-        return builder.build();
+        return terminalBuilder.build();
     }
 
     @Override

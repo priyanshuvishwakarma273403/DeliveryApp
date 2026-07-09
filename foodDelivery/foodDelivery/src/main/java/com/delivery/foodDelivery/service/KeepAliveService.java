@@ -1,34 +1,48 @@
 package com.delivery.foodDelivery.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Service to prevent Render from going to sleep on the free tier.
+ * It pings its own public health check endpoint every 5 minutes.
+ */
 @Service
-@Slf4j
 public class KeepAliveService {
 
+    private static final Logger log = LoggerFactory.getLogger(KeepAliveService.class);
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${server.port:8080}")
-    private String port;
+    // Injected automatically by Render (RENDER_EXTERNAL_URL) or set in env variables
+    @Value("${RENDER_EXTERNAL_URL:}")
+    private String renderExternalUrl;
 
-    /**
-     * Pings the application itself every 10 minutes to prevent Render from sleeping.
-     * Render Free Tier spins down after 15 minutes of inactivity.
-     */
-    @Scheduled(fixedRate = 600000) // 10 minutes in milliseconds
-    public void keepServerAlive() {
+    // Run every 5 minutes: 5 * 60 * 1000 = 300000 ms
+    @Scheduled(fixedRate = 300000)
+    public void pingSelf() {
+        if (renderExternalUrl == null || renderExternalUrl.trim().isEmpty()) {
+            log.info("KeepAliveService: RENDER_EXTERNAL_URL is not set. Skipping self-ping.");
+            return;
+        }
+
         try {
-            // We ping the root context or a health endpoint
-            String url = "http://localhost:" + port + "/api/health/ping";
-            log.info("Sending Keep-Alive heartbeat to: {}", url);
-            restTemplate.getForObject(url, String.class);
+            String baseUrl = renderExternalUrl.trim();
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+            
+            // Build the public ping URL (context path is /api)
+            String pingUrl = baseUrl + "/api/health/ping";
+
+            log.info("KeepAliveService: Pinging self at {}", pingUrl);
+            String response = restTemplate.getForObject(pingUrl, String.class);
+            log.info("KeepAliveService: Ping response: {}", response);
         } catch (Exception e) {
-            // Even if it fails (e.g. 404), the request itself keeps the server awake
-            log.warn("Keep-Alive heartbeat sent, but received an error (This is expected if endpoint is not fully public): {}", e.getMessage());
+            log.warn("KeepAliveService: Ping failed: {}", e.getMessage());
         }
     }
 }

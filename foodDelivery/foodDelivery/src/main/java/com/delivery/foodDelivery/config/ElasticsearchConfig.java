@@ -15,7 +15,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
-import org.springframework.data.repository.config.BootstrapMode;
 import org.springframework.lang.NonNull;
 
 import javax.net.ssl.SSLContext;

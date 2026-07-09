@@ -8,8 +8,8 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
@@ -25,12 +25,12 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 /**
- * Elasticsearch configuration that only activates when elasticsearch.enabled=true.
+ * Elasticsearch configuration that only activates when the configured OpenSearch cluster is reachable.
  * Supports basic authentication and SSL/HTTPS natively for Aiven OpenSearch.
- * Uses LAZY bootstrap mode and trust-all SSL to prevent startup crashes.
+ * Uses trust-all SSL to prevent certificate path issues.
  */
 @Configuration
-@ConditionalOnProperty(name = "elasticsearch.enabled", havingValue = "true", matchIfMissing = false)
+@Conditional(ElasticsearchConnectionCondition.class)
 @EnableElasticsearchRepositories(
     basePackages = "com.delivery.foodDelivery.repository.elasticsearch"
 )

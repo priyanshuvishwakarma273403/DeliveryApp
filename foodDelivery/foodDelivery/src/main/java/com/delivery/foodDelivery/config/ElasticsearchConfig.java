@@ -15,21 +15,47 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.data.repository.config.BootstrapMode;
 import org.springframework.lang.NonNull;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.net.URI;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 /**
  * Elasticsearch configuration that only activates when elasticsearch.enabled=true.
  * Supports basic authentication and SSL/HTTPS natively for Aiven OpenSearch.
+ * Uses LAZY bootstrap mode and trust-all SSL to prevent startup crashes.
  */
 @Configuration
 @ConditionalOnProperty(name = "elasticsearch.enabled", havingValue = "true", matchIfMissing = false)
-@EnableElasticsearchRepositories(basePackages = "com.delivery.foodDelivery.repository.elasticsearch")
+@EnableElasticsearchRepositories(
+    basePackages = "com.delivery.foodDelivery.repository.elasticsearch",
+    bootstrapMode = BootstrapMode.LAZY
+)
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Autowired
     private Environment env;
+
+    private SSLContext getTrustAllSslContext() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                }
+            }, new SecureRandom());
+            return sslContext;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create trust-all SSL context", e);
+        }
+    }
 
     @Override
     @NonNull
@@ -55,7 +81,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
         ClientConfiguration.TerminalClientConfigurationBuilder terminalBuilder;
         if ("https".equalsIgnoreCase(uri.getScheme())) {
-            terminalBuilder = builder.usingSsl();
+            terminalBuilder = builder.usingSsl(getTrustAllSslContext(), (hostname, session) -> true);
         } else {
             terminalBuilder = builder;
         }
@@ -108,13 +134,27 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             password = env.getProperty("spring.elasticsearch.password");
         }
 
-        if (username != null && !username.isEmpty()) {
+        final String finalUsername = username;
+        final String finalPassword = password;
+
+        if (finalUsername != null && !finalUsername.isEmpty()) {
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(username, password));
+                    new UsernamePasswordCredentials(finalUsername, finalPassword));
             
-            builder.setHttpClientConfigCallback(httpClientBuilder -> 
-                    httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+                if ("https".equalsIgnoreCase(uri.getScheme())) {
+                    httpClientBuilder.setSSLContext(getTrustAllSslContext());
+                    httpClientBuilder.setSSLHostnameVerifier((hostname, session) -> true);
+                }
+                return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            });
+        } else if ("https".equalsIgnoreCase(uri.getScheme())) {
+            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+                httpClientBuilder.setSSLContext(getTrustAllSslContext());
+                httpClientBuilder.setSSLHostnameVerifier((hostname, session) -> true);
+                return httpClientBuilder;
+            });
         }
 
         return builder.build();

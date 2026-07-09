@@ -33,8 +33,7 @@ import java.security.cert.X509Certificate;
 @Configuration
 @ConditionalOnProperty(name = "elasticsearch.enabled", havingValue = "true", matchIfMissing = false)
 @EnableElasticsearchRepositories(
-    basePackages = "com.delivery.foodDelivery.repository.elasticsearch",
-    bootstrapMode = BootstrapMode.LAZY
+    basePackages = "com.delivery.foodDelivery.repository.elasticsearch"
 )
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 

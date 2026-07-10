@@ -4,6 +4,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -135,25 +136,23 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         final String finalUsername = username;
         final String finalPassword = password;
 
-        if (finalUsername != null && !finalUsername.isEmpty()) {
-            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(finalUsername, finalPassword));
-            
-            builder.setHttpClientConfigCallback(httpClientBuilder -> {
-                if ("https".equalsIgnoreCase(uri.getScheme())) {
-                    httpClientBuilder.setSSLContext(getTrustAllSslContext());
-                    httpClientBuilder.setSSLHostnameVerifier((hostname, session) -> true);
-                }
-                return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            });
-        } else if ("https".equalsIgnoreCase(uri.getScheme())) {
-            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+        builder.setHttpClientConfigCallback(httpClientBuilder -> {
+            if ("https".equalsIgnoreCase(uri.getScheme())) {
                 httpClientBuilder.setSSLContext(getTrustAllSslContext());
                 httpClientBuilder.setSSLHostnameVerifier((hostname, session) -> true);
-                return httpClientBuilder;
+            }
+            if (finalUsername != null && !finalUsername.isEmpty()) {
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY,
+                        new UsernamePasswordCredentials(finalUsername, finalPassword));
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            }
+            // Add custom response interceptor to inject X-Elastic-Product header for OpenSearch compatibility
+            httpClientBuilder.addInterceptorLast((HttpResponseInterceptor) (response, context) -> {
+                response.addHeader("X-Elastic-Product", "Elasticsearch");
             });
-        }
+            return httpClientBuilder;
+        });
 
         return builder.build();
     }

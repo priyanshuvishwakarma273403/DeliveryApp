@@ -18,10 +18,6 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Automatically prepend context path '/api' for relative request paths to prevent stripping of context path in production
-    if (config.url && config.url.startsWith('/') && !config.url.startsWith('/api')) {
-      config.url = `/api${config.url}`;
-    }
     return config;
   },
   (error) => Promise.reject(error)

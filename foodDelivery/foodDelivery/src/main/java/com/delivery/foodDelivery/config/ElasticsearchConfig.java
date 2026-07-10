@@ -3,6 +3,9 @@ package com.delivery.foodDelivery.config;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -147,6 +150,25 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
                         new UsernamePasswordCredentials(finalUsername, finalPassword));
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
             }
+            // Add custom request interceptor to rewrite Content-Type and Accept headers for OpenSearch compatibility
+            httpClientBuilder.addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
+                if (request.containsHeader("Content-Type")) {
+                    Header[] headers = request.getHeaders("Content-Type");
+                    for (Header header : headers) {
+                        if (header.getValue().contains("application/vnd.elasticsearch+json")) {
+                            request.setHeader("Content-Type", "application/json");
+                        }
+                    }
+                }
+                if (request.containsHeader("Accept")) {
+                    Header[] headers = request.getHeaders("Accept");
+                    for (Header header : headers) {
+                        if (header.getValue().contains("application/vnd.elasticsearch+json")) {
+                            request.setHeader("Accept", "application/json");
+                        }
+                    }
+                }
+            });
             // Add custom response interceptor to inject X-Elastic-Product header for OpenSearch compatibility
             httpClientBuilder.addInterceptorLast((HttpResponseInterceptor) (response, context) -> {
                 response.addHeader("X-Elastic-Product", "Elasticsearch");

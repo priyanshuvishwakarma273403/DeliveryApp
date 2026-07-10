@@ -12,7 +12,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import { useEffect } from 'react';
 import { WebSocketProvider } from './providers/WebSocketProvider';
-import { APP_VERSION } from './version';
 
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home'));
@@ -67,7 +66,7 @@ const PageLoader = () => (
 
 function App() {
   useEffect(() => {
-    // 1. Handle Chunk Load Errors (dynamic import failures when files change on deploy)
+    // Handle Chunk Load Errors (dynamic import failures when files change on deploy)
     const handleError = (e) => {
       if (e.message?.includes('Failed to fetch dynamically imported module') || 
           e.message?.includes('Importing a module script failed')) {
@@ -77,29 +76,8 @@ function App() {
     };
     window.addEventListener('error', handleError);
 
-    // 2. Poll server build version to trigger auto-reload on new deployment
-    const checkForUpdates = async () => {
-      try {
-        const response = await fetch(`/version.json?t=${Date.now()}`);
-        if (response.ok) {
-          const data = await response.json();
-          // If server build version doesn't match APP_VERSION, force refresh the browser
-          if (data.version && APP_VERSION !== 0 && data.version !== APP_VERSION) {
-            console.log('New deployment detected! Refreshing website...');
-            window.location.reload();
-          }
-        }
-      } catch (err) {
-        console.warn('Could not verify application build version:', err);
-      }
-    };
-
-    checkForUpdates();
-    const interval = setInterval(checkForUpdates, 60000); // Check for updates every 1 minute
-
     return () => {
       window.removeEventListener('error', handleError);
-      clearInterval(interval);
     };
   }, []);
 

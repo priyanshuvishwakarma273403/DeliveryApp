@@ -32,6 +32,7 @@ import WalletBadge from '../wallet/WalletBadge';
 import Button from '../common/Button';
 import LocationModal from './LocationModal';
 import { cn } from '../../utils/cn';
+import apiClient from '../../api/axios';
 
 
 const Header = () => {
@@ -93,7 +94,7 @@ const Header = () => {
     const timer = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
         try {
-          const response = await axios.get(`/api/search/autocomplete?q=${searchQuery}`);
+          const response = await apiClient.get(`/search/autocomplete?q=${searchQuery}`);
           setSearchResults(response.data);
           setShowResults(true);
         } catch (error) {

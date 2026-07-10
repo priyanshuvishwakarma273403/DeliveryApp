@@ -20,7 +20,7 @@ import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { cn } from '../utils/cn';
 import { useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/axios';
 
 const Restaurants = () => {
   const [searchParams] = useSearchParams();
@@ -43,10 +43,10 @@ const Restaurants = () => {
         setIsLoading(true);
         let responseData;
         if (search.trim()) {
-          const res = await axios.get(`/api/search/restaurants?q=${search}`);
+          const res = await apiClient.get(`/search/restaurants?q=${search}`);
           responseData = res.data;
         } else {
-          const res = await axios.get('/api/restaurants');
+          const res = await apiClient.get('/restaurants');
           responseData = res.data;
         }
         console.log("API Response:", responseData);

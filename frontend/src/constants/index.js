@@ -1,7 +1,7 @@
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://deliveryapp-wwx8.onrender.com/api';
 
 
-export const WS_URL = import.meta.env.VITE_WS_URL || 'wss://deliveryapp-wwx8.onrender.com/api/ws';
+export const WS_URL = import.meta.env.VITE_WS_URL || 'https://deliveryapp-wwx8.onrender.com/api/ws';
 
 
 export const ORDER_STATUS = {

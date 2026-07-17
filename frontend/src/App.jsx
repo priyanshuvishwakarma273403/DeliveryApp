@@ -57,6 +57,7 @@ const AdminImageVerification = lazy(() => import('./pages/AdminImageVerification
 const AdminPlateDesigner = lazy(() => import('./pages/AdminPlateDesigner'));
 const AdminDeliveryRisk = lazy(() => import('./pages/AdminDeliveryRisk'));
 const RestaurantBattle = lazy(() => import('./pages/RestaurantBattle'));
+const CelebrationPlanner = lazy(() => import('./pages/CelebrationPlanner'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
@@ -120,6 +121,7 @@ function App() {
                   <Route path="/gold" element={<FoodIQGold />} />
                   <Route path="/blogs" element={<Blogs />} />
                   <Route path="/battle" element={<RestaurantBattle />} />
+                  <Route path="/celebration-planner" element={<CelebrationPlanner />} />
                   <Route path="/checkout" element={<ProtectedRoute roles={['CUSTOMER']}><Checkout /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute roles={['CUSTOMER']}><Orders /></ProtectedRoute>} />
                   <Route path="/orders/:id" element={<ProtectedRoute roles={['CUSTOMER']}><OrderDetail /></ProtectedRoute>} />

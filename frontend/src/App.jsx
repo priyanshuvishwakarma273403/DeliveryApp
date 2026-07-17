@@ -38,7 +38,7 @@ const FAQ = lazy(() => import('./pages/FAQ'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const DeliveryPartnerCTA = lazy(() => import('./pages/DeliveryPartnerCTA'));
-const TomatoGold = lazy(() => import('./pages/TomatoGold'));
+const FoodIQGold = lazy(() => import('./pages/FoodIQGold'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Blogs = lazy(() => import('./pages/Blogs'));
 const AdminBlogs = lazy(() => import('./pages/AdminBlogs'));
@@ -102,7 +102,7 @@ function App() {
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/delivery" element={<DeliveryPartnerCTA />} />
-                  <Route path="/gold" element={<TomatoGold />} />
+                  <Route path="/gold" element={<FoodIQGold />} />
                   <Route path="/blogs" element={<Blogs />} />
                   <Route path="/checkout" element={<ProtectedRoute roles={['CUSTOMER']}><Checkout /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute roles={['CUSTOMER']}><Orders /></ProtectedRoute>} />

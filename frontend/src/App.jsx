@@ -49,6 +49,10 @@ const AdminSupplyWaste = lazy(() => import('./pages/AdminSupplyWaste'));
 const AdminCustomerIntelligence = lazy(() => import('./pages/AdminCustomerIntelligence'));
 const AdminSimulations = lazy(() => import('./pages/AdminSimulations'));
 const AdminKitchenVision = lazy(() => import('./pages/AdminKitchenVision'));
+const AdminBusinessForecast = lazy(() => import('./pages/AdminBusinessForecast'));
+const AdminKnowledgeGraph = lazy(() => import('./pages/AdminKnowledgeGraph'));
+const AdminExperiments = lazy(() => import('./pages/AdminExperiments'));
+const AdminGlobalIntelligence = lazy(() => import('./pages/AdminGlobalIntelligence'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
@@ -124,6 +128,10 @@ function App() {
                   <Route path="/admin/customer-intel" element={<ProtectedRoute roles={['ADMIN']}><AdminCustomerIntelligence /></ProtectedRoute>} />
                   <Route path="/admin/simulations" element={<ProtectedRoute roles={['ADMIN']}><AdminSimulations /></ProtectedRoute>} />
                   <Route path="/admin/kitchen-vision" element={<ProtectedRoute roles={['ADMIN']}><AdminKitchenVision /></ProtectedRoute>} />
+                  <Route path="/admin/business-forecast" element={<ProtectedRoute roles={['ADMIN']}><AdminBusinessForecast /></ProtectedRoute>} />
+                  <Route path="/admin/knowledge-graph" element={<ProtectedRoute roles={['ADMIN']}><AdminKnowledgeGraph /></ProtectedRoute>} />
+                  <Route path="/admin/experiments" element={<ProtectedRoute roles={['ADMIN']}><AdminExperiments /></ProtectedRoute>} />
+                  <Route path="/admin/global-intel" element={<ProtectedRoute roles={['ADMIN']}><AdminGlobalIntelligence /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />

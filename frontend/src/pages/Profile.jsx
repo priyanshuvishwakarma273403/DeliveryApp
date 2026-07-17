@@ -28,6 +28,7 @@ const Profile = () => {
     { id: 'orders', label: 'Orders', icon: ShoppingBag, color: 'text-orange-500', bg: 'bg-orange-50' },
     { id: 'favorites', label: 'Favorites', icon: Heart, color: 'text-red-500', bg: 'bg-red-50' },
     { id: 'addresses', label: 'Addresses', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50' },
+    { id: 'allergies', label: 'Allergy Guardian', icon: Shield, color: 'text-rose-500', bg: 'bg-rose-50' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 

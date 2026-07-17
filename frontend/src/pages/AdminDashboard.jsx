@@ -21,7 +21,8 @@ import {
   Network,
   Image as ImageIcon,
   Compass,
-  CloudRain
+  CloudRain,
+  Building
 } from 'lucide-react';
 
 
@@ -259,6 +260,9 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/delivery-risk" className="flex items-center gap-4 text-rose-600 font-black hover:text-rose-500 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10 transition-all">
               <CloudRain size={20} /> AI Delivery Risk
+            </Link>
+            <Link to="/admin/restaurant-cockpit" className="flex items-center gap-4 text-teal-600 font-black hover:text-teal-500 bg-teal-500/5 p-4 rounded-2xl border border-teal-500/10 transition-all">
+              <Building size={20} /> Restaurant Cockpit
             </Link>
 
             <div className="pt-6 mt-6 border-t border-gray-100">

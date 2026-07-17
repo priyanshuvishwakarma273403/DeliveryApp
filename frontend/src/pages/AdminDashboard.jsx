@@ -13,7 +13,6 @@ import {
   Bell,
   Cpu
 } from 'lucide-react';
-} from 'lucide-react';
 
 
 import { 

@@ -17,7 +17,7 @@ const mockLeaderboard = [
   { rank: 2, name: 'Nikhil Sharma', rating: 4.90, speed: '23 min avg', orders: 110 },
   { rank: 3, name: 'Ashu Verma', rating: 4.89, speed: '22 min avg', orders: 98 },
   { rank: 4, name: 'You', rating: 4.85, speed: '24 min avg', orders: 85, isCurrentUser: true },
-  { rank: 5, name: 'Rishabh Pal', rating: 4.80, speed: '26 min avg', orders: 74 }
+  { rank: 5, name: 'Rishabh Sharma', rating: 4.80, speed: '26 min avg', orders: 74 }
 ];
 
 const DeliveryDashboard = () => {

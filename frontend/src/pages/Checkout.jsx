@@ -205,7 +205,7 @@ const Checkout = () => {
                   <Coins size={22} />
                </div>
                <div>
-                  <h4 className="font-bold text-text-primary text-sm shadow-text uppercase">Tomato Wallet</h4>
+                  <h4 className="font-bold text-text-primary text-sm shadow-text uppercase">FoodIQ Wallet</h4>
                   <p className="text-xs text-text-secondary font-medium">Balance: {coins} Coins</p>
                </div>
             </div>

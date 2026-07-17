@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
+import { toast } from 'react-hot-toast';
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuthStore();
@@ -55,15 +56,15 @@ const Profile = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
-                      activeTab === tab.id 
-                        ? `${tab.bg} ${tab.color} shadow-sm` 
-                        : "text-[#686B78] hover:bg-gray-50"
+                       "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
+                       activeTab === tab.id 
+                         ? `${tab.bg} ${tab.color} shadow-sm` 
+                         : "text-[#686B78] hover:bg-gray-50"
                     )}
                   >
                     <div className={cn(
-                      "h-10 w-10 rounded-xl flex items-center justify-center transition-all",
-                      activeTab === tab.id ? "bg-white shadow-sm" : "bg-gray-50 group-hover:bg-white"
+                       "h-10 w-10 rounded-xl flex items-center justify-center transition-all",
+                       activeTab === tab.id ? "bg-white shadow-sm" : "bg-gray-50 group-hover:bg-white"
                     )}>
                       <tab.icon size={20} strokeWidth={2.5} />
                     </div>
@@ -156,7 +157,7 @@ const Profile = () => {
                   {activeTab === 'settings' && (
                     <div className="p-6 md:p-10">
                        <h3 className="text-2xl font-black text-[#1C1C1C] mb-8">Account Settings</h3>
-                       <form className="space-y-6 max-w-lg">
+                       <form className="space-y-6 max-w-lg" onSubmit={(e) => e.preventDefault()}>
                           <div className="space-y-2">
                              <label className="text-xs font-black text-[#686B78] uppercase tracking-widest ml-1">Full Name</label>
                              <input 
@@ -229,6 +230,80 @@ const Profile = () => {
                        </div>
                     </div>
                   )}
+
+                  {activeTab === 'allergies' && (
+                    <div className="p-6 md:p-10">
+                       <h3 className="text-2xl font-black text-[#1C1C1C] mb-2 flex items-center gap-2">
+                          <Shield className="text-rose-500" size={24} />
+                          AI Allergy Guardian Profile
+                       </h3>
+                       <p className="text-[#686B78] font-medium text-xs mb-8">
+                          Specify your allergens and dietary restrictions. The AI Allergy Guardian will automatically warn you before checkout if any dish is unsafe or carries cross-contamination risk.
+                       </p>
+
+                       <div className="space-y-8">
+                          <div className="space-y-3">
+                             <h4 className="text-sm font-black text-[#1C1C1C] uppercase tracking-wider">Active Allergies</h4>
+                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {['Peanut', 'Dairy', 'Gluten', 'Shellfish', 'Soy', 'Nuts'].map((allergen) => {
+                                   const isSelected = (user?.allergens || []).includes(allergen);
+                                   return (
+                                      <button
+                                         key={allergen}
+                                         type="button"
+                                         onClick={() => {
+                                            const current = user?.allergens || [];
+                                            const updated = isSelected 
+                                               ? current.filter(x => x !== allergen) 
+                                               : [...current, allergen];
+                                            updateUser({ allergens: updated });
+                                            toast.success(`${allergen} allergy updated`);
+                                         }}
+                                         className={`py-3 px-4 rounded-xl border-2 text-xs font-bold text-left transition-all ${
+                                            isSelected 
+                                               ? 'border-rose-500 bg-rose-50/50 text-rose-600 font-black shadow-sm' 
+                                               : 'border-gray-100 hover:border-gray-200 text-[#686B78]'
+                                         }`}
+                                      >
+                                         {isSelected ? '✓ ' : '+ '} {allergen}
+                                      </button>
+                                   );
+                                })}
+                             </div>
+                          </div>
+
+                          <div className="space-y-3">
+                             <h4 className="text-sm font-black text-[#1C1C1C] uppercase tracking-wider">Dietary Preferences</h4>
+                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {['Vegetarian', 'Vegan', 'Keto', 'Halal'].map((diet) => {
+                                   const isSelected = (user?.dietary || []).includes(diet);
+                                   return (
+                                      <button
+                                         key={diet}
+                                         type="button"
+                                         onClick={() => {
+                                            const current = user?.dietary || [];
+                                            const updated = isSelected 
+                                               ? current.filter(x => x !== diet) 
+                                               : [...current, diet];
+                                            updateUser({ dietary: updated });
+                                            toast.success(`${diet} preference updated`);
+                                         }}
+                                         className={`py-3 px-4 rounded-xl border-2 text-xs font-bold text-left transition-all ${
+                                            isSelected 
+                                               ? 'border-green-500 bg-green-50/50 text-green-600 font-black shadow-sm' 
+                                               : 'border-gray-100 hover:border-gray-200 text-[#686B78]'
+                                         }`}
+                                      >
+                                         {isSelected ? '✓ ' : '+ '} {diet}
+                                      </button>
+                                   );
+                                })}
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                  )}
                 </motion.div>
              </AnimatePresence>
           </div>
@@ -239,4 +314,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

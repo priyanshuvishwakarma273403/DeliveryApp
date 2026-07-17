@@ -21,7 +21,7 @@ const HELP_DATA = [
     questions: [
       { q: "How do I track my order live?", a: "Once your order is placed, you can see a 'Track Order' button on the order confirmation screen or in the 'My Orders' section of your profile." },
       { q: "Can I edit my delivery address after ordering?", a: "Unfortunately, addresses cannot be changed once an order is confirmed. However, you can contact our support team immediately to see if the driver can be notified." },
-      { q: "What if my food is late?", a: "We strive for on-time delivery. If your order is significantly delayed, you will be eligible for a 'Tomato Refund' as per our late delivery policy." }
+      { q: "What if my food is late?", a: "We strive for on-time delivery. If your order is significantly delayed, you will be eligible for a 'FoodIQ Refund' as per our late delivery policy." }
     ]
   },
   {
@@ -181,7 +181,7 @@ const FAQ = () => {
                    
                    <div className="space-y-3">
                       <a 
-                        href="https://wa.me/919369420619?text=Hi Tomato Support, I need help with my order." 
+                        href="https://wa.me/919369420619?text=Hi FoodIQ Support, I need help with my order." 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="w-full bg-primary py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm hover:scale-[1.02] transition-transform"
@@ -195,7 +195,7 @@ const FAQ = () => {
                          <Phone size={20} /> Call Support
                       </a>
                       <a 
-                        href="mailto:support@tomato.food?subject=Support Request from Tomato App"
+                        href="mailto:support@foodiq.ai?subject=Support Request from FoodIQ App"
                         className="w-full border border-white/10 py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm hover:bg-white/5 transition-all"
                       >
                          <Mail size={20} /> Send an Email
@@ -223,7 +223,7 @@ const FAQ = () => {
                       </div>
                       <div>
                          <p className="text-xs text-[#686B78] font-bold">Email</p>
-                         <p className="text-sm font-black">support@tomato.food</p>
+                         <p className="text-sm font-black">support@foodiq.ai</p>
                       </div>
                    </div>
                 </div>

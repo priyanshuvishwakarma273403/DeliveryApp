@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Cpu, Shield, MapPin, Users, Flame, Navigation, 
   TrendingUp, RefreshCw, AlertTriangle, Zap, CheckCircle2, 
-  Layers, Settings, Play, Pause, ChevronRight, BarChart2
+  Layers, Settings, Play, Pause, ChevronRight, BarChart2, ShieldAlert,
+  Activity, ActivityIcon, Bike, DollarSign
 } from 'lucide-react';
 import { 
   ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip
@@ -17,14 +18,15 @@ const AdminOpsCenter = () => {
   // Autopilot status
   const [autoPilot, setAutoPilot] = useState(true);
   const [simulationHour, setSimulationHour] = useState(1); // 1hr, 2hr, 4hr forecasts
-  const [activeTab, setActiveTab] = useState('orders'); // orders, map, kitchen
+  const [activeTab, setActiveTab] = useState('orders'); // orders, map, kitchen, telemetry
 
-  // Telemetry log feeds
+  // Telemetry logs including fraud and risk logs
   const [opsLogs, setOpsLogs] = useState([
     { id: 1, time: '14:24:10', type: 'INFO', text: 'Autonomous pilot initialized.' },
     { id: 2, time: '14:24:15', type: 'SUCCESS', text: 'Optimal chef assignment locked: Chef A assigned to Order #3290 (Italian specialist).' },
     { id: 3, time: '14:24:22', type: 'LOGISTICS', text: 'Rider Kabir assigned to Order #3290. Distance: 1.2km. ETA: 8m.' },
-    { id: 4, time: '14:24:35', type: 'WARNING', text: 'Bypass Road traffic congestion detected (+8 min transit latency). Auto-routing Order #3285 via Sector 62.' }
+    { id: 4, time: '14:24:35', type: 'FRAUD ALERT', text: 'Blocked checkout anomaly: Multiple voucher retries from IP 192.168.42.1 (Flagged & cleared).' },
+    { id: 5, time: '14:24:50', type: 'WARNING', text: 'Bypass Road traffic congestion detected (+8 min transit latency). Auto-routing Order #3285 via Sector 62.' }
   ]);
 
   // Autopilot loop simulation
@@ -37,7 +39,7 @@ const AdminOpsCenter = () => {
         { type: 'SUCCESS', text: 'Cooking priority updated: Order #3295 bumped up in queue due to delivery courier location lock.' },
         { type: 'LOGISTICS', text: 'Best-suited driver selected: Rider Anita assigned to Order #3298. GPS proximity verified.' },
         { type: 'WARNING', text: 'Kitchen load imbalance: Chef A at 92% capacity. Dynamic reassignment of Order #3301 to Chef B.' },
-        { type: 'INFO', text: 'Heat Map model recalculated: Rain surge in Sector 62 driving 35% higher delivery demands.' },
+        { type: 'FRAUD ALERT', text: 'AI Shield: Prevented multi-accounting card checkout attempt on Noida node.' },
         { type: 'SUCCESS', text: 'Route optimization resolved: Saved 4.2 mins for Order #3292 via Sector 18 bypass.' }
       ];
 
@@ -47,10 +49,10 @@ const AdminOpsCenter = () => {
         ...prev.slice(0, 7)
       ]);
 
-      if (selectedTemplate.type === 'WARNING') {
-        toast('AI Optimizer balanced kitchen tasks', { icon: '🤖' });
+      if (selectedTemplate.type === 'FRAUD ALERT') {
+        toast.error('AI Shield blocked a potential fraud event!', { icon: '🛡️' });
       }
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [autoPilot]);
@@ -115,7 +117,8 @@ const AdminOpsCenter = () => {
 
   return (
     <div className="min-h-screen bg-[#070A13] text-gray-100 pb-16 font-sans">
-      {/* ── TOP HERO HEADER ── */}
+      
+      {/* ── TOP HERO HEADER (NASA MISSION STYLE) ── */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#0F172A] to-transparent border-b border-gray-800/60 py-6 px-4 md:px-12">
         <div className="absolute top-0 right-1/4 w-[450px] h-[130px] bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
 
@@ -131,15 +134,15 @@ const AdminOpsCenter = () => {
               <div className="flex items-center gap-3 mb-1">
                 <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                   <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
-                  Auto-Pilot Systems Active
+                  NASA Mission Control Active
                 </span>
-                <span className="text-gray-500 text-xs font-bold">Vite Server Push Synced</span>
+                <span className="text-gray-500 text-xs font-bold">Vite Telemetry Feed Lock</span>
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                AI Operations <span className="text-cyan-500 font-light">Command Center</span>
+                AI Operations <span className="text-cyan-500 font-light">Mission Control</span>
               </h1>
               <p className="text-gray-400 text-xs md:text-sm font-medium mt-0.5">
-                Autonomous order dispatch, live demand heat maps, and kitchen workload balancing
+                Real-time autonomous courier tracking, platform health monitoring, and fraud prevention
               </p>
             </div>
           </div>
@@ -165,8 +168,51 @@ const AdminOpsCenter = () => {
         </div>
       </div>
 
+      {/* ── NASA TELEMETRY PANEL OVERVIEW ── */}
+      <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8 grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400">
+            <Bike size={20} />
+          </div>
+          <div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Active Couriers</span>
+            <p className="text-lg font-black text-white">42 Riders Online</p>
+          </div>
+        </div>
+
+        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
+            <DollarSign size={20} />
+          </div>
+          <div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Hourly Net Revenue</span>
+            <p className="text-lg font-black text-emerald-400">₹24,850/hr</p>
+          </div>
+        </div>
+
+        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-400">
+            <ShieldAlert size={20} className="animate-pulse" />
+          </div>
+          <div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Fraud Alerts (1hr)</span>
+            <p className="text-lg font-black text-rose-400">1 Blocked Anomaly</p>
+          </div>
+        </div>
+
+        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
+            <Activity size={20} />
+          </div>
+          <div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Platform Health Score</span>
+            <p className="text-lg font-black text-indigo-400">99.85% (Excellent)</p>
+          </div>
+        </div>
+      </div>
+
       {/* ── SECTIONS NAVIGATION TABS ── */}
-      <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-12">
         <div className="flex border-b border-gray-800 gap-6 mb-8">
           {[
             { id: 'orders', label: 'Autonomous Order Management', desc: 'Auto-dispatch dispatch queue' },
@@ -253,6 +299,11 @@ const AdminOpsCenter = () => {
                           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Optimized Route</span>
                           <p className="text-green-400 font-bold mt-0.5 truncate">{order.route}</p>
                         </div>
+                      </div>
+
+                      {/* Explainable AI block (Requirement 24) */}
+                      <div className="mt-4 pt-3 border-t border-white/5 text-[10px] text-gray-450 leading-relaxed bg-[#070A13]/30 p-2.5 rounded-xl border border-white/5">
+                        <span className="font-bold text-cyan-400">Explainable AI trace:</span> Chef A selected due to 98% burger prep specialization. Rider Kabir auto-routed via Sector 62 as traffic latency on bypass exceeds 12 mins.
                       </div>
                     </div>
                   ))}
@@ -417,7 +468,8 @@ const AdminOpsCenter = () => {
                       <span className="text-gray-500 text-[9px] font-bold">{log.time}</span>
                       <span className={`text-[8px] font-black uppercase tracking-widest ${
                         log.type === 'SUCCESS' ? 'text-green-400' :
-                        log.type === 'WARNING' ? 'text-rose-400' :
+                        log.type === 'WARNING' ? 'text-rose-450' :
+                        log.type === 'FRAUD ALERT' ? 'text-rose-400 border border-rose-500/25 px-1 bg-rose-500/5 rounded' :
                         log.type === 'LOGISTICS' ? 'text-cyan-400' : 'text-gray-400'
                       }`}>
                         {log.type}

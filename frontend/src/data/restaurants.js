@@ -1,7 +1,4 @@
-// ═══════════════════════════════════════════════════════════════
-// FOODIQ — World's Largest Food Delivery Catalog
-// 100 Restaurants  ·  1000+ Menu Items  ·  30+ Cuisines
-// ═══════════════════════════════════════════════════════════════
+import { getUniqueFoodImage } from '../utils/imageProvider';
 
 const img = (id, w = 800) => `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format`;
 
@@ -820,6 +817,20 @@ export const ALL_RESTAURANTS = [
   { id: 99, name: 'Sichuan House', image: img('1563245372-f21724e3856d'), cuisine: 'Sichuan, Chinese, Spicy', rating: 4.4, deliveryTime: 30, minOrder: 250, isOpen: true, offer: '₹70 OFF', address: 'GK 2, Delhi', totalRatings: 1300, costForTwo: 600, isVeg: false, tags: ['Chinese'], menu: [{ category: 'Sichuan', items: [{ id: mid(), name: 'Mapo Tofu', price: 249, description: 'Tofu in spicy Sichuan sauce.', isVeg: true, isRecommended: true, image: img('1563245372-f21724e3856d', 400) }, { id: mid(), name: 'Sichuan Chilli Chicken', price: 299, description: 'Extremely spicy dry chicken.', isVeg: false, image: img('1563245372-f21724e3856d', 400) }, { id: mid(), name: 'Hot Pot Noodles', price: 349, description: 'Numbing spicy hot pot.', isVeg: false, image: img('1563245372-f21724e3856d', 400) }, { id: mid(), name: 'Sichuan Prawns', price: 399, description: 'Prawns in fiery Sichuan pepper sauce.', isVeg: false, image: img('1563245372-f21724e3856d', 400) }]}] },
   { id: 100, name: 'The Grand Buffet', image: img('1414235077428-338989a2e8c0'), cuisine: 'Multi Cuisine, International', rating: 4.8, deliveryTime: 45, minOrder: 500, isOpen: true, offer: '₹250 OFF above ₹1499', address: 'Aerocity, Delhi', totalRatings: 3200, costForTwo: 2000, isVeg: false, tags: ['Continental', 'Italian'], menu: [{ category: 'Grand Menu', items: [{ id: mid(), name: 'Grand Platter for 2', price: 1499, description: 'International cuisine sampler.', isVeg: false, isRecommended: true, image: img('1414235077428-338989a2e8c0', 400) }, { id: mid(), name: 'Lobster Thermidor', price: 1999, description: 'Classic French lobster dish.', isVeg: false, image: img('1565557623262-b51c2513a641', 400) }, { id: mid(), name: 'Wagyu Steak', price: 2499, description: 'Premium Japanese Wagyu beef.', isVeg: false, image: img('1529193591184-b1d58069ecdd', 400) }, { id: mid(), name: 'Truffle Risotto', price: 799, description: 'Black truffle mushroom risotto.', isVeg: true, image: img('1414235077428-338989a2e8c0', 400) }, { id: mid(), name: 'Crème Brûlée', price: 399, description: 'Classic French custard dessert.', isVeg: true, image: img('1551024601-bec78aea704b', 400) }]}] },
 ];
+
+// Apply AI Image post-processing to guarantee completely unique assets across all 1000+ dishes
+ALL_RESTAURANTS.forEach(restaurant => {
+  restaurant.image = getUniqueFoodImage(restaurant.name, restaurant.name, restaurant.id);
+  if (restaurant.menu) {
+    restaurant.menu.forEach(category => {
+      if (category.items) {
+        category.items.forEach(item => {
+          item.image = getUniqueFoodImage(item.name, restaurant.name, item.price);
+        });
+      }
+    });
+  }
+});
 
 // ─── Helper to get restaurant by ID ──────────────────────────
 export const getRestaurantById = (id) => ALL_RESTAURANTS.find(r => r.id === Number(id));

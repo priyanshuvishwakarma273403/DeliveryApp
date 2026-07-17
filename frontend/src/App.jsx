@@ -119,6 +119,7 @@ function App() {
                   <Route path="/delivery" element={<DeliveryPartnerCTA />} />
                   <Route path="/gold" element={<FoodIQGold />} />
                   <Route path="/blogs" element={<Blogs />} />
+                  <Route path="/battle" element={<RestaurantBattle />} />
                   <Route path="/checkout" element={<ProtectedRoute roles={['CUSTOMER']}><Checkout /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute roles={['CUSTOMER']}><Orders /></ProtectedRoute>} />
                   <Route path="/orders/:id" element={<ProtectedRoute roles={['CUSTOMER']}><OrderDetail /></ProtectedRoute>} />

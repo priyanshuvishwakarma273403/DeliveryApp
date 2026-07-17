@@ -13,10 +13,10 @@ import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 
 const Profile = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const { coins } = useWalletStore();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('profile'); // profile, orders, favorites, addresses, settings
+  const [activeTab, setActiveTab] = useState('profile'); // profile, orders, favorites, addresses, settings, allergies
 
   const handleLogout = () => {
     logout();

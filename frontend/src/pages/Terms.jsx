@@ -18,12 +18,12 @@ const Terms = () => {
           <div className="prose prose-gray max-w-none prose-headings:font-black prose-headings:text-text-primary prose-p:text-text-secondary prose-p:leading-relaxed">
             <h2>1. Contractual Relationship</h2>
             <p>
-              These Terms of Use ("Terms") govern the access or use by you, an individual, of applications, websites, content, products, and services made available by Tomato Food Delivery. Please read these terms carefully before accessing or using the Services.
+              These Terms of Use ("Terms") govern the access or use by you, an individual, of applications, websites, content, products, and services made available by FoodIQ Food Delivery. Please read these terms carefully before accessing or using the Services.
             </p>
 
             <h2>2. The Services</h2>
             <p>
-              The Services constitute a technology platform that enables users of Tomato's mobile applications or websites to arrange and schedule delivery services and/or logistics services with independent third party providers of such services, including independent third party delivery providers and independent third party restaurant partners.
+              The Services constitute a technology platform that enables users of FoodIQ's mobile applications or websites to arrange and schedule delivery services and/or logistics services with independent third party providers of such services, including independent third party delivery providers and independent third party restaurant partners.
             </p>
 
             <h2>3. User Accounts</h2>
@@ -33,12 +33,12 @@ const Terms = () => {
 
             <h2>4. Payment</h2>
             <p>
-              You understand that use of the Services may result in charges to you for the services or goods you receive from a Third Party Provider. After you have received services or goods obtained through your use of the Service, Tomato will facilitate your payment of the applicable Charges.
+              You understand that use of the Services may result in charges to you for the services or goods you receive from a Third Party Provider. After you have received services or goods obtained through your use of the Service, FoodIQ will facilitate your payment of the applicable Charges.
             </p>
 
             <h2>5. Disclaimers; Limitation of Liability</h2>
             <p>
-              The services are provided "as is" and "as available." Tomato disclaims all representations and warranties, express, implied or statutory, not expressly set out in these terms. We do not guarantee the quality, suitability, safety or ability of third party providers.
+              The services are provided "as is" and "as available." FoodIQ disclaims all representations and warranties, express, implied or statutory, not expressly set out in these terms. We do not guarantee the quality, suitability, safety or ability of third party providers.
             </p>
           </div>
         </div>

@@ -23,6 +23,7 @@ import CoinRedeemer from '../components/wallet/CoinRedeemer';
 import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 import { getOptimizedImageUrl } from '../utils/cloudinary';
+import AIImage from '../components/common/AIImage';
 
 const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, getTotalAmount } = useCartStore();
@@ -157,15 +158,12 @@ const Cart = () => {
                   >
                     {/* Image */}
                     <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-gray-50 dark:border-gray-700">
-                      <img 
-                        src={getOptimizedImageUrl(item.image || item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300')} 
+                      <AIImage 
+                        src={item.image || item.imageUrl} 
+                        dishName={item.name} 
+                        restaurantName={item.restaurantName || "FoodIQ"}
                         alt={item.name} 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                        loading="lazy" 
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300';
-                          e.target.onerror = null;
-                        }}
                       />
                     </div>
                     

@@ -15,7 +15,10 @@ import {
   Activity,
   Leaf,
   Sliders,
-  Eye
+  Eye,
+  Globe,
+  FlaskConical,
+  Network
 } from 'lucide-react';
 
 
@@ -175,7 +178,7 @@ const AdminDashboard = () => {
       case 'READY_FOR_PICKUP':
         return [
           { label: 'Out for Delivery', val: 'OUT_FOR_DELIVERY' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-55' }
         ];
       case 'OUT_FOR_DELIVERY':
         return [
@@ -195,9 +198,9 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <aside className="w-80 h-screen bg-white border-r border-gray-100 p-8 sticky top-0 hidden lg:block overflow-y-auto">
+        <aside className="w-full lg:w-80 h-auto lg:h-screen bg-white border-r border-gray-100 p-8 lg:sticky lg:top-0 overflow-y-auto">
           <div className="flex items-center gap-2 mb-12">
             <div className="bg-primary p-1.5 rounded-lg">
               <span className="text-white font-black text-xl tracking-tighter">F</span>
@@ -205,7 +208,7 @@ const AdminDashboard = () => {
             <span className="text-xl font-black text-primary">FoodIQAdmin</span>
           </div>
 
-          <nav className="space-y-6">
+          <nav className="space-y-4">
             <Link to="/admin" className="flex items-center gap-4 text-primary font-black bg-primary/5 p-4 rounded-2xl">
               <LayoutDashboard size={20} /> Dashboard
             </Link>
@@ -215,17 +218,11 @@ const AdminDashboard = () => {
             <Link to="/admin/orders" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
               <ShoppingBag size={20} /> Manage Orders
             </Link>
-            <Link to="/admin/users" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-              <Users size={20} /> User Management
-            </Link>
-            <Link to="/admin/sales" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-              <Bell size={20} /> Manage Sales
-            </Link>
             <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
               <Cpu size={20} /> AI Copilot
             </Link>
             <Link to="/admin/ops" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-              <Activity size={20} /> AI Ops Center
+              <Activity size={20} /> AI Mission Control
             </Link>
             <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
               <Leaf size={20} /> Supply & Waste Intel
@@ -238,6 +235,18 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/kitchen-vision" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
               <Eye size={20} /> Kitchen Vision
+            </Link>
+            <Link to="/admin/business-forecast" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
+              <TrendingUp size={20} /> Business Forecast
+            </Link>
+            <Link to="/admin/knowledge-graph" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
+              <Network size={20} /> Knowledge Graph
+            </Link>
+            <Link to="/admin/experiments" className="flex items-center gap-4 text-purple-600 font-black hover:text-purple-500 bg-purple-500/5 p-4 rounded-2xl border border-purple-500/10 transition-all">
+              <FlaskConical size={20} /> AI Experiments
+            </Link>
+            <Link to="/admin/global-intel" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
+              <Globe size={20} /> Global Intel
             </Link>
 
             <div className="pt-6 mt-6 border-t border-gray-100">
@@ -278,8 +287,17 @@ const AdminDashboard = () => {
               <Link to="/admin/kitchen-vision">
                 <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Eye size={14} /> Vision</Button>
               </Link>
-              <Link to="/admin/restaurants">
-                <Button className="px-4 py-2 rounded-xl text-xs gap-1.5"><Plus size={14} /> Add Entity</Button>
+              <Link to="/admin/business-forecast">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><TrendingUp size={14} /> Forecast</Button>
+              </Link>
+              <Link to="/admin/knowledge-graph">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Network size={14} /> Graph</Button>
+              </Link>
+              <Link to="/admin/experiments">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-purple-200 text-purple-600 hover:bg-purple-50"><FlaskConical size={14} /> A/B Tests</Button>
+              </Link>
+              <Link to="/admin/global-intel">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-emerald-200 text-emerald-600 hover:bg-emerald-50"><Globe size={14} /> Global Intel</Button>
               </Link>
             </div>
           </header>
@@ -378,7 +396,7 @@ const AdminDashboard = () => {
                 <table className="w-full text-left">
                    <thead>
                       <tr className="border-b border-gray-100">
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Order ID</th>
+                         <th className="pb-6 text-xs font-black text-gray-450 uppercase tracking-widest">Order ID</th>
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Customer</th>
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Restaurant</th>
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>

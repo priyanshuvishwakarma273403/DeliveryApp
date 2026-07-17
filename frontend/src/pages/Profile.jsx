@@ -7,12 +7,17 @@ import {
   User, Mail, Phone, MapPin, Search, ChevronRight, 
   Settings, HelpCircle, FileText, Bell, LogOut,
   ShoppingBag, Star, Crown, Coins, CreditCard,
-  ChevronLeft, Camera, Edit2, Shield, Heart
+  ChevronLeft, Camera, Edit2, Shield, Heart,
+  Sparkles, Calendar, ClipboardList
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 import { toast } from 'react-hot-toast';
 import TasteDNA from '../components/profile/TasteDNA';
+import WalletTab from '../components/profile/WalletTab';
+import TableBookingTab from '../components/profile/TableBookingTab';
+import CateringTab from '../components/profile/CateringTab';
+import HelpSupportTab from '../components/profile/HelpSupportTab';
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuthStore();
@@ -32,6 +37,10 @@ const Profile = () => {
     { id: 'addresses', label: 'Addresses', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50' },
     { id: 'allergies', label: 'Allergy Guardian', icon: Shield, color: 'text-rose-500', bg: 'bg-rose-50' },
     { id: 'tastedna', label: 'AI Taste DNA', icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-50' },
+    { id: 'wallet', label: 'Wallet & Cashback', icon: Coins, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { id: 'tablebooking', label: 'Table Bookings', icon: Calendar, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+    { id: 'catering', label: 'Bulk & Catering', icon: ClipboardList, color: 'text-rose-500', bg: 'bg-rose-50' },
+    { id: 'complaints', label: 'Help & Disputes', icon: HelpCircle, color: 'text-teal-500', bg: 'bg-teal-50' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
@@ -309,6 +318,18 @@ const Profile = () => {
                   
                   {activeTab === 'tastedna' && (
                     <TasteDNA />
+                  )}
+                  {activeTab === 'wallet' && (
+                    <WalletTab />
+                  )}
+                  {activeTab === 'tablebooking' && (
+                    <TableBookingTab />
+                  )}
+                  {activeTab === 'catering' && (
+                    <CateringTab />
+                  )}
+                  {activeTab === 'complaints' && (
+                    <HelpSupportTab />
                   )}
                 </motion.div>
              </AnimatePresence>

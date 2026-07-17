@@ -29,6 +29,7 @@ import { getOptimizedImageUrl } from '../utils/cloudinary';
 import ReviewSection from '../components/restaurant/ReviewSection';
 import apiClient from '../api/axios';
 import { toast } from 'react-hot-toast';
+import AIImage from '../components/common/AIImage';
 
 const RestaurantDetail = () => {
   const { id } = useParams();

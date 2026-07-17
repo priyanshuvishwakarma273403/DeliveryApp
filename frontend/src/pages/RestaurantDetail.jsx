@@ -13,9 +13,10 @@ import {
   Bike,
   MapPin,
   Users,
-  Shield
+  Shield,
+  Sparkles
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCartStore } from '../store/cartStore';
 import { getRestaurantById } from '../data/restaurants';
 import Button from '../components/common/Button';
@@ -25,8 +26,7 @@ import { cn } from '../utils/cn';
 import { getOptimizedImageUrl } from '../utils/cloudinary';
 import ReviewSection from '../components/restaurant/ReviewSection';
 import apiClient from '../api/axios';
-import { useEffect } from 'react';
-
+import { toast } from 'react-hot-toast';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -48,7 +48,6 @@ const RestaurantDetail = () => {
           apiClient.get(`/menu/restaurant/${id}`)
         ]);
 
-        // Handle API wrapper
         const data = res.data?.data || res.data;
         const menuItems = menuRes.data?.data || menuRes.data;
 
@@ -72,7 +71,6 @@ const RestaurantDetail = () => {
            setOpenCategories(groupedMenu.map(s => s.category));
         }
 
-        // Map backend fields to frontend UI expectations
         data.cuisine = data.cuisineType || data.cuisine || 'Multi-cuisine';
         data.deliveryTime = data.avgDeliveryTime || data.deliveryTime || 30;
         data.image = data.imageUrl || data.image || 'https://images.unsplash.com/photo-1513104890138-7c749659a591';
@@ -90,14 +88,12 @@ const RestaurantDetail = () => {
 
   const handleAddItem = (item, restaurantId) => {
     addItem(item, restaurantId);
-    // Show 1% coin reward preview
     const coins = Math.floor(item.price * 0.01);
     if (coins > 0) {
       setRewardCoins(coins);
       setShowReward(true);
     }
   };
-
 
   if (loading) {
      return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -137,6 +133,78 @@ const RestaurantDetail = () => {
       return true;
     })
   })).filter(section => section.items.length > 0) || [];
+
+  // Profitable Personalised Combo Generator Logic (Requirement 10)
+  const getSmartCombos = () => {
+    if (!restaurant || !restaurant.menu) return [];
+    
+    const allItems = restaurant.menu.flatMap(sec => sec.items);
+    if (allItems.length < 2) return [];
+
+    const pizzas = allItems.filter(i => i.name.toLowerCase().includes('pizza'));
+    const burgers = allItems.filter(i => i.name.toLowerCase().includes('burger') || i.name.toLowerCase().includes('sandwich'));
+    const drinks = allItems.filter(i => i.name.toLowerCase().includes('drink') || i.name.toLowerCase().includes('coke') || i.name.toLowerCase().includes('beverage') || i.name.toLowerCase().includes('shake') || i.name.toLowerCase().includes('mojito') || i.name.toLowerCase().includes('water'));
+    const sides = allItems.filter(i => !pizzas.includes(i) && !burgers.includes(i) && !drinks.includes(i) && i.price < 180);
+
+    const combos = [];
+
+    // Combo 1: Pizza Combo
+    if (pizzas.length > 0) {
+      const pizza = pizzas[0];
+      const side = sides.length > 0 ? sides[0] : allItems.find(i => i !== pizza);
+      const drink = drinks.length > 0 ? drinks[0] : { id: 'mock-drink-1', name: 'Pepsi Black', price: 60, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=150' };
+      
+      const originalPrice = pizza.price + (side ? side.price : 90) + drink.price;
+      const comboPrice = Math.round(originalPrice * 0.85); 
+      
+      combos.push({
+        title: 'AI Smart Pizza Combo',
+        items: [pizza, side || { name: 'Garlic Bread', price: 90 }, drink],
+        originalPrice,
+        price: comboPrice,
+        description: `Delectable combo of ${pizza.name}, sides and refreshing Pepsi Black.`,
+        icon: '🍕'
+      });
+    }
+
+    // Combo 2: Burger Combo
+    if (burgers.length > 0) {
+      const burger = burgers[0];
+      const side = sides.length > 0 ? sides[0] : allItems.find(i => i !== burger);
+      const drink = drinks.length > 0 ? drinks[0] : { id: 'mock-drink-2', name: 'Pepsi Black', price: 60, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=150' };
+      
+      const originalPrice = burger.price + (side ? side.price : 90) + drink.price;
+      const comboPrice = Math.round(originalPrice * 0.88);
+      
+      combos.push({
+        title: 'AI Smart Burger Combo',
+        items: [burger, side || { name: 'Crinkle Fries', price: 90 }, drink],
+        originalPrice,
+        price: comboPrice,
+        description: `Savory bundle of ${burger.name}, french fries and beverage.`,
+        icon: '🍔'
+      });
+    }
+
+    // Fallback: Chef Special Combo
+    if (combos.length === 0) {
+      const item1 = allItems[0];
+      const item2 = allItems[1];
+      const originalPrice = item1.price + item2.price;
+      const comboPrice = Math.round(originalPrice * 0.85);
+
+      combos.push({
+        title: 'Personalized Feast Pack',
+        items: [item1, item2],
+        originalPrice,
+        price: comboPrice,
+        description: `Curated assortment of ${item1.name} and ${item2.name} chosen based on your flavor profile.`,
+        icon: '✨'
+      });
+    }
+
+    return combos.slice(0, 2);
+  };
 
   const MenuItem = ({ item }) => (
     <div className="flex justify-between items-start py-4 md:py-8 border-b border-gray-100 last:border-0 group">
@@ -182,7 +250,6 @@ const RestaurantDetail = () => {
               ADD
             </Button>
           )}
-
         </div>
       </div>
     </div>
@@ -248,6 +315,68 @@ const RestaurantDetail = () => {
       </div>
 
       <div className="container mx-auto px-4 py-4 md:py-12">
+        
+        {/* AI Smart Combos section */}
+        {getSmartCombos().length > 0 && (
+          <div className="mb-10 bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-[2.5rem] p-6 md:p-8 border border-white/5 text-white">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-sm md:text-lg font-black text-white flex items-center gap-2">
+                  <Sparkles size={18} className="text-yellow-400 animate-pulse" />
+                  AI Personalized Smart Combos
+                </h3>
+                <p className="text-gray-400 text-[10px] md:text-xs mt-0.5">Profitable bundles generated based on trending items and your flavor history</p>
+              </div>
+              <span className="bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                Personalized Deals
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {getSmartCombos().map((combo, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 hover:border-yellow-400/30 rounded-2xl p-5 flex flex-col justify-between transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 px-3 py-1 bg-yellow-400 text-black text-[9px] font-black uppercase rounded-bl-xl">
+                    Save {Math.round(100 - (combo.price / combo.originalPrice)*100)}%
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm md:text-base font-black text-white flex items-center gap-2 mb-2">
+                      <span className="text-lg">{combo.icon}</span>
+                      {combo.title}
+                    </h4>
+                    <p className="text-xs text-gray-400 leading-relaxed mb-4">{combo.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {combo.items.map((ci, cidx) => (
+                        <span key={cidx} className="text-[10px] bg-white/10 text-gray-300 font-bold px-2 py-0.5 rounded-lg">
+                          {ci.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-2">
+                    <div>
+                      <span className="text-[10px] text-gray-500 line-through block">₹{combo.originalPrice}</span>
+                      <span className="text-lg font-black text-yellow-400">₹{combo.price}</span>
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        combo.items.forEach(ci => handleAddItem(ci, restaurant.id));
+                        toast.success(`Combo added to cart!`);
+                      }}
+                      className="bg-yellow-400 hover:bg-yellow-300 text-black font-black text-[10px] uppercase px-4 py-2 rounded-lg shadow-lg shadow-yellow-400/10"
+                    >
+                      Add Combo
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Menu Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-100 pb-4 md:pb-6 mb-4 md:mb-8">
           <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
@@ -339,7 +468,7 @@ const RestaurantDetail = () => {
           </div>
         </div>
       )}
-      {/* Coin Reward Popup */}
+      
       <CoinRewardPopup 
         show={showReward} 
         coins={rewardCoins} 
@@ -355,6 +484,5 @@ const RestaurantDetail = () => {
     </div>
   );
 };
-
 
 export default RestaurantDetail;

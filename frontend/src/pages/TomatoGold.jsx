@@ -42,7 +42,7 @@ const TomatoGold = () => {
             className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/30 px-6 py-2 rounded-full mb-8 shadow-xl shadow-yellow-500/10"
           >
             <Crown size={20} className="text-yellow-400" />
-            <span className="text-yellow-400 font-bold uppercase tracking-widest text-sm text-shadow">Tomato Gold</span>
+            <span className="text-yellow-400 font-bold uppercase tracking-widest text-sm text-shadow">FoodIQ Gold</span>
           </motion.div>
           
           <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">

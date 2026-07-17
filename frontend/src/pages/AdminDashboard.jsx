@@ -13,7 +13,9 @@ import {
   Bell,
   Cpu,
   Activity,
-  Leaf
+  Leaf,
+  Sliders,
+  Eye
 } from 'lucide-react';
 
 
@@ -232,6 +234,12 @@ const AdminDashboard = () => {
               </Link>
               <Link to="/admin/customer-intel" className="flex items-center gap-4 text-indigo-600 font-black hover:text-indigo-500 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 transition-all">
                 <Users size={20} /> Customer Intel
+              </Link>
+              <Link to="/admin/simulations" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
+                <Sliders size={20} /> AI Simulations
+              </Link>
+              <Link to="/admin/kitchen-vision" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
+                <Eye size={20} /> Kitchen Vision
               </Link>
 
               <div className="pt-6 mt-6 border-t border-gray-100">

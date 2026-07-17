@@ -53,6 +53,7 @@ const AdminBusinessForecast = lazy(() => import('./pages/AdminBusinessForecast')
 const AdminKnowledgeGraph = lazy(() => import('./pages/AdminKnowledgeGraph'));
 const AdminExperiments = lazy(() => import('./pages/AdminExperiments'));
 const AdminGlobalIntelligence = lazy(() => import('./pages/AdminGlobalIntelligence'));
+const AdminImageVerification = lazy(() => import('./pages/AdminImageVerification'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now

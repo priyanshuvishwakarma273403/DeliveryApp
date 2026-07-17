@@ -143,9 +143,9 @@ const Login = () => {
               <div className="text-center mb-8">
                 <Link to="/" className="inline-flex items-center gap-2 mb-6">
                   <div className="bg-primary w-10 h-10 rounded-xl flex items-center justify-center shadow-md shadow-primary/30">
-                    <span className="text-white font-black text-xl tracking-tighter">T</span>
+                    <span className="text-white font-black text-xl tracking-tighter">F</span>
                   </div>
-                  <span className="text-2xl font-black text-primary">Tomato</span>
+                  <span className="text-2xl font-black text-primary">FoodIQ</span>
                 </Link>
                 <h1 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2">Welcome back!</h1>
                 <p className="text-[#686B78] text-sm">Sign in to continue your delicious journey</p>

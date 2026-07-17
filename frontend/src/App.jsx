@@ -42,6 +42,7 @@ const FoodIQGold = lazy(() => import('./pages/FoodIQGold'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Blogs = lazy(() => import('./pages/Blogs'));
 const AdminBlogs = lazy(() => import('./pages/AdminBlogs'));
+const AdminDigitalTwin = lazy(() => import('./pages/AdminDigitalTwin'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
@@ -110,6 +111,7 @@ function App() {
                   <Route path="/profile" element={<ProtectedRoute roles={['CUSTOMER']}><Profile /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/restaurants" element={<ProtectedRoute roles={['ADMIN']}><AdminRestaurants /></ProtectedRoute>} />
+                  <Route path="/admin/restaurants/:id/twin" element={<ProtectedRoute roles={['ADMIN']}><AdminDigitalTwin /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />

@@ -264,6 +264,9 @@ const AdminDashboard = () => {
                <Link to="/admin/supply-waste">
                  <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50"><Leaf size={18} /> Supply & Waste Intel</Button>
                </Link>
+               <Link to="/admin/customer-intel">
+                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"><Users size={18} /> Customer Intel</Button>
+               </Link>
                <Link to="/admin/restaurants">
                  <Button className="px-6 rounded-2xl gap-2"><Plus size={18} /> Add Entity</Button>
                </Link>

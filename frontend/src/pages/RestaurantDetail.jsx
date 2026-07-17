@@ -226,7 +226,14 @@ const RestaurantDetail = () => {
 
       <div className="relative shrink-0">
         <div className="h-20 w-20 md:h-32 md:w-32 rounded-xl md:rounded-2xl overflow-hidden shadow-premium">
-          <img src={getOptimizedImageUrl(item.image, { width: 300, height: 300 })} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+          <AIImage 
+            src={item.image} 
+            dishName={item.name} 
+            restaurantName={restaurant.name}
+            cuisine={restaurant.cuisine}
+            alt={item.name} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+          />
         </div>
         
         <div className="absolute -bottom-2 md:-bottom-3 left-1/2 -translate-x-1/2">

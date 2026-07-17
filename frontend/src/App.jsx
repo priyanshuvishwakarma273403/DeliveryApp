@@ -133,6 +133,7 @@ function App() {
                   <Route path="/admin/knowledge-graph" element={<ProtectedRoute roles={['ADMIN']}><AdminKnowledgeGraph /></ProtectedRoute>} />
                   <Route path="/admin/experiments" element={<ProtectedRoute roles={['ADMIN']}><AdminExperiments /></ProtectedRoute>} />
                   <Route path="/admin/global-intel" element={<ProtectedRoute roles={['ADMIN']}><AdminGlobalIntelligence /></ProtectedRoute>} />
+                  <Route path="/admin/image-verification" element={<ProtectedRoute roles={['ADMIN']}><AdminImageVerification /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />

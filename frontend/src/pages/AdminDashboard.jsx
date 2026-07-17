@@ -18,7 +18,8 @@ import {
   Eye,
   Globe,
   FlaskConical,
-  Network
+  Network,
+  Image as ImageIcon
 } from 'lucide-react';
 
 
@@ -247,6 +248,9 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/global-intel" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
               <Globe size={20} /> Global Intel
+            </Link>
+            <Link to="/admin/image-verification" className="flex items-center gap-4 text-amber-600 font-black hover:text-amber-500 bg-amber-500/5 p-4 rounded-2xl border border-amber-500/10 transition-all">
+              <ImageIcon size={20} /> AI Image Audit
             </Link>
 
             <div className="pt-6 mt-6 border-t border-gray-100">

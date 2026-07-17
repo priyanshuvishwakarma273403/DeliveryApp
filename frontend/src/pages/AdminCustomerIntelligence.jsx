@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Users, Gift, TrendingUp, AlertTriangle, ShieldCheck, 
   Mail, Sparkles, Zap, Award, Target, ArrowUpRight, DollarSign,
-  UserCheck, RefreshCw, BadgePercent
+  UserCheck, RefreshCw, BadgePercent, MessageSquare, Heart, AlertOctagon
 } from 'lucide-react';
 import { 
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, 
@@ -14,7 +14,7 @@ import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 
 const AdminCustomerIntelligence = () => {
-  const [activeTab, setActiveTab] = useState('clv'); // clv, coupons
+  const [activeTab, setActiveTab] = useState('clv'); // clv, coupons, sentiment
   const [selectedSegment, setSelectedSegment] = useState('all');
 
   // Customer CLV & Churn list
@@ -35,6 +35,14 @@ const AdminCustomerIntelligence = () => {
     { code: 'WELCOME150', discount: '₹150 Off', targetSegment: 'New Buyer', minOrder: 450, conversionEst: '55%', marginImpact: '-3.8%', status: 'Active' }
   ]);
 
+  // Customer mood/sentiment stream
+  const [sentiments, setSentiments] = useState([
+    { id: 1, customer: 'Vikram Singh', emotion: 'ANGRY', score: '14%', channel: 'Live Chat', text: 'Food was completely cold and the drink was missing. Terrible experience!', priority: 'CRITICAL TRIAGE' },
+    { id: 2, customer: 'Aisha Kapoor', emotion: 'FRUSTRATED', score: '38%', channel: 'Review Audit', text: 'Delivery was delayed by 35 minutes again. Please fix this.', priority: 'HIGH PRIORITY' },
+    { id: 3, customer: 'Priyanshu Vishwakarma', emotion: 'HAPPY', score: '96%', channel: 'Feedback Form', text: 'Loved the personalized pizza combo discount! Extremely delicious.', priority: 'NO ACTION' },
+    { id: 4, customer: 'Rohan Sharma', emotion: 'SATISFIED', score: '82%', channel: 'Support Ticket', text: 'Refund for the extra delivery charges was processed immediately. Thanks.', priority: 'NO ACTION' }
+  ]);
+
   // Chart data showing campaign conversion rates
   const campaignData = [
     { name: 'VIP Loyalty', value: 85 },
@@ -49,6 +57,10 @@ const AdminCustomerIntelligence = () => {
 
   const handleCreateAICoupon = () => {
     toast.success("AI Coupon Engine generated 3 optimal discount campaigns targeting slipping segments.");
+  };
+
+  const handleTriageCustomer = (customer) => {
+    toast.success(`Apology protocol initiated for ${customer}. 20% discount code + free delivery coupon sent!`);
   };
 
   return (
@@ -87,10 +99,11 @@ const AdminCustomerIntelligence = () => {
 
       {/* ── NAVIGATION TABS ── */}
       <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
-        <div className="flex border-b border-gray-800 gap-6 mb-8">
+        <div className="flex border-b border-gray-800 gap-6 mb-8 overflow-x-auto whitespace-nowrap">
           {[
             { id: 'clv', label: 'CLV & Churn Risk Tracker', desc: 'Loyalty index & predictive churn metrics' },
-            { id: 'coupons', label: 'AI Coupon Engine', desc: 'Personalized margins & campaigns' }
+            { id: 'coupons', label: 'AI Coupon Engine', desc: 'Personalized margins & campaigns' },
+            { id: 'sentiment', label: 'Customer Mood Triage', desc: 'Sentiment stream & emotional triggers' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -262,6 +275,55 @@ const AdminCustomerIntelligence = () => {
                   </div>
                 </div>
 
+              </div>
+            )}
+
+            {/* ════ MODULE 3: SENTIMENT & MOOD TRIAGE ════ */}
+            {activeTab === 'sentiment' && (
+              <div className="space-y-6">
+                <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-lg font-black text-white flex items-center gap-2">
+                        <MessageSquare className="text-indigo-400" size={20} />
+                        Real-time Customer Sentiment Stream
+                      </h3>
+                      <p className="text-gray-400 text-xs mt-0.5">Urgent triage of support logs flagged using NLP sentiment analysis</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {sentiments.map((senti) => (
+                      <div key={senti.id} className="bg-black/20 p-5 border border-gray-850 rounded-2.5xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-white">{senti.customer}</span>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
+                              senti.emotion === 'ANGRY' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse' :
+                              senti.emotion === 'FRUSTRATED' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                              'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            }`}>
+                              {senti.emotion} ({senti.score})
+                            </span>
+                            <span className="text-[10px] text-gray-500 font-bold">via {senti.channel}</span>
+                          </div>
+                          <p className="text-xs text-gray-400 leading-relaxed font-medium">"{senti.text}"</p>
+                        </div>
+
+                        {senti.priority.includes('TRIAGE') && (
+                          <div className="shrink-0">
+                            <Button 
+                              onClick={() => handleTriageCustomer(senti.customer)}
+                              className="bg-indigo-500 hover:bg-indigo-400 text-black font-black text-[10px] uppercase py-2 px-4 rounded-xl flex items-center gap-1"
+                            >
+                              <AlertOctagon size={12} /> Triage Case
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 

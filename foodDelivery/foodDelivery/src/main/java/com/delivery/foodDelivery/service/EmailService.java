@@ -93,13 +93,13 @@ public class EmailService {
                     "        <p style='margin:5px 0;'>Use Code: <span class='promo-code'>" + saleEvent.getPromoCode() + "</span></p>" +
                     "      </div>" +
                     "      <p style='text-align:center;'>" +
-                    "        <a href='https://tomato-food.app' class='btn'>Order Now & Celebrate!</a>" +
+                    "        <a href='https://foodiq-food.app' class='btn'>Order Now & Celebrate!</a>" +
                     "      </p>" +
                     "      <p>Wishing you and your family a very Happy and Prosperous Diwali! May your plate always be full of joy and delicious food.</p>" +
                     "    </div>" +
                     "    <div class='footer'>" +
-                    "      <p>&copy; 2026 Tomato Food Delivery. All Rights Reserved.</p>" +
-                    "      <p>If you have any questions, contact us at support@tomato.com</p>" +
+                    "      <p>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</p>" +
+                    "      <p>If you have any questions, contact us at support@foodiq.com</p>" +
                     "    </div>" +
                     "  </div>" +
                     "</body>" +
@@ -241,10 +241,10 @@ public class EmailService {
                     "      <div class='info-box'>" +
                     "        <p>📞 Need help? Contact our support team anytime.</p>" +
                     "      </div>" +
-                    "      <p style='text-align:center; margin-top:15px; font-size:14px; color:#888;'>Thank you for choosing <strong style='color:#FF5500;'>Tomato Food Delivery</strong>! 🍅</p>" +
+                    "      <p style='text-align:center; margin-top:15px; font-size:14px; color:#888;'>Thank you for choosing <strong style='color:#FF5500;'>FoodIQ Food Delivery</strong>! 🧠</p>" +
                     "    </div>" +
                     "    <div class='footer'>" +
-                    "      <p>&copy; 2026 <span class='brand'>Tomato Food Delivery</span>. All Rights Reserved.</p>" +
+                    "      <p>&copy; 2026 <span class='brand'>FoodIQ Food Delivery</span>. All Rights Reserved.</p>" +
                     "      <p>Made with ❤️ for food lovers</p>" +
                     "    </div>" +
                     "  </div>" +
@@ -252,7 +252,7 @@ public class EmailService {
                     "</html>";
 
             helper.setTo(toEmail);
-            helper.setSubject("Tomato Food - " + emoji + " " + title);
+            helper.setSubject("FoodIQ Food - " + emoji + " " + title);
             helper.setText(content, true);
 
             mailSender.send(message);

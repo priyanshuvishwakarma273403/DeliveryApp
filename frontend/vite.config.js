@@ -11,9 +11,9 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        name: 'Tomato SuperApp',
-        short_name: 'Tomato',
-        description: 'Premium Food Delivery App',
+        name: 'FoodIQ SuperApp',
+        short_name: 'FoodIQ',
+        description: 'Premium AI Food Delivery & Intelligence Platform',
         theme_color: '#EF4444',
         background_color: '#ffffff',
         display: "standalone",

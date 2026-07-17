@@ -36,7 +36,7 @@ public class Wallet extends BaseEntity {
 
     public void spendCoins(Double amount) {
         if (this.balance < amount) {
-            throw new RuntimeException("Insufficient Tomato Coins");
+            throw new RuntimeException("Insufficient FoodIQ Coins");
         }
         this.balance -= amount;
     }

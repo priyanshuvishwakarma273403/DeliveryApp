@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { HelpCircle, AlertTriangle, ShieldCheck, Mail, MessageSquare } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Button from '../common/Button';
-import Badge from '../components/common/Badge';
+import Badge from '../common/Badge';
 
 const HelpSupportTab = () => {
   const [orderId, setOrderId] = useState('ORD-8812');

@@ -23,6 +23,7 @@ import {
   Utensils,
   Ticket,
   Swords,
+  Calendar,
   Search as SearchIcon
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -170,6 +171,7 @@ const Header = () => {
               { label: 'Dining', icon: Utensils, path: '/dining', color: 'text-blue-600' },
               { label: 'Events', icon: Ticket, path: '/events', color: 'text-purple-600' },
               { label: 'Battle Arena', icon: Swords, path: '/battle', color: 'text-orange-600' },
+              { label: 'Party Planner', icon: Calendar, path: '/celebration-planner', color: 'text-rose-600' },
             ].map((nav) => (
               <Link 
                 key={nav.path} 

@@ -26,7 +26,7 @@ const Blogs = () => {
             <Clock size={14} /> Daily Stories & Updates
           </motion.div>
           <h1 className="text-5xl md:text-7xl font-black text-[#1C1C1C] mb-6 leading-tight">
-            Tomato <span className="text-primary italic">Bites</span>
+            FoodIQ <span className="text-primary italic">Bites</span>
           </h1>
           <p className="text-[#686B78] text-lg font-medium leading-relaxed">
             Exploring the world of flavors, one story at a time. Discover festive offers, health tips, and local food secrets.
@@ -83,7 +83,7 @@ const Blogs = () => {
                     </div>
                     <div className="w-1 h-1 bg-gray-300 rounded-full" />
                     <div className="flex items-center gap-1.5">
-                      <User size={14} className="text-primary" /> {blog.author || 'Tomato Team'}
+                      <User size={14} className="text-primary" /> {blog.author || 'FoodIQ Team'}
                     </div>
                   </div>
 

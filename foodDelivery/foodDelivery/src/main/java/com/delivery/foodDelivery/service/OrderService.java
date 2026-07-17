@@ -62,13 +62,13 @@ public class OrderService {
         double total = cart.getTotalAmount();
         double coinsToUse = 0.0;
         
-        // Handle Tomato Coins redemption
+        // Handle FoodIQ Coins redemption
         if (request.isUseCoins()) {
             Wallet wallet = walletService.getWalletByUserId(customerId);
             coinsToUse = Math.min(wallet.getBalance(), total); 
             walletService.spendCoins(customerId, coinsToUse);
             total -= coinsToUse;
-            log.info("Used {} Tomato Coins for user {}. New total: {}", coinsToUse, customerId, total);
+            log.info("Used {} FoodIQ Coins for user {}. New total: {}", coinsToUse, customerId, total);
         }
 
         if (total < restaurant.getMinOrderAmount()) {

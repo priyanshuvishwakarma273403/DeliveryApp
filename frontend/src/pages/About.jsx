@@ -34,7 +34,7 @@ const About = () => {
           <div>
             <h2 className="text-3xl md:text-4xl font-black text-text-primary mb-6">Our Mission</h2>
             <p className="text-text-secondary text-lg leading-relaxed mb-6">
-              Founded in 2023, Tomato started with a simple belief: everyone deserves access to great food, delivered fast and fresh. What began as a small operation with hand-picked local eateries has blossomed into a nationwide phenomenon.
+              Founded in 2023, FoodIQ started with a simple belief: everyone deserves access to great food, delivered fast and fresh. What began as a small operation with hand-picked local eateries has blossomed into a nationwide phenomenon.
             </p>
             <p className="text-text-secondary text-lg leading-relaxed">
               We empower local businesses, create earning opportunities for thousands of delivery partners, and ensure our customers never have to compromise on taste or convenience.

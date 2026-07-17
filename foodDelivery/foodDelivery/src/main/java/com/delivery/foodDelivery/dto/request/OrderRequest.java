@@ -18,5 +18,5 @@ public class OrderRequest {
     // For dummy/Razorpay payment integration
     private String paymentToken;
 
-    private boolean useCoins; // Use Tomato Coins for this order
+    private boolean useCoins; // Use FoodIQ Coins for this order
 }

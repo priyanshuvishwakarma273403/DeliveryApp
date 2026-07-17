@@ -12,6 +12,7 @@ import {
 import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 import { toast } from 'react-hot-toast';
+import TasteDNA from '../components/profile/TasteDNA';
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuthStore();
@@ -30,6 +31,7 @@ const Profile = () => {
     { id: 'favorites', label: 'Favorites', icon: Heart, color: 'text-red-500', bg: 'bg-red-50' },
     { id: 'addresses', label: 'Addresses', icon: MapPin, color: 'text-green-500', bg: 'bg-green-50' },
     { id: 'allergies', label: 'Allergy Guardian', icon: Shield, color: 'text-rose-500', bg: 'bg-rose-50' },
+    { id: 'tastedna', label: 'AI Taste DNA', icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-50' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
@@ -303,6 +305,10 @@ const Profile = () => {
                           </div>
                        </div>
                     </div>
+                  )}
+                  
+                  {activeTab === 'tastedna' && (
+                    <TasteDNA />
                   )}
                 </motion.div>
              </AnimatePresence>

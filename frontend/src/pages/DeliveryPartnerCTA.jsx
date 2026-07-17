@@ -85,7 +85,7 @@ const DeliveryPartnerCTA = () => {
       <div className="container mx-auto px-4 py-24 lg:max-w-7xl">
         {/* Why Tomato? */}
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-6xl font-black text-[#1C1C1C] mb-6 tracking-tighter">Why ride with <span className="text-primary italic">Tomato?</span></h2>
+          <h2 className="text-4xl md:text-6xl font-black text-[#1C1C1C] mb-6 tracking-tighter">Why ride with <span className="text-primary italic">FoodIQ?</span></h2>
           <p className="text-[#686B78] text-xl font-medium max-w-2xl mx-auto">We offer the most transparent earnings and flexible working conditions in the industry.</p>
         </div>
 
@@ -198,7 +198,7 @@ const DeliveryPartnerCTA = () => {
                     </Button>
                   </form>
                   <p className="text-[10px] text-center text-gray-400 mt-6 font-bold leading-relaxed uppercase tracking-widest">
-                    By submitting, you agree to Tomato's Partner Terms and Conditions.
+                    By submitting, you agree to FoodIQ's Partner Terms and Conditions.
                   </p>
                 </motion.div>
               ) : (

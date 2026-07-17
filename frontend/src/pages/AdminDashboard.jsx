@@ -20,7 +20,8 @@ import {
   FlaskConical,
   Network,
   Image as ImageIcon,
-  Compass
+  Compass,
+  CloudRain
 } from 'lucide-react';
 
 
@@ -255,6 +256,9 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/plate-designer" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
               <Compass size={20} /> AI Plate Designer
+            </Link>
+            <Link to="/admin/delivery-risk" className="flex items-center gap-4 text-rose-600 font-black hover:text-rose-500 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10 transition-all">
+              <CloudRain size={20} /> AI Delivery Risk
             </Link>
 
             <div className="pt-6 mt-6 border-t border-gray-100">

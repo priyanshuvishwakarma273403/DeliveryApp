@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Star, Clock, Percent } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getOptimizedImageUrl } from '../../utils/cloudinary';
+import AIImage from '../common/AIImage';
 
 
 const RestaurantCard = ({ restaurant }) => {
@@ -82,15 +83,13 @@ const RestaurantCard = ({ restaurant }) => {
       >
         {/* Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img 
-            src={getOptimizedImageUrl(displayImage, { width: 500, height: 320 })} 
+          <AIImage 
+            src={displayImage} 
+            dishName={name}
+            restaurantName={name}
+            cuisine={displayCuisine}
             alt={name}
-            onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
-              e.target.onerror = null;
-            }}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
-            loading="lazy"
           />
 
           {/* Quick Add Overlay Button */}

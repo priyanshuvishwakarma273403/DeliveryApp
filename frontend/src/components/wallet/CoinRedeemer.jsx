@@ -17,7 +17,7 @@ const CoinRedeemer = ({ cartTotal }) => {
         <div className="redeemer-info">
           <div className="redeemer-title">
             <span className="coin-icon">🪙</span>
-            <h4>Tomato Coins Balance</h4>
+            <h4>FoodIQ Coins Balance</h4>
           </div>
           <p className="balance-text">You have <strong>{coins}</strong> coins available</p>
         </div>

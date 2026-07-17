@@ -145,9 +145,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="bg-primary w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shadow-md shadow-primary/30">
-              <span className="text-white font-black text-lg md:text-xl tracking-tighter">T</span>
+              <span className="text-white font-black text-lg md:text-xl tracking-tighter">F</span>
             </div>
-            <span className="text-xl md:text-2xl font-black text-primary hidden sm:block tracking-tight">Tomato</span>
+            <span className="text-xl md:text-2xl font-black text-primary hidden sm:block tracking-tight">FoodIQ</span>
           </Link>
 
           {/* Location Selector */}
@@ -321,7 +321,7 @@ const Header = () => {
                         <div className="flex items-center gap-2.5">
                           <Crown size={18} className="text-yellow-500" />
                           <span className="text-sm font-bold text-[#1C1C1C] group-hover:text-primary transition-colors">
-                            {user?.isPremium ? 'Manage Gold' : 'Join Tomato Gold'}
+                            {user?.isPremium ? 'Manage Gold' : 'Join FoodIQ Gold'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-sm font-black text-primary bg-primary/5 px-2 py-1 rounded-lg">

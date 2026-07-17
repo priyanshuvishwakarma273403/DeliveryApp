@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Utensils,
   Ticket,
+  Swords,
   Search as SearchIcon
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';

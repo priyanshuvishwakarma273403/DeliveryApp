@@ -142,6 +142,7 @@ function App() {
                   <Route path="/admin/global-intel" element={<ProtectedRoute roles={['ADMIN']}><AdminGlobalIntelligence /></ProtectedRoute>} />
                   <Route path="/admin/image-verification" element={<ProtectedRoute roles={['ADMIN']}><AdminImageVerification /></ProtectedRoute>} />
                   <Route path="/admin/plate-designer" element={<ProtectedRoute roles={['ADMIN']}><AdminPlateDesigner /></ProtectedRoute>} />
+                  <Route path="/admin/restaurant-cockpit" element={<ProtectedRoute roles={['ADMIN']}><AdminRestaurantCockpit /></ProtectedRoute>} />
                   <Route path="/admin/delivery-risk" element={<ProtectedRoute roles={['ADMIN']}><AdminDeliveryRisk /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />

@@ -31,10 +31,10 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Seed Admin User
-        if (userRepository.findByEmail("admin@tomato.com").isEmpty()) {
+        if (userRepository.findByEmail("admin@foodiq.com").isEmpty()) {
             User admin = User.builder()
-                    .name("Priyanshu Admin")
-                    .email("admin@tomato.com")
+                    .name("FoodIQ Admin")
+                    .email("admin@foodiq.com")
                     .password(passwordEncoder.encode("admin123"))
                     .passwordHash(passwordEncoder.encode("admin123"))
                     .phone("9988776655")

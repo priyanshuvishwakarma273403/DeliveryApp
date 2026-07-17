@@ -61,7 +61,7 @@ public class AiService {
         log.info("Attempting to call Groq AI. API Key present: {}", (groqApiKey != null && !groqApiKey.isBlank()));
         
         if (groqApiKey == null || groqApiKey.isBlank()) {
-            return "I'm TomatoAI. Please set the GROQ_API_KEY in Render to start chatting!";
+            return "I'm FoodIQ AI. Please set the GROQ_API_KEY in Render to start chatting!";
         }
 
         try {
@@ -73,7 +73,7 @@ public class AiService {
             // Using the latest stable model
             body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama-3.3-70b-versatile");
             body.put("messages", List.of(
-                Map.of("role", "system", "content", "You are TomatoAI, a friendly food delivery assistant for 'Tomato'. Suggest 3 delicious dishes based on user preference. Keep it very short and conversational."),
+                Map.of("role", "system", "content", "You are FoodIQ AI, a state-of-the-art food delivery and restaurant intelligence assistant for the 'FoodIQ' platform. Suggest 3 delicious dishes based on user preference. Keep it very short and conversational."),
                 Map.of("role", "user", "content", prompt)
             ));
             body.put("temperature", 0.7);

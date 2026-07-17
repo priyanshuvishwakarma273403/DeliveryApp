@@ -14,7 +14,7 @@ public class HealthController {
     public Map<String, String> ping() {
         return Map.of(
             "status", "UP",
-            "message", "Tomato Server is awake!",
+            "message", "FoodIQ Server is awake!",
             "timestamp", String.valueOf(System.currentTimeMillis())
         );
     }

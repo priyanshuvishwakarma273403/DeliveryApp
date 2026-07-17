@@ -5,7 +5,7 @@ const AnnouncementBar = () => {
     "🔥 50% OFF up to ₹100 on your first order. Use code: FIRST50",
     "🚚 Free Delivery on all orders above ₹499!",
     "🍕 New in Town: Pizza Express is now open with 20% OFF!",
-    "🍅 Tomato Gold members get extra 10% discount on every order.",
+    "🧠 FoodIQ Gold members get extra 10% discount on every order.",
     "🌧️ Rainy Day Special: Hot Pakodas & Chai delivered in 20 mins!"
   ];
 

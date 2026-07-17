@@ -10,9 +10,9 @@ const Footer = () => {
           <div className="space-y-4 md:space-y-6 col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2">
               <div className="bg-primary p-1.5 rounded-lg">
-                <span className="text-white font-black text-2xl tracking-tighter">T</span>
+                <span className="text-white font-black text-2xl tracking-tighter">F</span>
               </div>
-              <span className="text-2xl font-black text-primary">Tomato</span>
+              <span className="text-2xl font-black text-primary">FoodIQ</span>
             </Link>
             <p className="text-text-secondary text-sm leading-relaxed max-w-xs">
               India's #1 food delivery platform with {getTotalRestaurants()}+ restaurants and {getTotalFoodItems()}+ dishes. Experience the best food at your doorstep.
@@ -61,7 +61,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-text-secondary">
                 <Mail size={16} className="text-primary shrink-0" />
-                <span>pv254424@tomato.food</span>
+                <span>support@foodiq.ai</span>
               </li>
             </ul>
           </div>
@@ -69,7 +69,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-100 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] md:text-xs text-text-secondary text-center md:text-left">
-            © {new Date().getFullYear()} Tomato Food Delivery. All rights reserved. | India's Largest Food Platform
+            © {new Date().getFullYear()} FoodIQ Food Delivery. All rights reserved. | India's Largest Food Platform
           </p>
           <div className="flex gap-4 md:gap-6">
              <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-7 md:h-8" />

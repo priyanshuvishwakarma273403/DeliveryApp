@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ClipboardList, Users, ShieldCheck, Mail, ArrowRight, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Button from '../common/Button';
-import Badge from '../components/common/Badge';
+import Badge from '../common/Badge';
 
 const CateringTab = () => {
   const [guests, setGuests] = useState(80);

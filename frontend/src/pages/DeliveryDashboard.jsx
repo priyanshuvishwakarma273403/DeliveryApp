@@ -13,7 +13,7 @@ import { useAuthStore } from '../store/authStore';
 import { useWebSocket } from '../providers/WebSocketProvider';
 
 const mockLeaderboard = [
-  { rank: 1, name: 'Rajesh Kumar', rating: 4.95, speed: '21 min avg', orders: 124 },
+  { rank: 1, name: 'Shiva', rating: 4.95, speed: '21 min avg', orders: 124 },
   { rank: 2, name: 'Amit Sharma', rating: 4.90, speed: '23 min avg', orders: 110 },
   { rank: 3, name: 'Sunil Verma', rating: 4.89, speed: '22 min avg', orders: 98 },
   { rank: 4, name: 'You', rating: 4.85, speed: '24 min avg', orders: 85, isCurrentUser: true },

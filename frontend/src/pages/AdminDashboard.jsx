@@ -101,10 +101,10 @@ const AdminDashboard = () => {
           });
         }
         
-        const ordersRes = await apiClient.get('/orders'); // Admin API for all orders
+        const ordersRes = await apiClient.get('/orders');
         if (ordersRes.data?.success) {
            const reversedOrders = [...ordersRes.data.data].reverse();
-           setRecentOrders(reversedOrders.slice(0, 5)); // Get top 5 recent orders
+           setRecentOrders(reversedOrders.slice(0, 5));
         }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -115,7 +115,6 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  // Real-time updates via WebSocket
   useOrderSocket((updatedOrder) => {
     setRecentOrders(prev => {
       const index = prev.findIndex(o => o.id === updatedOrder.id);
@@ -128,13 +127,12 @@ const AdminDashboard = () => {
         });
         return newOrders;
       } else {
-        // New order placed
         toast.success('New order received!', {
           icon: '🛍️',
           duration: 5000
         });
         const updatedList = [updatedOrder, ...prev];
-        return updatedList.slice(0, 5); // Keep only 5
+        return updatedList.slice(0, 5);
       }
     });
   });
@@ -157,27 +155,27 @@ const AdminDashboard = () => {
       case 'PLACED':
         return [
           { label: 'Confirm Order', val: 'CONFIRMED' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-50' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
         ];
       case 'CONFIRMED':
         return [
           { label: 'Mark Preparing', val: 'PREPARING' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-50' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
         ];
       case 'PREPARING':
         return [
           { label: 'Mark Packed', val: 'PACKED' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-50' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
         ];
       case 'PACKED':
         return [
           { label: 'Mark Ready', val: 'READY_FOR_PICKUP' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-50' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
         ];
       case 'READY_FOR_PICKUP':
         return [
           { label: 'Out for Delivery', val: 'OUT_FOR_DELIVERY' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-50' }
+          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
         ];
       case 'OUT_FOR_DELIVERY':
         return [
@@ -198,9 +196,9 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="flex">
-        {/* Sidebar Mini */}
-        <aside className="w-80 h-screen bg-white border-r border-gray-100 p-8 sticky top-0 hidden lg:block">
-           <div className="flex items-center gap-2 mb-12">
+        {/* Sidebar */}
+        <aside className="w-80 h-screen bg-white border-r border-gray-100 p-8 sticky top-0 hidden lg:block overflow-y-auto">
+          <div className="flex items-center gap-2 mb-12">
             <div className="bg-primary p-1.5 rounded-lg">
               <span className="text-white font-black text-xl tracking-tighter">F</span>
             </div>
@@ -208,76 +206,81 @@ const AdminDashboard = () => {
           </div>
 
           <nav className="space-y-6">
-             <Link to="/admin" className="flex items-center gap-4 text-primary font-black bg-primary/5 p-4 rounded-2xl">
-               <LayoutDashboard size={20} /> Dashboard
-             </Link>
-             <Link to="/admin/restaurants" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-               <Package size={20} /> Restaurants
-             </Link>
-             <Link to="/admin/orders" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-               <ShoppingBag size={20} /> Manage Orders
-             </Link>
-              <Link to="/admin/users" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-                <Users size={20} /> User Management
-              </Link>
-              <Link to="/admin/sales" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-                <Bell size={20} /> Manage Sales
-              </Link>
-              <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-                <Cpu size={20} /> AI Copilot
-              </Link>
-              <Link to="/admin/ops" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-                <Activity size={20} /> AI Ops Center
-              </Link>
-              <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
-                <Leaf size={20} /> Supply & Waste Intel
-              </Link>
-              <Link to="/admin/customer-intel" className="flex items-center gap-4 text-indigo-600 font-black hover:text-indigo-500 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 transition-all">
-                <Users size={20} /> Customer Intel
-              </Link>
-              <Link to="/admin/simulations" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-                <Sliders size={20} /> AI Simulations
-              </Link>
-              <Link to="/admin/kitchen-vision" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-                <Eye size={20} /> Kitchen Vision
-              </Link>
+            <Link to="/admin" className="flex items-center gap-4 text-primary font-black bg-primary/5 p-4 rounded-2xl">
+              <LayoutDashboard size={20} /> Dashboard
+            </Link>
+            <Link to="/admin/restaurants" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
+              <Package size={20} /> Restaurants
+            </Link>
+            <Link to="/admin/orders" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
+              <ShoppingBag size={20} /> Manage Orders
+            </Link>
+            <Link to="/admin/users" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
+              <Users size={20} /> User Management
+            </Link>
+            <Link to="/admin/sales" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
+              <Bell size={20} /> Manage Sales
+            </Link>
+            <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
+              <Cpu size={20} /> AI Copilot
+            </Link>
+            <Link to="/admin/ops" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
+              <Activity size={20} /> AI Ops Center
+            </Link>
+            <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
+              <Leaf size={20} /> Supply & Waste Intel
+            </Link>
+            <Link to="/admin/customer-intel" className="flex items-center gap-4 text-indigo-600 font-black hover:text-indigo-500 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 transition-all">
+              <Users size={20} /> Customer Intel
+            </Link>
+            <Link to="/admin/simulations" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
+              <Sliders size={20} /> AI Simulations
+            </Link>
+            <Link to="/admin/kitchen-vision" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
+              <Eye size={20} /> Kitchen Vision
+            </Link>
 
-              <div className="pt-6 mt-6 border-t border-gray-100">
-                <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-                  <HomeIcon size={20} /> Back to Home
-                </Link>
-              </div>
+            <div className="pt-6 mt-6 border-t border-gray-100">
+              <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
+                <HomeIcon size={20} /> Back to Home
+              </Link>
+            </div>
           </nav>
-
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-8 lg:p-12 overflow-hidden">
-          <header className="flex items-center justify-between mb-12">
+          <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-12">
             <div>
               <h1 className="text-3xl font-black text-text-primary">System Overview</h1>
               <p className="text-text-secondary font-medium mt-1">Real-time performance analytics</p>
             </div>
-            <div className="flex gap-4">
-               <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-                  <Search size={18} className="text-gray-400" />
-                  <input type="text" placeholder="Global search..." className="outline-none text-sm font-medium w-40" />
-               </div>
-               <Link to="/admin/copilot">
-                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Cpu size={18} /> AI Copilot</Button>
-               </Link>
-               <Link to="/admin/ops">
-                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-violet-200 text-violet-600 hover:bg-violet-50"><Activity size={18} /> AI Ops Center</Button>
-               </Link>
-               <Link to="/admin/supply-waste">
-                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50"><Leaf size={18} /> Supply & Waste Intel</Button>
-               </Link>
-               <Link to="/admin/customer-intel">
-                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"><Users size={18} /> Customer Intel</Button>
-               </Link>
-               <Link to="/admin/restaurants">
-                 <Button className="px-6 rounded-2xl gap-2"><Plus size={18} /> Add Entity</Button>
-               </Link>
+            <div className="flex flex-wrap gap-3">
+              <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
+                <Search size={16} className="text-gray-400" />
+                <input type="text" placeholder="Global search..." className="outline-none text-xs font-medium w-36" />
+              </div>
+              <Link to="/admin/copilot">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Cpu size={14} /> AI Copilot</Button>
+              </Link>
+              <Link to="/admin/ops">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><Activity size={14} /> AI Ops</Button>
+              </Link>
+              <Link to="/admin/supply-waste">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-emerald-200 text-emerald-600 hover:bg-emerald-55"><Leaf size={14} /> Supply & Waste</Button>
+              </Link>
+              <Link to="/admin/customer-intel">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-indigo-200 text-indigo-600 hover:bg-indigo-50"><Users size={14} /> Customer Intel</Button>
+              </Link>
+              <Link to="/admin/simulations">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><Sliders size={14} /> Simulations</Button>
+              </Link>
+              <Link to="/admin/kitchen-vision">
+                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Eye size={14} /> Vision</Button>
+              </Link>
+              <Link to="/admin/restaurants">
+                <Button className="px-4 py-2 rounded-xl text-xs gap-1.5"><Plus size={14} /> Add Entity</Button>
+              </Link>
             </div>
           </header>
 
@@ -302,7 +305,6 @@ const AdminDashboard = () => {
               </motion.div>
             ))}
           </div>
-
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
@@ -382,7 +384,7 @@ const AdminDashboard = () => {
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Status</th>
                          <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Action</th>
-                      </tr>
+                       </tr>
                    </thead>
                    <tbody>
                       {recentOrders.map((order, index) => {

@@ -13,7 +13,8 @@ import {
   Eye,
   UtensilsCrossed,
   Upload,
-  RefreshCcw
+  RefreshCcw,
+  Cpu
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -264,6 +265,10 @@ const AdminRestaurants = () => {
                         <Trash2 size={14} /> Remove
                       </button>
                     </div>
+
+                    <Link to={`/admin/restaurants/${res.id}/twin`} className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl md:rounded-2xl font-black text-xs md:text-sm transition-all shadow-md shadow-blue-500/10">
+                      <Cpu size={14} /> AI Digital Twin
+                    </Link>
                   </div>
                 </motion.div>
               ))}

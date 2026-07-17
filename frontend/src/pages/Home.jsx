@@ -466,7 +466,7 @@ const Home = () => {
       {/* ── Why Tomato ── */}
       <section className="bg-white py-10 md:py-16">
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight text-center">Why Choose Tomato?</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight text-center">Why Choose FoodIQ?</h2>
           <p className="text-[#686B78] text-sm mb-10 text-center">India's most trusted food delivery platform</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
@@ -505,7 +505,7 @@ const Home = () => {
               <div className="max-w-xl text-center md:text-left">
                 <div className="inline-flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full px-4 py-2 mb-8">
                   <Crown className="text-yellow-500" size={16} />
-                  <span className="text-yellow-500 text-xs font-black uppercase tracking-widest">Tomato Gold</span>
+                  <span className="text-yellow-500 text-xs font-black uppercase tracking-widest">FoodIQ Gold</span>
                 </div>
                 
                 <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight tracking-tighter">
@@ -528,7 +528,7 @@ const Home = () => {
                 </div>
                 
                 <button className="group bg-yellow-500 hover:bg-yellow-400 text-[#1C1C1C] px-10 py-5 rounded-[2rem] font-black text-sm tracking-widest uppercase transition-all shadow-[0_20px_50px_rgba(234,179,8,0.3)] flex items-center gap-4 mx-auto md:mx-0">
-                  Get Tomato Gold @ ₹99
+                  Get FoodIQ Gold @ ₹99
                   <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
                 </button>
               </div>
@@ -551,7 +551,7 @@ const Home = () => {
                         <span className="text-[10px] font-black text-[#1C1C1C] uppercase tracking-widest">Premium</span>
                       </div>
                       <div className="mt-8">
-                        <p className="text-[#1C1C1C] text-2xl font-black tracking-tight leading-none">TOMATO</p>
+                        <p className="text-[#1C1C1C] text-2xl font-black tracking-tight leading-none">FOODIQ</p>
                         <p className="text-[#1C1C1C] text-5xl font-black tracking-tighter">GOLD</p>
                       </div>
                     </div>

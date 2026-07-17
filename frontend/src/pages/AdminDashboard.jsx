@@ -10,7 +10,9 @@ import {
   Search,
   LayoutDashboard,
   Home as HomeIcon,
-  Bell
+  Bell,
+  Cpu
+} from 'lucide-react';
 } from 'lucide-react';
 
 
@@ -218,6 +220,9 @@ const AdminDashboard = () => {
               <Link to="/admin/sales" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
                 <Bell size={20} /> Manage Sales
               </Link>
+              <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
+                <Cpu size={20} /> AI Copilot
+              </Link>
 
               <div className="pt-6 mt-6 border-t border-gray-100">
                 <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
@@ -240,6 +245,9 @@ const AdminDashboard = () => {
                   <Search size={18} className="text-gray-400" />
                   <input type="text" placeholder="Global search..." className="outline-none text-sm font-medium w-40" />
                </div>
+               <Link to="/admin/copilot">
+                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Cpu size={18} /> AI Copilot</Button>
+               </Link>
                <Link to="/admin/restaurants">
                  <Button className="px-6 rounded-2xl gap-2"><Plus size={18} /> Add Entity</Button>
                </Link>

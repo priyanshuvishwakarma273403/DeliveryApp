@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// TOMATO — World's Largest Food Delivery Catalog
+// FOODIQ — World's Largest Food Delivery Catalog
 // 100 Restaurants  ·  1000+ Menu Items  ·  30+ Cuisines
 // ═══════════════════════════════════════════════════════════════
 

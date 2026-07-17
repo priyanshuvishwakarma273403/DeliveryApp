@@ -55,6 +55,7 @@ const AdminExperiments = lazy(() => import('./pages/AdminExperiments'));
 const AdminGlobalIntelligence = lazy(() => import('./pages/AdminGlobalIntelligence'));
 const AdminImageVerification = lazy(() => import('./pages/AdminImageVerification'));
 const AdminPlateDesigner = lazy(() => import('./pages/AdminPlateDesigner'));
+const AdminDeliveryRisk = lazy(() => import('./pages/AdminDeliveryRisk'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
@@ -136,6 +137,7 @@ function App() {
                   <Route path="/admin/global-intel" element={<ProtectedRoute roles={['ADMIN']}><AdminGlobalIntelligence /></ProtectedRoute>} />
                   <Route path="/admin/image-verification" element={<ProtectedRoute roles={['ADMIN']}><AdminImageVerification /></ProtectedRoute>} />
                   <Route path="/admin/plate-designer" element={<ProtectedRoute roles={['ADMIN']}><AdminPlateDesigner /></ProtectedRoute>} />
+                  <Route path="/admin/delivery-risk" element={<ProtectedRoute roles={['ADMIN']}><AdminDeliveryRisk /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />

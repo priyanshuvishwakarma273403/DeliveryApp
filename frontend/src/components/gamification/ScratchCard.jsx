@@ -132,7 +132,7 @@ const ScratchCard = ({ card, onScratchComplete }) => {
            <Coins size={28} />
            <span className="text-4xl font-black">{card.amount}</span>
         </div>
-        <p className="text-xs font-bold text-yellow-600 uppercase tracking-widest mt-2">Tomato Coins</p>
+        <p className="text-xs font-bold text-yellow-600 uppercase tracking-widest mt-2">FoodIQ Coins</p>
       </div>
 
       {/* Scratch Overlay Canvas */}

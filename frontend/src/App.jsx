@@ -45,6 +45,7 @@ const AdminBlogs = lazy(() => import('./pages/AdminBlogs'));
 const AdminDigitalTwin = lazy(() => import('./pages/AdminDigitalTwin'));
 const AdminCopilot = lazy(() => import('./pages/AdminCopilot'));
 const AdminOpsCenter = lazy(() => import('./pages/AdminOpsCenter'));
+const AdminSupplyWaste = lazy(() => import('./pages/AdminSupplyWaste'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
@@ -116,6 +117,7 @@ function App() {
                   <Route path="/admin/restaurants/:id/twin" element={<ProtectedRoute roles={['ADMIN']}><AdminDigitalTwin /></ProtectedRoute>} />
                   <Route path="/admin/copilot" element={<ProtectedRoute roles={['ADMIN']}><AdminCopilot /></ProtectedRoute>} />
                   <Route path="/admin/ops" element={<ProtectedRoute roles={['ADMIN']}><AdminOpsCenter /></ProtectedRoute>} />
+                  <Route path="/admin/supply-waste" element={<ProtectedRoute roles={['ADMIN']}><AdminSupplyWaste /></ProtectedRoute>} />
                   <Route path="/admin/orders" element={<ProtectedRoute roles={['ADMIN']}><AdminOrders /></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />

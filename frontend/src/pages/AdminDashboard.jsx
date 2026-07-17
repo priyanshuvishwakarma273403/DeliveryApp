@@ -12,7 +12,8 @@ import {
   Home as HomeIcon,
   Bell,
   Cpu,
-  Activity
+  Activity,
+  Leaf
 } from 'lucide-react';
 
 
@@ -226,6 +227,9 @@ const AdminDashboard = () => {
               <Link to="/admin/ops" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
                 <Activity size={20} /> AI Ops Center
               </Link>
+              <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
+                <Leaf size={20} /> Supply & Waste Intel
+              </Link>
 
               <div className="pt-6 mt-6 border-t border-gray-100">
                 <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
@@ -253,6 +257,9 @@ const AdminDashboard = () => {
                </Link>
                <Link to="/admin/ops">
                  <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-violet-200 text-violet-600 hover:bg-violet-50"><Activity size={18} /> AI Ops Center</Button>
+               </Link>
+               <Link to="/admin/supply-waste">
+                 <Button variant="secondary" className="px-6 rounded-2xl gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50"><Leaf size={18} /> Supply & Waste Intel</Button>
                </Link>
                <Link to="/admin/restaurants">
                  <Button className="px-6 rounded-2xl gap-2"><Plus size={18} /> Add Entity</Button>

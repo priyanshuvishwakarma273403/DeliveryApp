@@ -230,6 +230,9 @@ const AdminDashboard = () => {
               <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
                 <Leaf size={20} /> Supply & Waste Intel
               </Link>
+              <Link to="/admin/customer-intel" className="flex items-center gap-4 text-indigo-600 font-black hover:text-indigo-500 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 transition-all">
+                <Users size={20} /> Customer Intel
+              </Link>
 
               <div className="pt-6 mt-6 border-t border-gray-100">
                 <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">

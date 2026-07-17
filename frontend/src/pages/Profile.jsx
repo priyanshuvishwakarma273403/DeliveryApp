@@ -79,7 +79,7 @@ const Profile = () => {
                 <Crown size={80} className="absolute -right-4 -bottom-4 text-white/5 group-hover:rotate-12 transition-transform duration-500" />
                 <div className="relative z-10">
                    <span className="bg-yellow-400 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Premium</span>
-                   <h3 className="text-xl font-black mt-2">Tomato Gold</h3>
+                   <h3 className="text-xl font-black mt-2">FoodIQ Gold</h3>
                    <p className="text-gray-400 text-xs mt-1 leading-relaxed">Unlimited free deliveries and extra discounts on every order.</p>
                    <Link to="/gold">
                      <button className="mt-4 w-full bg-white text-black py-3 rounded-xl font-black text-xs hover:scale-[1.02] transition-transform">

@@ -58,6 +58,7 @@ const AdminPlateDesigner = lazy(() => import('./pages/AdminPlateDesigner'));
 const AdminDeliveryRisk = lazy(() => import('./pages/AdminDeliveryRisk'));
 const RestaurantBattle = lazy(() => import('./pages/RestaurantBattle'));
 const CelebrationPlanner = lazy(() => import('./pages/CelebrationPlanner'));
+const AdminRestaurantCockpit = lazy(() => import('./pages/AdminRestaurantCockpit'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now

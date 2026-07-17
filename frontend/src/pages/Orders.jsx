@@ -14,6 +14,7 @@ import { cn } from '../utils/cn';
 import orderService from '../services/orderService';
 import { useWebSocket } from '../providers/WebSocketProvider';
 import { useAuthStore } from '../store/authStore';
+import AIImage from '../components/common/AIImage';
 
 const statusConfig = {
   PLACED: { label: 'Placed', variant: 'info', color: 'text-blue-500', step: 1 },
@@ -230,8 +231,10 @@ const OrderCard = ({ order, idx, isActive }) => {
         {/* Restaurant Profile */}
         <div className="flex items-center gap-4 flex-1">
           <div className="h-20 w-20 md:h-24 md:w-24 rounded-[2rem] overflow-hidden shrink-0 border-4 border-gray-50 shadow-inner">
-            <img 
+            <AIImage 
               src={firstItemImage} 
+              dishName={order.orderItems?.[0]?.menuItemName || "Dish"} 
+              restaurantName={order.restaurantName || "FoodIQ"}
               alt={order.restaurantName} 
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
             />

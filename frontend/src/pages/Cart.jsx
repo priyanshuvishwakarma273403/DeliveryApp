@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Trash2, 
@@ -9,28 +10,67 @@ import {
   Truck,
   ShieldCheck,
   Tag,
-  ChevronLeft
+  ChevronLeft,
+  Leaf,
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
 import { useWalletStore } from '../store/walletStore';
+import { useAuthStore } from '../store/authStore';
 import CoinRedeemer from '../components/wallet/CoinRedeemer';
 import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 import { getOptimizedImageUrl } from '../utils/cloudinary';
 
-
-
 const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, getTotalAmount } = useCartStore();
   const { coins, isApplyingCoins } = useWalletStore();
+  const { user } = useAuthStore();
+
+  const [greenDelivery, setGreenDelivery] = useState(false);
+  const [noCutlery, setNoCutlery] = useState(true);
 
   const subtotal = getTotalAmount();
   const deliveryFee = subtotal > 500 ? 0 : 40;
   const tax = Math.round(subtotal * 0.05); // 5% GST
-  const intermediateTotal = subtotal + deliveryFee + tax;
+  const greenCourierFee = greenDelivery ? 5 : 0;
+  const intermediateTotal = subtotal + deliveryFee + tax + greenCourierFee;
   const discountAmount = isApplyingCoins ? Math.min(coins, intermediateTotal) : 0;
   const total = intermediateTotal - discountAmount;
+
+  // Allergy Check Logic
+  const activeAllergens = user?.allergens || [];
+  const activeDietary = user?.dietary || [];
+
+  const detectedAllergyWarnings = [];
+  items.forEach(item => {
+    const itemName = item.name.toLowerCase();
+    
+    if (activeAllergens.includes('Peanut') && (itemName.includes('peanut') || itemName.includes('nut'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Peanut', risk: 'HIGH' });
+    }
+    if (activeAllergens.includes('Dairy') && (itemName.includes('pizza') || itemName.includes('paneer') || itemName.includes('cheese') || itemName.includes('butter') || itemName.includes('milk') || itemName.includes('shake'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Dairy', risk: 'HIGH' });
+    }
+    if (activeAllergens.includes('Gluten') && (itemName.includes('pizza') || itemName.includes('burger') || itemName.includes('bread') || itemName.includes('bun') || itemName.includes('naan') || itemName.includes('noodle'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Gluten', risk: 'HIGH' });
+    }
+    if (activeAllergens.includes('Shellfish') && (itemName.includes('prawn') || itemName.includes('shrimp') || itemName.includes('crab') || itemName.includes('fish'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Shellfish', risk: 'HIGH' });
+    }
+    if (activeAllergens.includes('Soy') && (itemName.includes('tofu') || itemName.includes('soy') || itemName.includes('soya'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Soy', risk: 'HIGH' });
+    }
+
+    if (activeDietary.includes('Vegetarian') && (itemName.includes('chicken') || itemName.includes('mutton') || itemName.includes('fish') || itemName.includes('prawn') || itemName.includes('meat') || itemName.includes('egg'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Vegetarian Restriction (Contains Meat)', risk: 'CRITICAL' });
+    }
+    if (activeDietary.includes('Vegan') && (itemName.includes('chicken') || itemName.includes('mutton') || itemName.includes('fish') || itemName.includes('meat') || itemName.includes('egg') || itemName.includes('paneer') || itemName.includes('cheese') || itemName.includes('butter') || itemName.includes('milk') || itemName.includes('shake') || itemName.includes('curd'))) {
+      detectedAllergyWarnings.push({ item: item.name, allergen: 'Vegan Restriction (Contains Dairy/Meat)', risk: 'CRITICAL' });
+    }
+  });
 
   if (items.length === 0) {
     return (
@@ -84,8 +124,27 @@ const Cart = () => {
 
       <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
+          
           {/* Cart Items List */}
           <div className="flex-1">
+            
+            {/* AI Allergy Guardian Alerts */}
+            {detectedAllergyWarnings.length > 0 && (
+              <div className="mb-6 bg-rose-50 border-2 border-rose-100 rounded-[1.5rem] p-5 shadow-sm">
+                <h3 className="text-sm font-black text-rose-800 flex items-center gap-2 mb-2">
+                  <ShieldAlert size={18} className="text-rose-600 animate-bounce" />
+                  AI Allergy Guardian Alert
+                </h3>
+                <div className="space-y-2">
+                  {detectedAllergyWarnings.map((warn, i) => (
+                    <p key={i} className="text-xs text-rose-700 leading-relaxed">
+                      ⚠️ <strong>{warn.item}</strong> may conflict with your saved profile: <strong>{warn.allergen}</strong>. (Cross-contamination risk: <strong>{warn.risk}</strong>).
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3 md:space-y-4">
               <AnimatePresence>
                 {items.map((item) => (
@@ -149,7 +208,6 @@ const Cart = () => {
                       </div>
                     </div>
                   </motion.div>
-
                 ))}
               </AnimatePresence>
             </div>
@@ -173,84 +231,150 @@ const Cart = () => {
             </div>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:w-80 xl:w-96">
-            <div className="sticky top-28 space-y-4 md:space-y-6">
-              <CoinRedeemer cartTotal={intermediateTotal} />
-              <div className="bg-white rounded-xl md:rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 md:p-6">
-                  <h3 className="text-sm md:text-lg font-bold text-text-primary mb-4 md:mb-6">Order Summary</h3>
-                  
-                  <div className="space-y-3 mb-4 md:mb-6">
-                    <div className="flex justify-between items-center text-xs md:text-sm">
-                      <span className="text-text-secondary font-medium">Item Total</span>
-                      <span className="font-bold">₹{subtotal}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs md:text-sm">
-                      <span className="text-text-secondary font-medium">Delivery Fee</span>
-                      <span className={cn("font-bold", deliveryFee === 0 ? "text-green-500" : "")}>
-                        {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs md:text-sm">
-                      <span className="text-text-secondary font-medium">Taxes (5%)</span>
-                      <span className="font-bold">₹{tax}</span>
-                    </div>
-                    
-                    {isApplyingCoins && (
-                      <div className="flex justify-between items-center text-xs md:text-sm text-green-600">
-                        <span className="font-bold">Coins Discount</span>
-                        <span className="font-bold">-₹{discountAmount}</span>
-                      </div>
-                    )}
-                    
-                    <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                      <span className="text-sm md:text-lg font-black text-text-primary">Total</span>
-                      <span className="text-lg md:text-2xl font-black text-primary">₹{total}</span>
-                    </div>
-                  </div>
+          {/* Order Summary Column */}
+          <div className="lg:w-80 xl:w-96 space-y-4 md:space-y-6">
+            <CoinRedeemer cartTotal={intermediateTotal} />
+            
+            {/* Carbon Footprint Intelligence card */}
+            <div className="bg-white rounded-xl md:rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden p-5 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-black text-[#1C1C1C] flex items-center gap-2">
+                  <Leaf className="text-emerald-500 animate-pulse" size={18} />
+                  Carbon Intelligence
+                </h3>
+                <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                  Sustainability Score: A+
+                </span>
+              </div>
 
-                  {/* Promo Code */}
-                  <div className="relative mb-4 md:mb-6">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-primary" size={14} />
-                    <input 
-                      type="text" 
-                      placeholder="Promo code" 
-                      className="w-full pl-9 pr-20 py-2.5 md:py-3 bg-gray-50 border border-transparent rounded-xl text-xs md:text-sm font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all uppercase placeholder:normal-case"
-                    />
-                    <button className="absolute right-1.5 top-1.5 bottom-1.5 px-3 bg-white text-primary text-[10px] md:text-xs font-black rounded-lg border border-primary/20 hover:border-primary transition-all">APPLY</button>
-                  </div>
-
-                  {/* Checkout Button - hidden on mobile (shown in fixed bar below) */}
-                  <div className="hidden md:block">
-                    <Link to="/checkout">
-                      <Button className="w-full py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base shadow-xl shadow-primary/20">
-                        Proceed to Checkout <ArrowRight size={18} className="ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
+              <div className="grid grid-cols-2 gap-3 text-center text-xs">
+                <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50">
+                  <span className="text-[9px] font-bold text-emerald-800/70 uppercase block">Est. CO2</span>
+                  <p className="text-emerald-600 font-black mt-0.5">
+                    {Math.max(0.1, (subtotal * 0.0012 - (noCutlery ? 0.15 : 0) - (greenDelivery ? 0.35 : 0))).toFixed(2)} kg
+                  </p>
                 </div>
-                
-                <div className="bg-gray-50 p-4 flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    <ShieldCheck size={12} className="text-green-500" /> Secure Checkout
-                  </div>
-                  <div className="flex gap-3 grayscale opacity-50">
-                    <img src="https://www.vectorlogo.zone/logos/visa/visa-icon.svg" className="h-3 md:h-4" alt="Visa" />
-                    <img src="https://www.vectorlogo.zone/logos/mastercard/mastercard-icon.svg" className="h-3 md:h-4" alt="Mastercard" />
-                    <img src="https://www.vectorlogo.zone/logos/upi/upi-icon.svg" className="h-3 md:h-4" alt="UPI" />
-                  </div>
+                <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50">
+                  <span className="text-[9px] font-bold text-emerald-800/70 uppercase block">Packaging Impact</span>
+                  <p className="text-emerald-600 font-black mt-0.5">Sugarcane Pulp</p>
                 </div>
               </div>
 
-              <div className="bg-orange-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-orange-100 flex gap-3">
-                <AlertCircle size={16} className="text-orange-500 shrink-0 mt-0.5" />
-                <p className="text-[10px] md:text-xs text-orange-800 leading-relaxed font-medium">
-                  Tip: Avoid multiple restaurant orders to get your food delivered faster!
-                </p>
+              <div className="space-y-3 pt-1 text-xs">
+                <label className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl cursor-pointer hover:bg-gray-50 transition-colors border border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    <input 
+                      type="checkbox" 
+                      checked={greenDelivery} 
+                      onChange={(e) => setGreenDelivery(e.target.checked)} 
+                      className="accent-emerald-500 h-4 w-4" 
+                    />
+                    <div>
+                      <span className="font-bold text-[#1C1C1C] block">Greener EV Delivery</span>
+                      <span className="text-[10px] text-text-secondary">Reduce transit emissions by 85%</span>
+                    </div>
+                  </div>
+                  <span className="font-black text-emerald-600">+₹5</span>
+                </label>
+
+                <label className="flex items-center justify-between p-3 bg-[#F8F9FB] rounded-xl cursor-pointer hover:bg-gray-50 transition-colors border border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    <input 
+                      type="checkbox" 
+                      checked={noCutlery} 
+                      onChange={(e) => setNoCutlery(e.target.checked)} 
+                      className="accent-emerald-500 h-4 w-4" 
+                    />
+                    <div>
+                      <span className="font-bold text-[#1C1C1C] block">No Plastic Cutlery</span>
+                      <span className="text-[10px] text-text-secondary">Saves 0.15 kg CO2 footprint</span>
+                    </div>
+                  </div>
+                  <span className="font-black text-emerald-600">Saved</span>
+                </label>
               </div>
             </div>
+
+            <div className="bg-white rounded-xl md:rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 md:p-6">
+                <h3 className="text-sm md:text-lg font-bold text-text-primary mb-4 md:mb-6">Order Summary</h3>
+                
+                <div className="space-y-3 mb-4 md:mb-6">
+                  <div className="flex justify-between items-center text-xs md:text-sm">
+                    <span className="text-text-secondary font-medium">Item Total</span>
+                    <span className="font-bold">₹{subtotal}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs md:text-sm">
+                    <span className="text-text-secondary font-medium">Delivery Fee</span>
+                    <span className={cn("font-bold", deliveryFee === 0 ? "text-green-500" : "")}>
+                      {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+                    </span>
+                  </div>
+                  {greenDelivery && (
+                    <div className="flex justify-between items-center text-xs md:text-sm text-emerald-600 font-bold">
+                      <span>EV Delivery Charge</span>
+                      <span>₹5</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-xs md:text-sm">
+                    <span className="text-text-secondary font-medium">Taxes (5%)</span>
+                    <span className="font-bold">₹{tax}</span>
+                  </div>
+                  
+                  {isApplyingCoins && (
+                    <div className="flex justify-between items-center text-xs md:text-sm text-green-600">
+                      <span className="font-bold">Coins Discount</span>
+                      <span className="font-bold">-₹{discountAmount}</span>
+                    </div>
+                  )}
+                  
+                  <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-sm md:text-lg font-black text-text-primary">Total</span>
+                    <span className="text-lg md:text-2xl font-black text-primary">₹{total}</span>
+                  </div>
+                </div>
+
+                {/* Promo Code */}
+                <div className="relative mb-4 md:mb-6">
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-primary" size={14} />
+                  <input 
+                    type="text" 
+                    placeholder="Promo code" 
+                    className="w-full pl-9 pr-20 py-2.5 md:py-3 bg-gray-50 border border-transparent rounded-xl text-xs md:text-sm font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all uppercase placeholder:normal-case"
+                  />
+                  <button className="absolute right-1.5 top-1.5 bottom-1.5 px-3 bg-white text-primary text-[10px] md:text-xs font-black rounded-lg border border-primary/20 hover:border-primary transition-all">APPLY</button>
+                </div>
+
+                {/* Checkout Button */}
+                <div className="hidden md:block">
+                  <Link to="/checkout">
+                    <Button className="w-full py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base shadow-xl shadow-primary/20">
+                      Proceed to Checkout <ArrowRight size={18} className="ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <ShieldCheck size={12} className="text-green-500" /> Secure Checkout
+                </div>
+                <div className="flex gap-3 grayscale opacity-50">
+                  <img src="https://www.vectorlogo.zone/logos/visa/visa-icon.svg" className="h-3 md:h-4" alt="Visa" />
+                  <img src="https://www.vectorlogo.zone/logos/mastercard/mastercard-icon.svg" className="h-3 md:h-4" alt="Mastercard" />
+                  <img src="https://www.vectorlogo.zone/logos/upi/upi-icon.svg" className="h-3 md:h-4" alt="UPI" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-orange-100 flex gap-3">
+              <AlertCircle size={16} className="text-orange-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] md:text-xs text-orange-800 leading-relaxed font-medium">
+                Tip: Avoid multiple restaurant orders to get your food delivered faster!
+              </p>
+            </div>
           </div>
+
         </div>
       </div>
 

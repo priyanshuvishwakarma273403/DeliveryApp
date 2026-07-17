@@ -169,6 +169,7 @@ const Header = () => {
               { label: 'Delivery', icon: ShoppingBag, path: '/', color: 'text-primary' },
               { label: 'Dining', icon: Utensils, path: '/dining', color: 'text-blue-600' },
               { label: 'Events', icon: Ticket, path: '/events', color: 'text-purple-600' },
+              { label: 'Battle Arena', icon: Swords, path: '/battle', color: 'text-orange-600' },
             ].map((nav) => (
               <Link 
                 key={nav.path} 

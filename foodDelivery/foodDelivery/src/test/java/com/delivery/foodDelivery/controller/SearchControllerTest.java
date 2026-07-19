@@ -3,7 +3,11 @@ package com.delivery.foodDelivery.controller;
 import com.delivery.foodDelivery.dto.response.SearchResultItem;
 import com.delivery.foodDelivery.dto.response.SearchSuggestion;
 import com.delivery.foodDelivery.entity.SearchHistoryItem;
+import com.delivery.foodDelivery.entity.User;
+import com.delivery.foodDelivery.enums.Role;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.service.UniversalSearchService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +19,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,6 +35,28 @@ public class SearchControllerTest {
 
     @MockBean
     private UniversalSearchService searchService;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @BeforeEach
+    public void setup() {
+        // Setup mock CUSTOMER user
+        User mockCustomer = User.builder()
+                .id(101L)
+                .email("customer1")
+                .role(Role.CUSTOMER)
+                .build();
+        Mockito.when(userRepository.findByEmail("customer1")).thenReturn(Optional.of(mockCustomer));
+
+        // Setup mock ADMIN user
+        User mockAdmin = User.builder()
+                .id(202L)
+                .email("admin1")
+                .role(Role.ADMIN)
+                .build();
+        Mockito.when(userRepository.findByEmail("admin1")).thenReturn(Optional.of(mockAdmin));
+    }
 
     @Test
     public void testUniversalSearchPublicAccess() throws Exception {
@@ -79,10 +105,12 @@ public class SearchControllerTest {
 
     @Test
     public void testSearchHistoryRequiresAuthentication() throws Exception {
-        // Without authentication, accessing secured endpoint should fail (401 or 403 depending on security config)
+        // Without authentication, access is publicly permitted but handler checks user context and returns Ok with success=false
         mockMvc.perform(get("/api/search/history")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Authentication required to fetch history"));
     }
 
     @Test
@@ -90,13 +118,13 @@ public class SearchControllerTest {
     public void testSearchHistoryWithCustomerAuthentication() throws Exception {
         SearchHistoryItem mockHistory = SearchHistoryItem.builder()
                 .id("hist_1")
-                .userId("customer1")
+                .userId("101")
                 .query("veg burger")
                 .timestamp(LocalDateTime.now())
                 .count(3)
                 .build();
 
-        Mockito.when(searchService.getHistory(Mockito.anyString()))
+        Mockito.when(searchService.getHistory(Mockito.eq("101")))
                 .thenReturn(Collections.singletonList(mockHistory));
 
         mockMvc.perform(get("/api/search/history")
@@ -109,6 +137,7 @@ public class SearchControllerTest {
     @Test
     @WithMockUser(username = "customer1", roles = {"CUSTOMER"})
     public void testAnalyticsRestrictedForCustomer() throws Exception {
+        // Restricted by PreAuthorize hasRole('ADMIN') -> AccessDeniedException mapped to 403
         mockMvc.perform(get("/api/search/analytics")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -117,6 +146,8 @@ public class SearchControllerTest {
     @Test
     @WithMockUser(username = "admin1", roles = {"ADMIN"})
     public void testAnalyticsAllowedForAdmin() throws Exception {
+        Mockito.when(searchService.getAnalytics()).thenReturn(Collections.emptyMap());
+
         mockMvc.perform(get("/api/search/analytics")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

@@ -496,7 +496,7 @@ const Checkout = () => {
                     loading={isPlacing}
                     className="px-6 md:px-14 py-3 md:py-4 rounded-xl md:rounded-2xl bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 text-sm md:text-base"
                   >
-                    Place Order ₹{total}
+                    Place Order ₹{breakdown.finalAmount}
                   </Button>
                 )}
               </div>

@@ -120,9 +120,11 @@ const Home = () => {
 
 
   const handleSearch = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (searchValue.trim()) {
-      navigate(`/restaurants?search=${encodeURIComponent(searchValue)}`);
+      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+    } else {
+      navigate('/search');
     }
   };
 

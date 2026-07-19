@@ -24,12 +24,17 @@ import {
   Ticket,
   Swords,
   Calendar,
-  Search as SearchIcon
+  Globe,
+  Sun,
+  Moon,
+  Star
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useLocationStore } from '../../store/locationStore';
 import { useWalletStore } from '../../store/walletStore';
+import { useTheme } from '../../hooks/useTheme';
+import { useLanguage } from '../../context/LanguageContext';
 import WalletBadge from '../wallet/WalletBadge';
 import Button from '../common/Button';
 import LocationModal from './LocationModal';

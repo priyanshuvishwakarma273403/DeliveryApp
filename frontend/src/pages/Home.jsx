@@ -490,7 +490,21 @@ const Home = () => {
               { icon: <Shield size={28} className="text-[#26A541]" />, title: t('safeHygienic'), desc: t('safeHygienicDesc') },
               { icon: <Heart size={28} className="text-primary" />, title: t('choices'), desc: t('choicesDesc') },
             ].map((item, i) => (
-              <div key={i} className="text-      {/* ── Tomato Gold Section ── */}
+              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
+                  {item.icon}
+                </div>
+                <h3 className="font-black text-[#1C1C1C] mb-2 text-base">{item.title}</h3>
+                <p className="text-sm text-[#686B78] leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="h-2 bg-[#F5F5F5]" />
+
+      {/* ── Tomato Gold Section ── */}
       <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div 

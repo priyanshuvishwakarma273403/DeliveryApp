@@ -27,7 +27,8 @@ import {
   Globe,
   Sun,
   Moon,
-  Star
+  Star,
+  Bell
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
@@ -62,6 +63,39 @@ const Header = () => {
   const [showResults, setShowResults] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await apiClient.get('/notifications/unread-count');
+        if (response.data?.success) {
+          setUnreadNotifCount(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+      }
+    };
+    
+    fetchUnreadCount();
+
+    const handleNewNotification = () => {
+      setUnreadNotifCount((prev) => prev + 1);
+    };
+
+    const handleNotificationsRead = () => {
+      setUnreadNotifCount(0);
+    };
+
+    window.addEventListener('new-notification', handleNewNotification);
+    window.addEventListener('notifications-read', handleNotificationsRead);
+    return () => {
+      window.removeEventListener('new-notification', handleNewNotification);
+      window.removeEventListener('notifications-read', handleNotificationsRead);
+    };
+  }, [isAuthenticated]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -319,6 +353,22 @@ const Header = () => {
 
             {isAuthenticated && <WalletBadge />}
 
+            {/* Notifications Bell */}
+            {isAuthenticated && (
+              <Link 
+                to="/notifications"
+                className="relative p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-[#1C1C1C] dark:text-gray-300 flex items-center justify-center group"
+                title="Notifications"
+              >
+                <Bell size={20} className="group-hover:text-primary transition-colors" />
+                {unreadNotifCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 bg-[#EF4444] text-white text-[9px] font-black h-4.5 w-4.5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900 shadow-sm animate-pulse">
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* Cart */}
             <button 
               onClick={() => toggleDrawer(true)}
@@ -458,6 +508,16 @@ const Header = () => {
 
           {/* Mobile right icons */}
           <div className="flex md:hidden items-center gap-1 ml-auto">
+            {isAuthenticated && (
+              <Link to="/notifications" className="relative p-2 text-[#1C1C1C] dark:text-gray-300 flex items-center justify-center">
+                <Bell size={20} />
+                {unreadNotifCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-[#EF4444] text-white text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center border border-white dark:border-gray-900 animate-pulse">
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
 
             {/* Language dropdown for Mobile */}

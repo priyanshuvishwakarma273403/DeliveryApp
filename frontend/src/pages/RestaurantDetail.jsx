@@ -42,6 +42,7 @@ const RestaurantDetail = () => {
   const [showReward, setShowReward] = useState(false);
   const [rewardCoins, setRewardCoins] = useState(0);
   const [showHealthModal, setShowHealthModal] = useState(false);
+  const [selectedFoodItem, setSelectedFoodItem] = useState(null);
   const { items, addItem, updateQuantity, getTotalAmount } = useCartStore();
 
   useEffect(() => {

@@ -4,8 +4,8 @@ import {
   X, Plus, Minus, Flame, Heart, Sparkles, Check, Info, ShieldAlert, Star,
   Compass, Coffee, IceCream, MessageSquare, CornerDownRight
 } from 'lucide-react';
-import AIImage from '../components/common/AIImage';
-import Button from '../components/common/Button';
+import AIImage from '../common/AIImage';
+import Button from '../common/Button';
 import { toast } from 'react-hot-toast';
 
 const FoodDetailModal = ({ isOpen, onClose, item, restaurantName, cuisine, onAdd }) => {

@@ -438,13 +438,7 @@ const Header = () => {
 
           {/* Mobile right icons */}
           <div className="flex md:hidden items-center gap-1 ml-auto">
-            {/* Theme Toggle for Mobile */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-xl text-[#1C1C1C] dark:text-gray-300"
-            >
-              {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} />}
-            </button>
+
 
             {/* Language dropdown for Mobile */}
             <div className="relative" id="lang-dropdown-mobile">

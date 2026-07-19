@@ -490,28 +490,14 @@ const Home = () => {
               { icon: <Shield size={28} className="text-[#26A541]" />, title: t('safeHygienic'), desc: t('safeHygienicDesc') },
               { icon: <Heart size={28} className="text-primary" />, title: t('choices'), desc: t('choicesDesc') },
             ].map((item, i) => (
-              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
-                  {item.icon}
-                </div>
-                <h3 className="font-black text-[#1C1C1C] mb-2 text-base">{item.title}</h3>
-                <p className="text-sm text-[#686B78] leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="h-2 bg-[#F5F5F5]" />
-
-      {/* ── Tomato Gold Section ── */}
-      <section className="py-12 md:py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
+              <div key={i} className="text-      {/* ── Tomato Gold Section ── */}
+      <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-[3rem] md:rounded-[4rem] bg-gradient-to-br from-[#1C1C1C] via-[#2D2D2D] to-[#1C1C1C] dark:from-gray-900 dark:via-gray-800 dark:to-black p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.3)]"
+            className="relative overflow-hidden rounded-[3rem] md:rounded-[4rem] bg-gradient-to-br from-[#1C1C1C] via-[#2D2D2D] to-[#1C1C1C] p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.3)]"
           >
             {/* Animated Gold Glow */}
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-yellow-500/10 rounded-full blur-[100px] animate-pulse" />
@@ -602,22 +588,22 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
+      <div className="h-2 bg-[#F5F5F5]" />
 
       {/* ── Google-Style Testimonials ── */}
-      <section className="bg-white dark:bg-gray-950 py-12 md:py-20 overflow-hidden transition-colors duration-300">
+      <section className="bg-white py-12 md:py-20 overflow-hidden">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-12 md:mb-16">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/20 px-4 py-2 rounded-full border border-blue-100 dark:border-blue-900/30 shadow-sm"
+                className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm"
               >
                 <div className="flex -space-x-1">
                   {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#4285F4" strokeWidth={0} />)}
                 </div>
-                <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
                   {t('language') === 'Idioma' ? '4.8/5 en Google Reviews' : t('language') === 'भाषा' ? 'Google समीक्षाओं पर 4.8/5' : '4.8/5 on Google Reviews'}
                 </span>
               </motion.div>
@@ -626,25 +612,25 @@ const Home = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-950/20 px-4 py-2 rounded-full border border-orange-100 dark:border-orange-900/30 shadow-sm"
+                className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-100 shadow-sm"
               >
                 <div className="flex -space-x-2">
                    {[1,2,3,4].map(i => (
-                     <div key={i} className="h-5 w-5 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-gray-200 dark:bg-gray-700">
+                     <div key={i} className="h-5 w-5 rounded-full border-2 border-white overflow-hidden bg-gray-200">
                        <img src={`https://i.pravatar.cc/100?u=user${i}`} alt="user" className="w-full h-full object-cover" />
                      </div>
                    ))}
                 </div>
-                <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
                   {t('language') === 'Idioma' ? 'Más de 5 millones de usuarios' : t('language') === 'भाषा' ? '5 मिलियन+ कुल उपयोगकर्ता' : '5 Million+ Total Users'}
                 </span>
               </motion.div>
             </div>
             
-            <h2 className="text-3xl md:text-5xl font-black text-[#1C1C1C] dark:text-white mb-4 tracking-tight">
+            <h2 className="text-3xl md:text-5xl font-black text-[#1C1C1C] mb-4 tracking-tight">
               {t('language') === 'Idioma' ? 'Lo que dicen nuestros clientes' : t('language') === 'भाषा' ? 'हमारे फूडीज़ क्या कहते हैं' : 'What our foodies say'}
             </h2>
-            <p className="text-[#686B78] dark:text-gray-400 text-sm md:text-lg max-w-2xl mx-auto font-medium">
+            <p className="text-[#686B78] text-sm md:text-lg max-w-2xl mx-auto font-medium">
               {t('language') === 'Idioma' ? 'Reseñas auténticas de nuestra comunidad en toda la India' : t('language') === 'भाषा' ? 'पूरे भारत में हमारे समुदाय की प्रामाणिक समीक्षाएं' : 'Authentic reviews from our community across India'}
             </p>
           </div>
@@ -673,30 +659,30 @@ const Home = () => {
                 ].map((review, i) => (
                   <div 
                     key={i}
-                    className="min-w-[280px] bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-xl border border-gray-50 dark:border-gray-800 relative"
+                    className="min-w-[280px] bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 relative"
                   >
                     <div className="absolute top-6 right-6 opacity-20">
                       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="h-4" />
                     </div>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm">
+                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
                         <img src={review.avatar} alt={review.name} className="h-full w-full object-cover" />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-[#1C1C1C] dark:text-white">{review.name}</p>
+                        <p className="text-xs font-black text-[#1C1C1C]">{review.name}</p>
                         <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{review.date}</p>
                       </div>
                     </div>
                     <div className="flex gap-0.5 mb-3">
                       {[1,2,3,4,5].map(star => <Star key={star} size={10} fill="#FBBC05" strokeWidth={0} />)}
                     </div>
-                    <p className="text-[#1C1C1C] dark:text-gray-300 text-xs leading-relaxed font-medium">"{review.text}"</p>
+                    <p className="text-[#1C1C1C] text-xs leading-relaxed font-medium">"{review.text}"</p>
                   </div>
                 ))}
               </motion.div>
               {/* Gradient overlays for smooth fading at edges */}
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
-              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
             </div>
 
             {/* Desktop: Professional Grid */}
@@ -713,24 +699,24 @@ const Home = () => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -10 }}
-                  className="bg-white dark:bg-gray-900 p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-gray-800 relative group"
+                  className="bg-white p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 relative group"
                 >
                   <div className="absolute top-8 right-8 opacity-20 group-hover:opacity-100 transition-opacity">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="h-5" />
                   </div>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-xl group-hover:scale-110 transition-transform duration-500">
+                    <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-white shadow-xl group-hover:scale-110 transition-transform duration-500">
                       <img src={review.avatar} alt={review.name} className="h-full w-full object-cover" />
                     </div>
                     <div>
-                      <p className="text-base font-black text-[#1C1C1C] dark:text-white">{review.name}</p>
+                      <p className="text-base font-black text-[#1C1C1C]">{review.name}</p>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{review.date}</p>
                     </div>
                   </div>
                   <div className="flex gap-0.5 mb-6">
                     {[1,2,3,4,5].map(star => <Star key={star} size={14} fill="#FBBC05" strokeWidth={0} />)}
                   </div>
-                  <p className="text-[#1C1C1C] dark:text-gray-300 text-base leading-relaxed font-medium">"{review.text}"</p>
+                  <p className="text-[#1C1C1C] text-base leading-relaxed font-medium">"{review.text}"</p>
                 </motion.div>
               ))}
             </div>
@@ -741,7 +727,53 @@ const Home = () => {
             whileInView={{ opacity: 1 }}
             className="mt-16 flex flex-col items-center gap-6"
           >
-            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-900 px-6 py-3 rounded-full border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-4 bg-gray-50 px-6 py-3 rounded-full border border-gray-100">
+               <div className="flex -space-x-1">
+                 {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="#FBBC05" strokeWidth={0} />)}
+               </div>
+               <span className="text-xs font-black text-[#1C1C1C]">
+                 {t('language') === 'Idioma' ? '4.8 Calificación de más de 2,540 clientes' : t('language') === 'भाषा' ? '2,540+ ग्राहकों से 4.8 रेटिंग' : '4.8 Rating from 2,540+ Customers'}
+               </span>
+            </div>
+            
+            <button 
+              onClick={() => setIsReviewsModalOpen(true)}
+              className="group relative bg-[#1C1C1C] text-white px-12 py-5 rounded-[2rem] font-black text-sm tracking-[0.2em] uppercase hover:bg-primary transition-all shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-primary/30 flex items-center gap-4 cursor-pointer"
+            >
+              <span>
+                {t('language') === 'Idioma' ? 'Ver todas las 2,540 reseñas' : t('language') === 'भाषा' ? 'सभी 2,540 समीक्षाएं देखें' : 'See All 2,540 Reviews'}
+              </span>
+              <div className="h-8 w-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-primary transition-all">
+                <ChevronRight size={20} />
+              </div>
+            </button>
+            
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              {t('language') === 'Idioma' ? '⭐ Verificado por Google Trust' : t('language') === 'भाषा' ? '⭐ Google Trust द्वारा सत्यापित' : '⭐ Verified by Google Trust'}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="h-2 bg-[#F5F5F5]" />
+
+      <LocationModal 
+        isOpen={isLocationModalOpen} 
+        onClose={() => setIsLocationModalOpen(false)} 
+      />
+
+      <ReviewsModal 
+        isOpen={isReviewsModalOpen} 
+        onClose={() => setIsReviewsModalOpen(false)} 
+      />
+
+      <OrderPulse />
+    </div>
+
+  );
+};
+
+export default Home;flex items-center gap-4 bg-gray-50 dark:bg-gray-900 px-6 py-3 rounded-full border border-gray-100 dark:border-gray-800">
                <div className="flex -space-x-1">
                  {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="#FBBC05" strokeWidth={0} />)}
                </div>

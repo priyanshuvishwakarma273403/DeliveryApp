@@ -19,7 +19,7 @@ import Stories from '../components/home/Stories';
 import OfferSlider from '../components/home/OfferSlider';
 import OrderPulse from '../components/home/OrderPulse';
 import { useAuthStore } from '../store/authStore';
-
+import { useLanguage } from '../context/LanguageContext';
 
 
 
@@ -84,6 +84,7 @@ const HERO_THEMES = {
 };
 
 const Home = () => {
+  const { t } = useLanguage();
   const [searchValue, setSearchValue] = useState('');
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
@@ -126,7 +127,7 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-white pb-20 md:pb-0">
+    <div className="bg-white dark:bg-gray-950 pb-20 md:pb-0 transition-colors duration-300">
 
       {/* ── Hero Section ── */}
       <section className="relative min-h-[500px] md:h-[620px] flex items-center overflow-hidden transition-colors duration-700">
@@ -192,7 +193,7 @@ const Home = () => {
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 mb-8 shadow-xl"
             >
               <div className={`h-2 w-2 rounded-full animate-pulse transition-colors duration-500`} style={{ backgroundColor: theme.primary }} />
-              <span className="text-white text-xs md:text-sm font-bold tracking-wide uppercase">{totalRestaurants}+ restaurants live near you</span>
+              <span className="text-white text-xs md:text-sm font-bold tracking-wide uppercase">{totalRestaurants}+ {t('restaurants')} live near you</span>
             </motion.div>
 
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-[0.95] tracking-tight">
@@ -201,7 +202,7 @@ const Home = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                Crave the <br />
+                {t('heroTitle')} <br />
               </motion.span>
               <motion.span 
                 key={activeCategory}
@@ -210,7 +211,7 @@ const Home = () => {
                 style={{ color: theme.primary }}
                 className="drop-shadow-2xl filter brightness-110"
               >
-                {activeCategory === 'all' ? 'Best Food' : activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
+                {activeCategory === 'all' ? t('heroSubtitle') : activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
               </motion.span>
             </h1>
             
@@ -228,39 +229,39 @@ const Home = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="bg-white rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row overflow-hidden max-w-3xl border border-white/20 p-2 gap-1 group"
+              className="bg-white dark:bg-gray-900 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row overflow-hidden max-w-3xl border border-white/20 dark:border-gray-800 p-2 gap-1 group"
             >
               <div 
                 onClick={() => setIsLocationModalOpen(true)}
-                className="flex items-center gap-4 px-6 py-4 rounded-2xl cursor-pointer hover:bg-gray-50 transition-all flex-1"
+                className="flex items-center gap-4 px-6 py-4 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-all flex-1"
               >
                 <MapPin style={{ color: theme.primary }} className="shrink-0 group-hover:scale-110 transition-transform" size={22} strokeWidth={2.5} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-gray-400 font-black leading-none mb-1 uppercase tracking-widest">Your Location</p>
-                  <p className="text-[#1C1C1C] text-sm font-bold truncate">
-                    {currentLocation?.name || 'Select Location'}
+                  <p className="text-[10px] text-gray-400 font-black leading-none mb-1 uppercase tracking-widest">{t('deliveringTo')}</p>
+                  <p className="text-[#1C1C1C] dark:text-white text-sm font-bold truncate">
+                    {currentLocation?.name || t('selectLocation')}
                   </p>
                 </div>
                 <button 
                   type="button" 
                   onClick={(e) => { e.stopPropagation(); detectLocation(); }}
-                  className="hover:bg-gray-200 p-2 rounded-xl transition-colors shrink-0"
+                  className="hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-xl transition-colors shrink-0"
                   title="Detect my location"
                 >
                   <Navigation size={18} style={{ color: theme.primary }} />
                 </button>
               </div>
 
-              <div className="h-10 w-[1px] bg-gray-100 self-center hidden md:block" />
+              <div className="h-10 w-[1px] bg-gray-100 dark:bg-gray-800 self-center hidden md:block" />
 
               <div className="flex items-center gap-4 px-6 py-4 rounded-2xl flex-[1.5] group/input">
-                <Search className="text-gray-300 group-focus-within/input:text-primary transition-colors" size={22} />
+                <Search className="text-gray-300 dark:text-gray-600 group-focus-within/input:text-primary transition-colors" size={22} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-gray-400 font-black leading-none mb-1 uppercase tracking-widest">Search</p>
+                  <p className="text-[10px] text-gray-400 font-black leading-none mb-1 uppercase tracking-widest">{t('language') === 'Idioma' ? 'Buscar' : t('language') === 'भाषा' ? 'खोजें' : 'Search'}</p>
                   <input 
                     type="text" 
-                    placeholder="Search for 'Biryani' or 'Pizza'..." 
-                    className="bg-transparent outline-none text-[#1C1C1C] text-sm w-full font-bold min-w-0 placeholder:font-normal placeholder:text-gray-400"
+                    placeholder={t('searchPlaceholder')}
+                    className="bg-transparent outline-none text-[#1C1C1C] dark:text-white text-sm w-full font-bold min-w-0 placeholder:font-normal placeholder:text-gray-455"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
@@ -273,14 +274,15 @@ const Home = () => {
                 onClick={handleSearch}
                 type="button" 
                 style={{ backgroundColor: theme.primary }}
-                className="text-white font-black px-10 py-4 rounded-2xl transition-all text-sm tracking-widest uppercase shadow-lg shadow-primary/20 md:w-auto w-full"
+                className="text-white font-black px-10 py-4 rounded-2xl transition-all text-sm tracking-widest uppercase shadow-lg shadow-primary/20 md:w-auto w-full cursor-pointer"
               >
-                Find Food
+                {t('findFood')}
               </motion.button>
             </motion.div>
           </motion.div>
         </div>
       </section>
+
 
       {/* ── Offer Slider ── */}
       <OfferSlider />

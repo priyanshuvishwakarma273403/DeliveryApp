@@ -43,6 +43,10 @@ import apiClient from '../../api/axios';
 
 
 const Header = () => {
+  const { isDark, toggleTheme } = useTheme();
+  const { language, changeLanguage, t } = useLanguage();
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -94,6 +98,7 @@ const Header = () => {
     setIsMobileMenuOpen(false);
     setIsProfileOpen(false);
     setShowResults(false);
+    setIsLangDropdownOpen(false);
   }, [location.pathname]);
 
   // Autocomplete logic
@@ -125,18 +130,28 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isProfileOpen]);
 
+  // Close language dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.closest('#lang-dropdown')) setIsLangDropdownOpen(false);
+    };
+    if (isLangDropdownOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isLangDropdownOpen]);
+
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
   const bottomNavItems = [
-    { icon: Home, label: 'Home', to: '/' },
-    { icon: Utensils, label: 'Dining', to: '/dining' },
-    { icon: ShoppingBag, label: 'Cart', to: '/cart', badge: cartItemCount },
-    { icon: ClipboardList, label: 'Orders', to: isAuthenticated ? '/orders' : '/login' },
-    { icon: UserCircle, label: 'Account', to: isAuthenticated ? '/profile' : '/login' },
+    { icon: Home, label: t('home'), to: '/' },
+    { icon: Utensils, label: t('dining'), to: '/dining' },
+    { icon: ShoppingBag, label: t('cart'), to: '/cart', badge: cartItemCount },
+    { icon: ClipboardList, label: t('myOrders'), to: isAuthenticated ? '/orders' : '/login' },
+    { icon: UserCircle, label: t('myProfile'), to: isAuthenticated ? '/profile' : '/login' },
   ];
+
 
   return (
     <>

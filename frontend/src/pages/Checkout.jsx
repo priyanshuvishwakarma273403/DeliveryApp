@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Check, MapPin, CreditCard, Clock, 
@@ -329,34 +329,46 @@ const Checkout = () => {
             <span className="text-xs md:text-sm font-black shrink-0 ml-2">₹{item.price * item.quantity}</span>
           </div>
         ))}
-        <div className="pt-3 md:pt-4 border-t border-gray-200">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs md:text-sm text-text-secondary">Subtotal</span>
-            <span className="text-xs md:text-sm font-bold">₹{subtotal}</span>
+        <div className="pt-3 md:pt-4 border-t border-gray-205">
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">Subtotal</span>
+            <span>₹{breakdown.subtotal}</span>
           </div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs md:text-sm text-text-secondary">Delivery Fee</span>
-            {isPremium ? (
-               <span className="text-xs md:text-sm font-bold flex items-center gap-1 text-green-500">
-                  <Crown size={14} /> FREE <span className="line-through text-gray-400 ml-1 text-xs">₹{baseDelivery}</span>
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">Packaging Charges</span>
+            <span>₹{breakdown.packagingCharge}</span>
+          </div>
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">Delivery Charges</span>
+            {breakdown.deliveryCharge === 0 ? (
+               <span className="font-bold text-green-500 flex items-center gap-1">
+                  <Crown size={12} /> FREE
                </span>
             ) : (
-               <span className="text-xs md:text-sm font-bold">₹{baseDelivery}</span>
+               <span>₹{breakdown.deliveryCharge}</span>
             )}
           </div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs md:text-sm text-text-secondary">Taxes</span>
-            <span className="text-xs md:text-sm font-bold">₹{taxes}</span>
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">Platform Fee</span>
+            <span>₹{breakdown.platformFee}</span>
           </div>
-          {coinDiscount > 0 && (
-            <div className="flex justify-between items-center mb-1 text-yellow-600">
-              <span className="text-xs md:text-sm font-bold flex items-center gap-1"><Coins size={14} /> Coins Applied</span>
-              <span className="text-xs md:text-sm font-black">-₹{coinDiscount}</span>
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">CGST (2.5%)</span>
+            <span>₹{breakdown.cgst}</span>
+          </div>
+          <div className="flex justify-between items-center mb-1 text-xs md:text-sm font-medium">
+            <span className="text-text-secondary">SGST (2.5%)</span>
+            <span>₹{breakdown.sgst}</span>
+          </div>
+          {breakdown.walletDeduction > 0 && (
+            <div className="flex justify-between items-center mb-1 text-xs md:text-sm text-yellow-600 font-bold">
+              <span className="flex items-center gap-1"><Coins size={12} /> Wallet Applied</span>
+              <span>-₹{breakdown.walletDeduction}</span>
             </div>
           )}
           <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-200 border-dashed">
-            <span className="text-base md:text-xl font-black">Total to Pay</span>
-            <span className="text-lg md:text-2xl font-black text-primary">₹{total}</span>
+            <span className="text-base md:text-lg font-black text-[#1C1C1C] dark:text-white">Total Amount</span>
+            <span className="text-lg md:text-xl font-black text-primary">₹{breakdown.finalAmount}</span>
           </div>
         </div>
       </div>

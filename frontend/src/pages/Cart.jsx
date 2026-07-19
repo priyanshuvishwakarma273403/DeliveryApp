@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Trash2, 
@@ -13,7 +13,9 @@ import {
   ChevronLeft,
   Leaf,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Gift,
+  PlusCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
@@ -24,6 +26,8 @@ import Button from '../components/common/Button';
 import { cn } from '../utils/cn';
 import { getOptimizedImageUrl } from '../utils/cloudinary';
 import AIImage from '../components/common/AIImage';
+import apiClient from '../api/axios';
+import toast from 'react-hot-toast';
 
 const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, getTotalAmount } = useCartStore();

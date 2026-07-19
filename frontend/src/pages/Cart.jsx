@@ -274,6 +274,56 @@ const Cart = () => {
                 <Button variant="ghost" className="text-blue-600 hover:bg-white text-xs px-3 py-1.5 shrink-0 hidden sm:flex">Browse</Button>
               </Link>
             </div>
+
+            {/* Frequently Bought Together Combos */}
+            {combos.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <h3 className="text-base font-black text-[#1C1C1C] dark:text-white flex items-center gap-2">
+                  <Gift className="text-primary animate-pulse" size={18} />
+                  Frequently Bought Together (Save 15%)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {combos.map((combo, cIdx) => (
+                    <div 
+                      key={cIdx} 
+                      className="bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border border-amber-500/20 dark:border-amber-500/10 rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden"
+                    >
+                      <div>
+                        <span className="bg-amber-500 text-white font-black text-[9px] uppercase px-2 py-0.5 rounded-full tracking-wider">
+                          Smart Combo
+                        </span>
+                        <h4 className="font-bold text-sm text-[#1C1C1C] dark:text-white mt-1">{combo.name}</h4>
+                        <p className="text-[10px] text-gray-500 mt-1 leading-relaxed">{combo.description}</p>
+                        
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {combo.items.map((cItem, iIdx) => (
+                            <span 
+                              key={iIdx} 
+                              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-md text-[10px] text-gray-600 dark:text-gray-300 font-medium"
+                            >
+                              {cItem.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-dashed border-amber-500/10">
+                        <div>
+                          <span className="text-xs line-through text-gray-400 font-semibold mr-2">₹{combo.originalPrice}</span>
+                          <span className="text-sm font-black text-[#1C1C1C] dark:text-white">₹{combo.comboPrice}</span>
+                        </div>
+                        <button
+                          onClick={() => handleAddCombo(combo)}
+                          className="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase px-3 py-1.5 rounded-xl shadow-sm transition-all"
+                        >
+                          <PlusCircle size={12} /> Add Combo
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Summary Column */}

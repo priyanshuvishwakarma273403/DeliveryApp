@@ -20,6 +20,7 @@ import OfferSlider from '../components/home/OfferSlider';
 import OrderPulse from '../components/home/OrderPulse';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../context/LanguageContext';
+import HomeRecommendations from '../components/home/HomeRecommendations';
 
 
 
@@ -365,6 +366,11 @@ const Home = () => {
           <MoodSearch />
         </div>
       </section>
+
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
+
+      {/* Personalized AI Recommendations */}
+      <HomeRecommendations />
 
       <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 

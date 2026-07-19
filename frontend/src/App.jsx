@@ -153,6 +153,7 @@ function App() {
                   <Route path="/orders" element={<ProtectedRoute roles={['CUSTOMER']}><Orders /></ProtectedRoute>} />
                   <Route path="/orders/:id" element={<ProtectedRoute roles={['CUSTOMER']}><OrderDetail /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute roles={['CUSTOMER']}><Profile /></ProtectedRoute>} />
+                  <Route path="/wallet" element={<ProtectedRoute roles={['CUSTOMER']}><WalletDashboard /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/restaurants" element={<ProtectedRoute roles={['ADMIN']}><AdminRestaurants /></ProtectedRoute>} />
                   <Route path="/admin/restaurants/:id/twin" element={<ProtectedRoute roles={['ADMIN']}><AdminDigitalTwin /></ProtectedRoute>} />
@@ -174,6 +175,7 @@ function App() {
                   <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/blogs" element={<ProtectedRoute roles={['ADMIN']}><AdminBlogs /></ProtectedRoute>} />
                   <Route path="/admin/sales" element={<ProtectedRoute roles={['ADMIN']}><AdminSales /></ProtectedRoute>} />
+                  <Route path="/admin/finance" element={<ProtectedRoute roles={['ADMIN']}><AdminFinance /></ProtectedRoute>} />
                   <Route path="/admin/notifications" element={<ProtectedRoute roles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
 
 

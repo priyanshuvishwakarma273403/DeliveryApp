@@ -34,6 +34,8 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const AdminSecurityDashboard = lazy(() => import('./pages/AdminSecurityDashboard'));
 const UniversalSearch = lazy(() => import('./pages/UniversalSearch'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 
 const NotFound = lazy(() => import('./pages/NotFound'));
 const About = lazy(() => import('./pages/About'));
@@ -132,6 +134,7 @@ function App() {
                   <Route path="/admin/iam" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLATFORM_ADMIN', 'ADMIN', 'SUPPORT_EXECUTIVE', 'MODERATOR']}><AdminSecurityDashboard /></ProtectedRoute>} />
                   <Route path="/restaurants" element={<Restaurants />} />
                   <Route path="/search" element={<UniversalSearch />} />
+                  <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                   <Route path="/restaurants/:id" element={<RestaurantDetail />} />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/about" element={<About />} />

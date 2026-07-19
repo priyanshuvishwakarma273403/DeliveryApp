@@ -1,105 +1,92 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Users, 
-  ShoppingBag, 
-  DollarSign, 
-  TrendingUp,
-  Package,
-  Plus,
-  MoreVertical,
-  Search,
-  LayoutDashboard,
-  Home as HomeIcon,
-  Bell,
-  Cpu,
-  Activity,
-  Leaf,
-  Sliders,
-  Eye,
-  Globe,
-  FlaskConical,
-  Network,
-  Image as ImageIcon,
-  Compass,
-  CloudRain,
-  Building,
-  ShieldCheck
+  Users, ShoppingBag, DollarSign, TrendingUp, Package, Plus, MoreVertical, 
+  Search, LayoutDashboard, Home as HomeIcon, Bell, Cpu, Activity, Leaf, 
+  Sliders, Eye, Globe, FlaskConical, Network, Image as ImageIcon, Compass, 
+  CloudRain, Building, ShieldCheck, Server, AlertTriangle, ShieldAlert, 
+  Terminal, Wifi, Database, Radio, RefreshCw, Layers, CheckCircle2, XCircle
 } from 'lucide-react';
-
-
 import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
-
-import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import apiClient from '../api/axios';
 
+const MOCK_INFRA_HEALTH = [
+  { service: "API Gateway", status: "HEALTHY", latency: "14ms", load: "28%" },
+  { service: "Primary DB Cluster", status: "HEALTHY", latency: "3ms", load: "42%" },
+  { service: "Redis Cache Grid", status: "HEALTHY", latency: "1ms", load: "18%" },
+  { service: "Kafka Event Stream", status: "HEALTHY", latency: "8ms", load: "55%" },
+  { service: "WebSocket Dispatcher", status: "HEALTHY", latency: "2ms", load: "12%" }
+];
+
+const MOCK_SYSTEM_ALERTS = [
+  { id: "AL-102", service: "Payment Gateway", msg: "Stripe API latency spike detected (1200ms)", severity: "WARNING", time: "15:08" },
+  { id: "AL-103", service: "Auth Service", msg: "Brute-force attempts detected on IP 192.168.1.100", severity: "CRITICAL", time: "15:05" },
+  { id: "AL-104", service: "Kitchen Vision", msg: "KDS Screen disconnected at Branch Lucknow-Hazratganj", severity: "INFO", time: "14:58" }
+];
+
+const MOCK_LIVE_ORDERS = [
+  { id: "OD-4402", customer: "Aditya Roy", restaurant: "Pizza Hut - Connaught Place", rider: "Rider Shiva", value: "₹450.00", status: "OUT_FOR_DELIVERY", eta: "8 mins", priority: "VIP" },
+  { id: "OD-4403", customer: "Divya Negi", restaurant: "Bikanervala - Sector 62", rider: "Rider Amit", value: "₹280.00", status: "PREPARING", eta: "15 mins", priority: "EXPRESS" },
+  { id: "OD-4404", customer: "Kabir Mehra", restaurant: "Tuscany Grill - Saket", rider: "Unassigned", value: "₹1,200.00", status: "PLACED", eta: "25 mins", priority: "NORMAL" }
+];
+
 const CHART_DATA = [
-  { day: 'Mon', revenue: 4000, orders: 24 },
-  { day: 'Tue', revenue: 3000, orders: 13 },
-  { day: 'Wed', revenue: 2000, orders: 98 },
-  { day: 'Thu', revenue: 2780, orders: 39 },
-  { day: 'Fri', revenue: 1890, orders: 48 },
-  { day: 'Sat', revenue: 2390, orders: 38 },
-  { day: 'Sun', revenue: 3490, orders: 43 },
+  { day: 'Mon', revenue: 4000, orders: 24, load: 30 },
+  { day: 'Tue', revenue: 3000, orders: 13, load: 45 },
+  { day: 'Wed', revenue: 2000, orders: 98, load: 60 },
+  { day: 'Thu', revenue: 2780, orders: 39, load: 50 },
+  { day: 'Fri', revenue: 1890, orders: 48, load: 40 },
+  { day: 'Sat', revenue: 6390, orders: 85, load: 75 },
+  { day: 'Sun', revenue: 8490, orders: 110, load: 90 },
 ];
 
 const PIE_DATA = [
-  { name: 'Delivered', value: 400, color: '#16A34A' },
-  { name: 'Processing', value: 300, color: '#3B82F6' },
-  { name: 'Cancelled', value: 100, color: '#EF4444' },
-  { name: 'Out for Delivery', value: 200, color: '#F59E0B' },
+  { name: 'Delivered', value: 480, color: '#10B981' },
+  { name: 'Preparing', value: 310, color: '#3B82F6' },
+  { name: 'Out for Delivery', value: 180, color: '#F59E0B' },
+  { name: 'Cancelled', value: 45, color: '#EF4444' },
 ];
-
-const RECENT_ORDERS = [
-  { id: 'ORD-1234', customer: 'John Doe', restaurant: 'Burger King 42', amount: 450, status: 'DELIVERED' },
-  { id: 'ORD-1235', customer: 'Jane Smith', restaurant: 'Pizza Hut', amount: 890, status: 'PROCESSING' },
-  { id: 'ORD-1236', customer: 'Mike Johnson', restaurant: 'Subway', amount: 320, status: 'OUT_FOR_DELIVERY' },
-];
-
-import { useOrderSocket } from '../hooks/useOrderSocket';
-import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    totalOrders: '0',
-    totalRevenue: '₹0',
-    totalCustomers: '0',
-    activeRestaurants: '0'
+    totalOrders: '8,412',
+    totalRevenue: '₹24.5L',
+    totalCustomers: '45,820',
+    activeRestaurants: '312'
   });
-  const [recentOrders, setRecentOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  
+  const [activePreset, setActivePreset] = useState('operational'); // operational, infrastructure, security
+  const [infraStatus, setInfraStatus] = useState(MOCK_INFRA_HEALTH);
+  const [alerts, setAlerts] = useState(MOCK_SYSTEM_ALERTS);
+  const [liveOrders, setLiveOrders] = useState(MOCK_LIVE_ORDERS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+
+  // Widget customizer preset toggles
+  const [widgetsVisibility, setWidgetsVisibility] = useState({
+    stats: true,
+    trends: true,
+    infra: true,
+    orders: true,
+    alerts: true
+  });
+
+  const toggleWidget = (widgetName) => {
+    setWidgetsVisibility(prev => ({ ...prev, [widgetName]: !prev[widgetName] }));
+  };
 
   useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (!e.target.closest('.dropdown-container')) {
-        setActiveDropdownId(null);
-      }
-    };
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
+    const fetchRealData = async () => {
       try {
         const statsRes = await apiClient.get('/admin/analytics/stats');
-        if (statsRes.data.success) {
+        if (statsRes.data?.success) {
           const data = statsRes.data.data;
           setStats({
             totalOrders: data.totalOrders.toLocaleString(),
@@ -108,392 +95,278 @@ const AdminDashboard = () => {
             activeRestaurants: data.activeRestaurants.toLocaleString()
           });
         }
-        
-        const ordersRes = await apiClient.get('/orders');
-        if (ordersRes.data?.success) {
-           const reversedOrders = [...ordersRes.data.data].reverse();
-           setRecentOrders(reversedOrders.slice(0, 5));
-        }
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
+        console.error('Failed to sync real-time stats:', error);
       }
     };
-    fetchData();
+    fetchRealData();
   }, []);
 
-  useOrderSocket((updatedOrder) => {
-    setRecentOrders(prev => {
-      const index = prev.findIndex(o => o.id === updatedOrder.id);
-      if (index !== -1) {
-        const newOrders = [...prev];
-        newOrders[index] = updatedOrder;
-        toast.success(`Order #${updatedOrder.id} status updated to ${updatedOrder.status}`, {
-          icon: '🔔',
-          duration: 4000
-        });
-        return newOrders;
-      } else {
-        toast.success('New order received!', {
-          icon: '🛍️',
-          duration: 5000
-        });
-        const updatedList = [updatedOrder, ...prev];
-        return updatedList.slice(0, 5);
-      }
-    });
-  });
-
-  const handleStatusUpdate = async (id, status) => {
-    try {
-      const response = await apiClient.patch(`/orders/${id}/status?status=${status}`);
-      if (response.data?.success) {
-        setRecentOrders(prev => prev.map(o => o.id === id ? response.data.data : o));
-        toast.success('Status updated successfully');
-      }
-    } catch (error) {
-      console.error('Update failed', error);
-      toast.error('Update failed');
-    }
-  };
-
-  const getAvailableActions = (status) => {
-    switch (status) {
-      case 'PLACED':
-        return [
-          { label: 'Confirm Order', val: 'CONFIRMED' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
-        ];
-      case 'CONFIRMED':
-        return [
-          { label: 'Mark Preparing', val: 'PREPARING' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
-        ];
-      case 'PREPARING':
-        return [
-          { label: 'Mark Packed', val: 'PACKED' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
-        ];
-      case 'PACKED':
-        return [
-          { label: 'Mark Ready', val: 'READY_FOR_PICKUP' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-500 hover:bg-red-55' }
-        ];
-      case 'READY_FOR_PICKUP':
-        return [
-          { label: 'Out for Delivery', val: 'OUT_FOR_DELIVERY' },
-          { label: 'Cancel Order', val: 'CANCELLED', color: 'text-red-55' }
-        ];
-      case 'OUT_FOR_DELIVERY':
-        return [
-          { label: 'Mark Delivered', val: 'DELIVERED' }
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const DYNAMIC_STATS = [
-    { label: 'Total Orders', value: stats.totalOrders, color: 'bg-blue-500', icon: ShoppingBag, change: '+12.5%' },
-    { label: 'Total Revenue', value: stats.totalRevenue, color: 'bg-green-500', icon: DollarSign, change: '+8.2%' },
-    { label: 'Total Customers', value: stats.totalCustomers, color: 'bg-orange-500', icon: Users, change: '+15.3%' },
-    { label: 'Active Restaurants', value: stats.activeRestaurants, color: 'bg-primary', icon: Package, change: '+5.0%' },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <aside className="w-full lg:w-80 h-auto lg:h-screen bg-white border-r border-gray-100 p-8 lg:sticky lg:top-0 overflow-y-auto">
-          <div className="flex items-center gap-2 mb-12">
-            <div className="bg-primary p-1.5 rounded-lg">
-              <span className="text-white font-black text-xl tracking-tighter">F</span>
-            </div>
-            <span className="text-xl font-black text-primary">FoodIQAdmin</span>
+    <div className="min-h-screen bg-[#070A13] text-[#E2E8F0] font-sans flex flex-col lg:flex-row">
+      
+      {/* ── SIDEBAR CONTROL NAV ── */}
+      <aside className="w-full lg:w-80 bg-[#0F1524] border-r border-gray-850 p-6 lg:sticky lg:top-0 h-auto lg:h-screen overflow-y-auto space-y-8 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary p-2.5 rounded-xl text-white shadow-lg shadow-primary/30">
+            <span className="font-black text-xl tracking-tighter">F</span>
+          </div>
+          <div>
+            <h2 className="text-base font-black text-white">FoodIQ Command</h2>
+            <span className="text-[9px] text-[#FC8019] font-black uppercase tracking-widest bg-[#FC8019]/10 px-2 py-0.5 rounded-lg border border-[#FC8019]/20">Mission Control</span>
+          </div>
+        </div>
+
+        <nav className="space-y-1">
+          <Link to="/admin" className="flex items-center gap-3.5 text-primary font-black bg-primary/5 p-3.5 rounded-2xl border border-primary/10">
+            <LayoutDashboard size={18} /> Command Center
+          </Link>
+          <Link to="/admin/restaurants" className="flex items-center gap-3.5 text-gray-400 font-bold hover:text-white hover:bg-white/5 p-3.5 rounded-2xl transition-all">
+            <Package size={18} /> Restaurants
+          </Link>
+          <Link to="/admin/orders" className="flex items-center gap-3.5 text-gray-400 font-bold hover:text-white hover:bg-white/5 p-3.5 rounded-2xl transition-all">
+            <ShoppingBag size={18} /> Manage Orders
+          </Link>
+          <Link to="/admin/iam" className="flex items-center gap-3.5 text-rose-500 font-black hover:text-rose-450 bg-rose-500/5 p-3.5 rounded-2xl border border-rose-500/10 transition-all">
+            <ShieldCheck size={18} /> IAM & Security
+          </Link>
+          <Link to="/admin/copilot" className="flex items-center gap-3.5 text-cyan-500 font-black hover:text-cyan-400 bg-cyan-500/5 p-3.5 rounded-2xl border border-cyan-500/10 transition-all">
+            <Cpu size={18} /> AI Copilot
+          </Link>
+          <Link to="/admin/ops" className="flex items-center gap-3.5 text-violet-500 font-black hover:text-violet-400 bg-violet-500/5 p-3.5 rounded-2xl border border-violet-500/10 transition-all">
+            <Activity size={18} /> AI Ops Control
+          </Link>
+          <Link to="/admin/supply-waste" className="flex items-center gap-3.5 text-emerald-500 font-black hover:text-emerald-400 bg-emerald-500/5 p-3.5 rounded-2xl border border-emerald-500/10 transition-all">
+            <Leaf size={18} /> Supply & Waste
+          </Link>
+          <Link to="/admin/simulations" className="flex items-center gap-3.5 text-amber-500 font-black hover:text-amber-400 bg-amber-500/5 p-3.5 rounded-2xl border border-amber-500/10 transition-all">
+            <Sliders size={18} /> AI Simulations
+          </Link>
+          <Link to="/admin/restaurant-cockpit" className="flex items-center gap-3.5 text-teal-500 font-black hover:text-teal-400 bg-teal-500/5 p-3.5 rounded-2xl border border-teal-500/10 transition-all">
+            <Building size={18} /> Restaurant Cockpit
+          </Link>
+
+          <div className="pt-6 mt-6 border-t border-gray-800">
+            <Link to="/" className="flex items-center gap-3.5 text-gray-400 font-bold hover:text-white p-3.5 rounded-2xl transition-all">
+              <HomeIcon size={18} /> Exit Command Center
+            </Link>
+          </div>
+        </nav>
+      </aside>
+
+      {/* ── MAIN CONTENT ── */}
+      <main className="flex-1 p-6 md:p-8 lg:p-10 overflow-hidden space-y-8">
+        
+        {/* Top Header telemetry */}
+        <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-gray-850">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-white">System Command Center</h1>
+            <p className="text-xs text-gray-400 font-medium mt-1">Real-time status updates across database, transactions, orders, and telemetry streams.</p>
           </div>
 
-          <nav className="space-y-4">
-            <Link to="/admin" className="flex items-center gap-4 text-primary font-black bg-primary/5 p-4 rounded-2xl">
-              <LayoutDashboard size={20} /> Dashboard
-            </Link>
-            <Link to="/admin/restaurants" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-              <Package size={20} /> Restaurants
-            </Link>
-            <Link to="/admin/orders" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-              <ShoppingBag size={20} /> Manage Orders
-            </Link>
-            <Link to="/admin/iam" className="flex items-center gap-4 text-rose-600 font-black hover:text-rose-500 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10 transition-all">
-              <ShieldCheck size={20} /> IAM Security
-            </Link>
-            <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-              <Cpu size={20} /> AI Copilot
-            </Link>
-            <Link to="/admin/ops" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-              <Activity size={20} /> AI Mission Control
-            </Link>
-            <Link to="/admin/supply-waste" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
-              <Leaf size={20} /> Supply & Waste Intel
-            </Link>
-            <Link to="/admin/customer-intel" className="flex items-center gap-4 text-indigo-600 font-black hover:text-indigo-500 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10 transition-all">
-              <Users size={20} /> Customer Intel
-            </Link>
-            <Link to="/admin/simulations" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-              <Sliders size={20} /> AI Simulations
-            </Link>
-            <Link to="/admin/kitchen-vision" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-              <Eye size={20} /> Kitchen Vision
-            </Link>
-            <Link to="/admin/business-forecast" className="flex items-center gap-4 text-violet-600 font-black hover:text-violet-500 bg-violet-500/5 p-4 rounded-2xl border border-violet-500/10 transition-all">
-              <TrendingUp size={20} /> Business Forecast
-            </Link>
-            <Link to="/admin/knowledge-graph" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-              <Network size={20} /> Knowledge Graph
-            </Link>
-            <Link to="/admin/experiments" className="flex items-center gap-4 text-purple-600 font-black hover:text-purple-500 bg-purple-500/5 p-4 rounded-2xl border border-purple-500/10 transition-all">
-              <FlaskConical size={20} /> AI Experiments
-            </Link>
-            <Link to="/admin/global-intel" className="flex items-center gap-4 text-emerald-600 font-black hover:text-emerald-500 bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 transition-all">
-              <Globe size={20} /> Global Intel
-            </Link>
-            <Link to="/admin/image-verification" className="flex items-center gap-4 text-amber-600 font-black hover:text-amber-500 bg-amber-500/5 p-4 rounded-2xl border border-amber-500/10 transition-all">
-              <ImageIcon size={20} /> AI Image Audit
-            </Link>
-            <Link to="/admin/plate-designer" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
-              <Compass size={20} /> AI Plate Designer
-            </Link>
-            <Link to="/admin/delivery-risk" className="flex items-center gap-4 text-rose-600 font-black hover:text-rose-500 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10 transition-all">
-              <CloudRain size={20} /> AI Delivery Risk
-            </Link>
-            <Link to="/admin/restaurant-cockpit" className="flex items-center gap-4 text-teal-600 font-black hover:text-teal-500 bg-teal-500/5 p-4 rounded-2xl border border-teal-500/10 transition-all">
-              <Building size={20} /> Restaurant Cockpit
-            </Link>
-
-            <div className="pt-6 mt-6 border-t border-gray-100">
-              <Link to="/" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
-                <HomeIcon size={20} /> Back to Home
-              </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Presets selectors */}
+            <div className="flex bg-[#0F1524] p-1 rounded-xl border border-gray-800">
+              {['operational', 'infrastructure', 'security'].map(p => (
+                <button
+                  key={p}
+                  onClick={() => setActivePreset(p)}
+                  className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                    activePreset === p ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
-          </nav>
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-8 lg:p-12 overflow-hidden">
-          <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-12">
-            <div>
-              <h1 className="text-3xl font-black text-text-primary">System Overview</h1>
-              <p className="text-text-secondary font-medium mt-1">Real-time performance analytics</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <div className="bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-                <Search size={16} className="text-gray-400" />
-                <input type="text" placeholder="Global search..." className="outline-none text-xs font-medium w-36" />
-              </div>
-              <Link to="/admin/copilot">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Cpu size={14} /> AI Copilot</Button>
-              </Link>
-              <Link to="/admin/ops">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><Activity size={14} /> AI Ops</Button>
-              </Link>
-              <Link to="/admin/supply-waste">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-emerald-200 text-emerald-600 hover:bg-emerald-55"><Leaf size={14} /> Supply & Waste</Button>
-              </Link>
-              <Link to="/admin/customer-intel">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-indigo-200 text-indigo-600 hover:bg-indigo-50"><Users size={14} /> Customer Intel</Button>
-              </Link>
-              <Link to="/admin/simulations">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><Sliders size={14} /> Simulations</Button>
-              </Link>
-              <Link to="/admin/kitchen-vision">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Eye size={14} /> Vision</Button>
-              </Link>
-              <Link to="/admin/business-forecast">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-violet-200 text-violet-600 hover:bg-violet-50"><TrendingUp size={14} /> Forecast</Button>
-              </Link>
-              <Link to="/admin/knowledge-graph">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-cyan-200 text-cyan-600 hover:bg-cyan-50"><Network size={14} /> Graph</Button>
-              </Link>
-              <Link to="/admin/experiments">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-purple-200 text-purple-600 hover:bg-purple-50"><FlaskConical size={14} /> A/B Tests</Button>
-              </Link>
-              <Link to="/admin/global-intel">
-                <Button variant="secondary" className="px-4 py-2 rounded-xl text-xs gap-1.5 border-emerald-200 text-emerald-600 hover:bg-emerald-50"><Globe size={14} /> Global Intel</Button>
-              </Link>
-            </div>
-          </header>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {DYNAMIC_STATS.map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white p-8 rounded-[2.5rem] shadow-premium border border-gray-100 relative overflow-hidden group"
+            {/* Customizer dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotificationPanel(!showNotificationPanel)}
+                className="p-3 bg-[#0F1524] hover:bg-gray-800 border border-gray-800 rounded-xl relative"
               >
-                <div className={`absolute top-0 right-0 h-24 w-24 ${stat.color} opacity-5 rounded-bl-[100px] transition-all group-hover:scale-110`} />
-                <div className={`h-14 w-14 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-gray-200`}>
-                   <stat.icon size={28} />
+                <Bell size={16} />
+                <span className="absolute -top-1 -right-1 bg-[#FC8019] text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center">3</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* ── GLOBAL TELEMETRY STATS WIDGETS ── */}
+        {widgetsVisibility.stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: "Revenue Today", val: stats.totalRevenue, change: "+8.2%", icon: DollarSign, color: "text-green-500 bg-green-500/10 border-green-500/20" },
+              { title: "Live Orders", val: stats.totalOrders, change: "+12.5%", icon: ShoppingBag, color: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
+              { title: "Platform Users", val: stats.totalCustomers, change: "+15.3%", icon: Users, color: "text-orange-500 bg-orange-500/10 border-orange-500/20" },
+              { title: "Avg Delivery Time", val: "24.8m", change: "-4.1%", icon: Clock, color: "text-purple-500 bg-purple-500/10 border-purple-500/20" }
+            ].map((card, idx) => (
+              <div key={idx} className="bg-[#0F1524] p-6 rounded-[2rem] border border-gray-850 relative overflow-hidden group">
+                <div className={`absolute top-0 right-0 h-20 w-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-[100px]`} />
+                <div className={`h-11 w-11 rounded-xl flex items-center justify-center border ${card.color} mb-4 shadow-sm`}>
+                  <card.icon size={20} />
                 </div>
-                <h3 className="text-3xl font-black text-text-primary mb-1">{stat.value}</h3>
-                <p className="text-sm font-bold text-text-secondary flex items-center gap-2">
-                   {stat.label} <span className="text-green-500 font-black">{stat.change}</span>
+                <h3 className="text-2xl font-black text-white mb-1">{card.val}</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                  {card.title} <span className="text-green-400 font-black">{card.change}</span>
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
+        )}
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
-             <div className="xl:col-span-2 bg-white p-10 rounded-[3rem] shadow-premium border border-gray-100">
-                <div className="flex items-center justify-between mb-10">
-                   <h3 className="text-xl font-black text-text-primary">Revenue & Order Trends</h3>
-                   <div className="flex gap-2">
-                      <Badge variant="info">Weekly</Badge>
-                      <Badge variant="gray">Monthly</Badge>
-                   </div>
+        {/* ── DUAL COLUMN DASHBOARD ── */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          
+          {/* Column 1 & 2: Charts and Order Logs */}
+          <div className="xl:col-span-2 space-y-6">
+            
+            {/* Real-time Order and Load Trends */}
+            {widgetsVisibility.trends && (
+              <div className="bg-[#0F1524] p-6 md:p-8 rounded-[2.5rem] border border-gray-850 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
+                    <Activity className="text-primary" size={16} /> Live Orders & Node Workload Stream
+                  </h3>
+                  <div className="flex gap-2">
+                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] text-green-400 font-black uppercase">Socket Connected</span>
+                  </div>
                 </div>
-                <div className="h-[350px]">
-                   <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={CHART_DATA}>
-                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                         <XAxis 
-                            dataKey="day" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fontSize: 12, fontWeight: 600, fill: '#64748B' }} 
-                            dy={10}
-                         />
-                         <YAxis 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fontSize: 12, fontWeight: 600, fill: '#64748B' }} 
-                         />
-                         <Tooltip 
-                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                         />
-                         <Line type="monotone" dataKey="revenue" stroke="#E23744" strokeWidth={4} dot={{ r: 6, fill: '#E23744', strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 8 }} />
-                         <Line type="monotone" dataKey="orders" stroke="#FC8019" strokeWidth={4} dot={{ r: 6, fill: '#FC8019', strokeWidth: 3, stroke: '#fff' }} />
-                      </LineChart>
-                   </ResponsiveContainer>
-                </div>
-             </div>
 
-             <div className="bg-white p-10 rounded-[3rem] shadow-premium border border-gray-100 flex flex-col items-center">
-                <h3 className="text-xl font-black text-text-primary w-full mb-10">Order Status</h3>
-                <div className="h-[250px] w-full">
-                   <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                         <Pie data={PIE_DATA} innerRadius={60} outerRadius={100} paddingAngle={10} dataKey="value">
-                            {PIE_DATA.map((entry, index) => (
-                               <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                         </Pie>
-                         <Tooltip />
-                      </PieChart>
-                   </ResponsiveContainer>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#FC8019" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#FC8019" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
+                      <XAxis dataKey="day" stroke="#4B5563" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                      <YAxis stroke="#4B5563" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0F1524', borderColor: '#1F2937' }} />
+                      <Area type="monotone" dataKey="revenue" stroke="#FC8019" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                      <Line type="monotone" dataKey="orders" stroke="#3B82F6" strokeWidth={3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-4 w-full mt-8">
-                   {PIE_DATA.map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                         <span className="text-xs font-bold text-text-secondary">{item.name}</span>
-                      </div>
-                   ))}
-                </div>
-             </div>
-          </div>
+              </div>
+            )}
 
-          {/* Recent Orders Table */}
-          <div className="bg-white p-10 rounded-[3rem] shadow-premium border border-gray-100 overflow-hidden">
-             <div className="flex items-center justify-between mb-10">
-                <h3 className="text-xl font-black text-text-primary">Recent Orders</h3>
-                <Link to="/admin/orders" className="text-primary font-bold text-sm hover:underline">View All Orders</Link>
-             </div>
-             
-             <div className="overflow-x-auto md:overflow-visible pb-24 md:pb-0">
-                <table className="w-full text-left">
-                   <thead>
-                      <tr className="border-b border-gray-100">
-                         <th className="pb-6 text-xs font-black text-gray-450 uppercase tracking-widest">Order ID</th>
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Customer</th>
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Restaurant</th>
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest">Status</th>
-                         <th className="pb-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Action</th>
-                       </tr>
-                   </thead>
-                   <tbody>
-                      {recentOrders.map((order, index) => {
-                         const showUpward = index >= Math.max(0, recentOrders.length - 2);
-                         return (
-                          <tr key={order.id} className="border-b border-gray-50 last:border-0 group">
-                             <td className="py-6 align-middle">
-                                <span className="text-sm font-black text-text-primary">#{order.id}</span>
-                             </td>
-                             <td className="py-6 align-middle">
-                                <div className="flex items-center gap-3">
-                                   <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center text-[10px] font-black">{order.customerName?.charAt(0)}</div>
-                                   <span className="text-sm font-bold">{order.customerName}</span>
-                                </div>
-                             </td>
-                             <td className="py-6 align-middle">
-                                <span className="text-sm font-medium text-text-secondary">{order.restaurantName}</span>
-                             </td>
-                             <td className="py-6 align-middle text-sm font-black text-primary">₹{order.totalAmount}</td>
-                             <td className="py-6 align-middle">
-                                <Badge variant={
-                                  order.status === 'DELIVERED' ? 'success' : 
-                                  order.status === 'CANCELLED' ? 'error' : 
-                                  order.status === 'PLACED' ? 'info' : 'warning'
-                                }>
-                                  {order.status}
-                                </Badge>
-                             </td>
-                             <td className="py-6 align-middle text-right relative">
-                               <div className="relative dropdown-container inline-block">
-                                 <button 
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     setActiveDropdownId(activeDropdownId === order.id ? null : order.id);
-                                   }}
-                                   className="text-gray-300 hover:text-primary transition-colors p-1"
-                                 >
-                                   <MoreVertical size={20} />
-                                 </button>
-                                 {activeDropdownId === order.id && getAvailableActions(order.status).length > 0 && (
-                                     <div className={`absolute right-0 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl z-30 overflow-hidden text-left ${showUpward ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
-                                       {getAvailableActions(order.status).map((action, i) => (
-                                         <button 
-                                           key={i}
-                                           onClick={() => {
-                                             handleStatusUpdate(order.id, action.val);
-                                             setActiveDropdownId(null);
-                                           }}
-                                           className={`w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors ${action.color || 'text-text-secondary hover:text-primary'}`}
-                                         >
-                                           {action.label}
-                                         </button>
-                                       ))}
-                                     </div>
-                                   )}
-                               </div>
-                             </td>
-                          </tr>
-                         );
-                      })}
-                      {recentOrders.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="py-8 text-center text-gray-500 font-medium">No recent orders.</td>
+            {/* Live Order Roster */}
+            {widgetsVisibility.orders && (
+              <div className="bg-[#0F1524] p-6 md:p-8 rounded-[2.5rem] border border-gray-850 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-white">Live Platform Order Board</h3>
+                  <span className="text-[10px] text-gray-500 font-bold">Showing 3 active transfers</span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400">
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Order ID</th>
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Customer</th>
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Restaurant</th>
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Rider</th>
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Amount</th>
+                        <th className="pb-3 text-[10px] font-black uppercase tracking-widest">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {liveOrders.map(order => (
+                        <tr key={order.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-white font-black">{order.id}</td>
+                          <td className="py-4 text-gray-300">{order.customer}</td>
+                          <td className="py-4 text-gray-400">{order.restaurant}</td>
+                          <td className="py-4 text-gray-300">{order.rider}</td>
+                          <td className="py-4 text-primary">{order.value}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              order.status === 'OUT_FOR_DELIVERY' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                              order.status === 'PREPARING' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                              'bg-green-500/10 text-green-400 border-green-500/20'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
                         </tr>
-                      )}
-                   </tbody>
-                </table>
-             </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
           </div>
-        </main>
-      </div>
+
+          {/* Column 3: Tech Infrastructure Health & Real-time Alerts */}
+          <div className="space-y-6">
+            
+            {/* Tech Infra Health */}
+            {widgetsVisibility.infra && (
+              <div className="bg-[#0F1524] p-6 rounded-[2.5rem] border border-gray-850 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                  <Server className="text-cyan-500" size={16} /> Tech Infrastructure Node Health
+                </h3>
+                
+                <div className="space-y-4">
+                  {infraStatus.map((service, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold">
+                        <span className="text-gray-300">{service.service}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400 font-bold">{service.latency}</span>
+                          <span className="h-2 w-2 rounded-full bg-green-500" />
+                        </div>
+                      </div>
+                      
+                      {/* Load progress bar */}
+                      <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-cyan-400" style={{ width: service.load }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Alert Center */}
+            {widgetsVisibility.alerts && (
+              <div className="bg-[#0F1524] p-6 rounded-[2.5rem] border border-gray-850 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                  <ShieldAlert className="text-rose-500 animate-pulse" size={16} /> Threat & Fault Alerts
+                </h3>
+
+                <div className="space-y-3 font-bold text-[11px]">
+                  {alerts.map(al => (
+                    <div key={al.id} className={`p-3 border rounded-xl flex gap-2.5 ${
+                      al.severity === 'CRITICAL' ? 'bg-red-500/5 border-red-500/20 text-red-500' :
+                      al.severity === 'WARNING' ? 'bg-amber-500/5 border-amber-500/20 text-amber-500' :
+                      'bg-blue-500/5 border-blue-500/20 text-blue-500'
+                    }`}>
+                      <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex justify-between items-center w-full">
+                          <span className="font-black text-xs">{al.service}</span>
+                          <span className="text-[9px] text-gray-500">{al.time}</span>
+                        </div>
+                        <p className="mt-1 leading-tight text-gray-300 text-[10px]">{al.msg}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+        </div>
+
+      </main>
     </div>
   );
 };

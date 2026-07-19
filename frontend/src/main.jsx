@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 
 import { ThemeProvider } from './hooks/useTheme.jsx'
+import { LanguageProvider } from './context/LanguageContext.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Use Environment Variable or fallback
@@ -13,8 +14,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ThemeProvider>
-        <App />
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
   </StrictMode>,
 )
+

@@ -414,10 +414,11 @@ public class UniversalSearchService {
         if (shouldSearchType("DELIVERY_PARTNER", typeFilters) && isAdmin) {
             List<DeliveryPartner> dpList = deliveryPartnerRepository.findAll();
             for (DeliveryPartner dp : dpList) {
-                double matchScore = calculateMatchScore(dp.getVehicleNumber() + " " + dp.getStatus(), searchTerms);
+                String statusStr = dp.isAvailable() ? "AVAILABLE" : "BUSY";
+                double matchScore = calculateMatchScore(dp.getVehicleNumber() + " " + statusStr, searchTerms);
                 if (matchScore > 0.1) {
                     Map<String, Object> meta = new HashMap<>();
-                    meta.put("status", dp.getStatus());
+                    meta.put("status", statusStr);
                     meta.put("vehicle", dp.getVehicleNumber());
                     meta.put("available", dp.isAvailable());
 
@@ -425,7 +426,7 @@ public class UniversalSearchService {
                             .id(String.valueOf(dp.getId()))
                             .type("DELIVERY_PARTNER")
                             .title("Driver Partner #" + dp.getId())
-                            .subtitle("Status: " + dp.getStatus() + " | Vehicle: " + dp.getVehicleNumber())
+                            .subtitle("Status: " + statusStr + " | Vehicle: " + dp.getVehicleNumber())
                             .score(matchScore)
                             .metadata(meta)
                             .build());

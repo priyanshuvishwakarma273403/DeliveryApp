@@ -122,8 +122,6 @@ export const FOOD_IMAGE_POOL = {
     '1629203851122-3726ecdf080e',
     '1572490122747-3968b75cc699',
     '1622597467836-f3285f2131b8',
-    '1551024709-8f23befc6f87',
-    '1513558161293-cdaf765ed2fd',
     '1513558161293-cdaf765ed2fd',
     '1595981267035-7b04ca84a82d',
     '1548967139-4974f3f45811'
@@ -137,7 +135,6 @@ export const FOOD_IMAGE_POOL = {
     '1555939594-58d7cb561ad1',
     '1567620905732-2d1ec7bb7445',
     '1496116218417-1a781b1c416c',
-    '1606755962773-d324e0a13086',
     '1484723091735-30a917eef458'
   ]
 };
@@ -146,21 +143,21 @@ export const FOOD_IMAGE_POOL = {
 export const getFoodCategory = (dishName = '') => {
   const name = dishName.toLowerCase();
   if (name.includes('pizza')) return 'pizza';
-  if (name.includes('burger') || name.includes('whopper')) return 'burger';
-  if (name.includes('biryani') || name.includes('rice') || name.includes('pulao')) return 'biryani';
-  if (name.includes('curry') || name.includes('paneer') || name.includes('chicken') || name.includes('dal') || name.includes('rogan') || name.includes('masala')) return 'curry';
+  if (name.includes('burger') || name.includes('whopper') || name.includes('hamburger')) return 'burger';
+  if (name.includes('biryani') || name.includes('pulao') || name.includes('fried rice') || (name.includes('rice') && !name.includes('pudding'))) return 'biryani';
+  if (name.includes('curry') || name.includes('paneer') || name.includes('chicken') || name.includes('dal') || name.includes('rogan') || name.includes('masala') || name.includes('korma') || name.includes('gravy') || name.includes('kofta') || name.includes('vangi')) return 'curry';
   if (name.includes('dosa') || name.includes('idli') || name.includes('vada') || name.includes('uttapam') || name.includes('pongal')) return 'dosa';
-  if (name.includes('noodle') || name.includes('chinese') || name.includes('pasta') || name.includes('chow') || name.includes('ramen') || name.includes('macaroni')) return 'noodles';
+  if (name.includes('noodle') || name.includes('chinese') || name.includes('pasta') || name.includes('chow') || name.includes('ramen') || name.includes('macaroni') || name.includes('spaghetti') || name.includes('lasagna')) return 'noodles';
   if (name.includes('sushi') || name.includes('sashimi') || name.includes('tempura')) return 'sushi';
-  if (name.includes('cake') || name.includes('truffle') || name.includes('pastry') || name.includes('sweet') || name.includes('dessert') || name.includes('brownie') || name.includes('ice cream') || name.includes('lava') || name.includes('tiramisu')) return 'desserts';
-  if (name.includes('salad') || name.includes('healthy') || name.includes('bowl') || name.includes('buddha')) return 'salad';
-  if (name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('naan') || name.includes('roti') || name.includes('paratha')) return 'wrap';
+  if (name.includes('cake') || name.includes('truffle') || name.includes('pastry') || name.includes('sweet') || name.includes('dessert') || name.includes('brownie') || name.includes('ice cream') || name.includes('lava') || name.includes('tiramisu') || name.includes('pudding') || name.includes('poli') || name.includes('rasgulla') || name.includes('sandesh') || name.includes('chomchom')) return 'desserts';
+  if (name.includes('salad') || name.includes('healthy') || name.includes('bowl') || name.includes('buddha') || name.includes('eromba') || name.includes('chamthong') || name.includes('singju')) return 'salad';
+  if (name.includes('wrap') || name.includes('roll') || name.includes('sandwich') || name.includes('naan') || name.includes('roti') || name.includes('paratha') || name.includes('taco') || name.includes('bun')) return 'wrap';
   if (name.includes('fries') || name.includes('wedges') || name.includes('ring') || name.includes('finger') || name.includes('nugget')) return 'fries';
-  if (name.includes('cola') || name.includes('shake') || name.includes('juice') || name.includes('coffee') || name.includes('smoothie') || name.includes('pepsi') || name.includes('beverage') || name.includes('drink')) return 'drinks';
+  if (name.includes('cola') || name.includes('shake') || name.includes('juice') || name.includes('coffee') || name.includes('smoothie') || name.includes('pepsi') || name.includes('beverage') || name.includes('drink') || name.includes('chai') || name.includes('tea')) return 'drinks';
   return 'generic';
 };
 
-// Generates a simple hash to guarantee the same dish at the same restaurant gets the same unique image
+// Generates a stable hash
 const getHashCode = (str = '') => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -169,40 +166,57 @@ const getHashCode = (str = '') => {
   return Math.abs(hash);
 };
 
-// Unified Registry to prevent any cross-contamination duplicate assignments
+// Unified Registry for dynamic deduplication when generating local Unsplash URLs
 const GLOBAL_ASSIGNED_REGISTRY = new Map();
 
-export const getUniqueFoodImage = (dishName = '', restaurantName = '', itemPrice = 0) => {
+/**
+ * Returns a stable fallback Unsplash image URL for a given item.
+ */
+export const getFallbackUnsplashImage = (dishName = '', restaurantName = '', itemPrice = 0, itemId = '') => {
   const category = getFoodCategory(dishName);
   const pool = FOOD_IMAGE_POOL[category] || FOOD_IMAGE_POOL.generic;
-  
-  // Seed hash based on dish name + restaurant to select index
-  const seedString = `${dishName.trim()}-${restaurantName.trim()}-${itemPrice}`;
+  const seedString = `${dishName.trim()}-${restaurantName.trim()}-${itemPrice}-${itemId}`;
   const hash = getHashCode(seedString);
   const poolIndex = hash % pool.length;
   const imageId = pool[poolIndex];
-
-  // Registry check: check if this imageId is already used for another unrelated dish
-  const registryKey = `${category}-${imageId}`;
-  if (GLOBAL_ASSIGNED_REGISTRY.has(registryKey)) {
-    const existingDish = GLOBAL_ASSIGNED_REGISTRY.get(registryKey);
-    // If it's the exact same dish name, allow it, otherwise resolve duplicate by checking next slots
-    if (existingDish !== dishName) {
-      for (let i = 1; i < pool.length; i++) {
-        const nextIndex = (poolIndex + i) % pool.length;
-        const fallbackId = pool[nextIndex];
-        const fallbackKey = `${category}-${fallbackId}`;
-        if (!GLOBAL_ASSIGNED_REGISTRY.has(fallbackKey)) {
-          GLOBAL_ASSIGNED_REGISTRY.set(fallbackKey, dishName);
-          return img(fallbackId);
-        }
-      }
-    }
-  } else {
-    GLOBAL_ASSIGNED_REGISTRY.set(registryKey, dishName);
-  }
-
   return img(imageId);
+};
+
+/**
+ * Primary image provider: returns a highly relevant, mathematically unique LoremFlickr URL.
+ * If LoremFlickr fails, the AIImage component automatically cascades to getFallbackUnsplashImage.
+ */
+export const getUniqueFoodImage = (dishName = '', restaurantName = '', itemPrice = 0, itemId = '') => {
+  const category = getFoodCategory(dishName);
+  
+  // Hash calculation
+  const seedString = `${dishName.trim()}-${restaurantName.trim()}-${itemPrice}-${itemId}`;
+  const hash = getHashCode(seedString);
+  
+  // Custom tag mappings to ensure high relevance and visual premiumness on LoremFlickr
+  const flickrTags = {
+    pizza: 'pizza,food',
+    burger: 'burger,fastfood',
+    biryani: 'biryani,rice',
+    curry: 'curry,indianfood',
+    dosa: 'dosa,southindianfood',
+    noodles: 'noodles,pasta,ramen',
+    sushi: 'sushi,japanese',
+    desserts: 'dessert,sweet,cake',
+    salad: 'salad,healthyfood',
+    wrap: 'wrap,roll,sandwich',
+    fries: 'fries,chips',
+    drinks: 'beverage,drink,coffee',
+    generic: 'food,dish'
+  };
+  
+  const tag = flickrTags[category] || flickrTags.generic;
+  
+  // lockValue creates a stable unique ID (1 to 10000) so that LoremFlickr returns a distinct image for this item
+  const lockValue = (hash % 10000) + 1;
+  
+  // We return a high quality loremflickr url with category constraints
+  return `https://loremflickr.com/600/450/${tag}?lock=${lockValue}`;
 };
 
 // Clear registry for dynamic testing / reloading

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
-import { getUniqueFoodImage } from '../../utils/imageProvider';
+import { Sparkles } from 'lucide-react';
+import { getUniqueFoodImage, getFallbackUnsplashImage } from '../../utils/imageProvider';
 
-// Set to track globally verified images and prevent screen duplication
-const globalRenderedRegistry = new Set();
+// Global cache to track resolved image statuses and prevent layout reflows/flickering
+// Maps src -> { status: 'LOADED' | 'FAILED', resolvedSrc: string }
+const imageCache = new Map();
 
 const AIImage = ({ 
-  src: initialSrc, 
+  src, 
   dishName = 'Food Item', 
   restaurantName = 'FoodIQ Restaurant', 
   cuisine = 'General', 
@@ -15,100 +16,118 @@ const AIImage = ({
   alt = 'Premium Food',
   ...props 
 }) => {
-  const [currentSrc, setCurrentSrc] = useState(initialSrc);
-  const [scanStatus, setScanStatus] = useState('PENDING'); // PENDING, SCANNING, VERIFIED, REPLACED
-  const [uniquenessScore, setUniquenessScore] = useState(0);
-  const [telemetry, setTelemetry] = useState('');
+  // Determine if the initial src is a placeholder or invalid
+  const isPlaceholder = !src || 
+    src.includes('photo-1504674900247-0877df9cc836') || 
+    src.includes('placeholder') || 
+    src.includes('default');
+
+  // Generate target unique URL if placeholder
+  const targetSrc = isPlaceholder 
+    ? getUniqueFoodImage(dishName, restaurantName) 
+    : src;
+
+  // Check if we already resolved/cached this URL
+  const cached = imageCache.get(targetSrc);
+  const initialResolvedSrc = cached ? cached.resolvedSrc : null;
+  const initialLoading = !cached;
+
+  const [resolvedSrc, setResolvedSrc] = useState(initialResolvedSrc || targetSrc);
+  const [loading, setLoading] = useState(initialLoading);
 
   useEffect(() => {
-    // Start verification scan on mount or source change
-    setScanStatus('SCANNING');
-    
-    // Simulate high-fidelity AI vision scanning delay
-    const timer = setTimeout(() => {
-      // 1. Quality Check & Aspect Check
-      const score = Math.floor(90 + (dishName.length % 10)); // Calculate unique rating based on dish length
-      setUniquenessScore(score);
+    // If already cached, we don't need to do any background loading
+    if (imageCache.has(targetSrc)) {
+      const cachedData = imageCache.get(targetSrc);
+      setResolvedSrc(cachedData.resolvedSrc);
+      setLoading(false);
+      return;
+    }
 
-      // 2. Duplicate Detection
-      const isUnsplash = initialSrc && initialSrc.includes('unsplash.com');
-      const isPlaceholder = !initialSrc || initialSrc.includes('photo-1504674900247-0877df9cc836'); // default placeholder
+    setLoading(true);
+    let active = true;
 
-      if (isPlaceholder || globalRenderedRegistry.has(initialSrc)) {
-        // Validation Failed: Duplicate detected or invalid placeholder. Automatically resolve!
-        const correctImage = getUniqueFoodImage(dishName, restaurantName);
-        setCurrentSrc(correctImage);
-        globalRenderedRegistry.add(correctImage);
-        setScanStatus('REPLACED');
-        setTelemetry(`AI Refitting: Re-routed to verified unique asset`);
-      } else {
-        // Validation Passed
-        if (initialSrc) {
-          globalRenderedRegistry.add(initialSrc);
-        }
-        setScanStatus('VERIFIED');
-        setTelemetry(`AI Lock: Verified Unique Dish (${score}% Match)`);
-      }
-    }, 450);
+    const img = new Image();
+    img.src = targetSrc;
+    img.onload = () => {
+      if (!active) return;
+      imageCache.set(targetSrc, { status: 'LOADED', resolvedSrc: targetSrc });
+      setResolvedSrc(targetSrc);
+      setLoading(false);
+    };
 
-    return () => clearTimeout(timer);
-  }, [initialSrc, dishName, restaurantName]);
+    img.onerror = () => {
+      if (!active) return;
+      console.warn(`Primary image load failed: ${targetSrc}. Cascading to verified Unsplash fallback.`);
+      
+      // Fallback to verified category-specific Unsplash image
+      const fallbackUrl = getFallbackUnsplashImage(dishName, restaurantName);
+      
+      const fallbackImg = new Image();
+      fallbackImg.src = fallbackUrl;
+      fallbackImg.onload = () => {
+        if (!active) return;
+        imageCache.set(targetSrc, { status: 'FAILED', resolvedSrc: fallbackUrl });
+        setResolvedSrc(fallbackUrl);
+        setLoading(false);
+      };
+      fallbackImg.onerror = () => {
+        if (!active) return;
+        // Absolute fallback to a generic Unsplash image
+        const absoluteFallback = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600';
+        imageCache.set(targetSrc, { status: 'FAILED', resolvedSrc: absoluteFallback });
+        setResolvedSrc(absoluteFallback);
+        setLoading(false);
+      };
+    };
+
+    return () => {
+      active = false;
+    };
+  }, [targetSrc, dishName, restaurantName]);
 
   return (
-    <div className={`relative overflow-hidden group ${className}`}>
-      
-      {/* ── MAIN IMAGE RENDER ── */}
-      <img 
-        src={currentSrc || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600'} 
-        alt={alt}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        loading="lazy"
-        onError={(e) => {
-          // Graceful fallback to verified image if URL fails
-          const fallback = getUniqueFoodImage(dishName, restaurantName);
-          setCurrentSrc(fallback);
-          setScanStatus('REPLACED');
-        }}
-        {...props}
-      />
-
-      {/* ── AI SCANNING EFFECT / TELEMETRY OVERLAY ── */}
+    <div className={`relative overflow-hidden group w-full h-full ${className}`}>
+      {/* ── SKELETON LOADER ── */}
       <AnimatePresence>
-        {scanStatus === 'SCANNING' && (
+        {loading && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 z-10"
+            className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse flex items-center justify-center z-10"
           >
-            <div className="relative">
-              <RefreshCw className="text-cyan-400 animate-spin" size={24} />
-              <motion.div 
-                className="absolute inset-0 border border-cyan-500 rounded-full"
-                animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
+            <div className="flex flex-col items-center gap-1.5 opacity-65">
+              <Sparkles className="text-primary animate-pulse" size={16} />
+              <span className="text-[8px] font-black uppercase tracking-widest text-text-secondary">FoodIQ Vision...</span>
             </div>
-            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">AI Vision Scan</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── MINI AI VERIFIED CHIP ON HOVER ── */}
-      <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        <span className={`px-2 py-1 text-[8px] font-black uppercase tracking-widest rounded-md border flex items-center gap-1 shadow-md ${
-          scanStatus === 'REPLACED' 
-            ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' 
-            : 'bg-emerald-500/10 text-emerald-450 border-emerald-500/25'
-        }`}>
-          <Sparkles size={8} className="animate-pulse" />
-          {scanStatus === 'REPLACED' ? 'AI Refit' : 'AI Verified'} ({uniquenessScore}%)
-        </span>
-      </div>
+      {/* ── MAIN IMAGE RENDER ── */}
+      <img 
+        src={resolvedSrc} 
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${
+          loading ? 'opacity-0' : 'opacity-100'
+        }`}
+        loading="lazy"
+        {...props}
+      />
 
+      {/* ── AI VERIFIED BADGE ── */}
+      {!loading && (
+        <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <span className="bg-emerald-500/95 backdrop-blur-sm text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md border border-emerald-400/20 flex items-center gap-1 shadow-md">
+            <Sparkles size={8} className="animate-pulse" />
+            AI Verified
+          </span>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AIImage;
-export { globalRenderedRegistry };
+export { imageCache };

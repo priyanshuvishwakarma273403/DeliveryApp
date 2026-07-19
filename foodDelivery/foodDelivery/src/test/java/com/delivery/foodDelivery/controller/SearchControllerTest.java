@@ -96,7 +96,7 @@ public class SearchControllerTest {
                 .count(3)
                 .build();
 
-        Mockito.when(searchService.getUserSearchHistory(Mockito.anyString()))
+        Mockito.when(searchService.getHistory(Mockito.anyString()))
                 .thenReturn(Collections.singletonList(mockHistory));
 
         mockMvc.perform(get("/api/search/history")

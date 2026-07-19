@@ -411,6 +411,18 @@ const Header = () => {
                           </Link>
                         </>
                       )}
+                      {['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN'].includes(user?.role) && (
+                        <>
+                          <Link to="/restaurant/portal" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
+                            <UtensilsCrossed size={18} className="text-[#686B78]" /> Restaurant Portal
+                            <ChevronRight size={14} className="text-[#686B78] ml-auto" />
+                          </Link>
+                          <Link to="/restaurant/branches" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
+                            <Building size={18} className="text-[#686B78]" /> Manage Branches
+                            <ChevronRight size={14} className="text-[#686B78] ml-auto" />
+                          </Link>
+                        </>
+                      )}
                     </div>
 
                     <div className="border-t border-[#F0F0F0] dark:border-gray-800">

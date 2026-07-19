@@ -367,22 +367,28 @@ const Home = () => {
       <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Top Rated Restaurants ── */}
-      <section className="bg-white py-10 md:py-16">
+      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-6 md:mb-10">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp size={18} className="text-primary" />
-                <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">Trending Now</span>
+                <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">
+                  {t('language') === 'Idioma' ? 'Tendencias Ahora' : t('language') === 'भाषा' ? 'अभी ट्रेंडिंग' : 'Trending Now'}
+                </span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] tracking-tight">Top Rated Near You</h2>
-              <p className="text-[#686B78] text-sm mt-1 hidden sm:block">Handpicked restaurants based on ratings & reviews</p>
+              <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white tracking-tight">
+                {t('language') === 'Idioma' ? 'Mejores calificados cerca de ti' : t('language') === 'भाषा' ? 'आपके पास शीर्ष रेटेड' : 'Top Rated Near You'}
+              </h2>
+              <p className="text-[#686B78] dark:text-gray-400 text-sm mt-1 hidden sm:block">
+                {t('language') === 'Idioma' ? 'Restaurantes cuidadosamente seleccionados según calificaciones y opiniones' : t('language') === 'भाषा' ? 'रेटिंग और समीक्षाओं के आधार पर चुनिंदा रेस्तरां' : 'Handpicked restaurants based on ratings & reviews'}
+              </p>
             </div>
             <Link 
               to="/restaurants" 
-              className="flex items-center gap-1.5 text-primary font-black text-sm hover:gap-2.5 transition-all group border border-primary/20 hover:border-primary px-4 py-2 rounded-xl hover:bg-primary/5"
+              className="flex items-center gap-1.5 text-primary font-black text-sm hover:gap-2.5 transition-all group border border-primary/20 hover:border-primary px-4 py-2 rounded-xl hover:bg-primary/5 dark:hover:bg-primary/10"
             >
-              View All <ArrowRight size={16} />
+              {t('language') === 'Idioma' ? 'Ver todo' : t('language') === 'भाषा' ? 'सभी देखें' : 'View All'} <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -405,12 +411,12 @@ const Home = () => {
                </motion.div>
             </div>
           ) : error ? (
-            <div className="text-center py-12 bg-red-50 rounded-3xl border border-red-100">
-               <div className="h-12 w-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-12 bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-100 dark:border-red-950/30">
+               <div className="h-12 w-12 bg-red-100 dark:bg-red-905/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap size={24} />
                </div>
-               <h3 className="text-lg font-black text-red-900 mb-1">Server Connection Issue</h3>
-               <p className="text-xs text-red-700/70 max-w-xs mx-auto mb-6 font-bold">Please check if the backend is running or refresh the page.</p>
+               <h3 className="text-lg font-black text-red-900 dark:text-red-200 mb-1">Server Connection Issue</h3>
+               <p className="text-xs text-red-700/70 dark:text-red-300/70 max-w-xs mx-auto mb-6 font-bold">Please check if the backend is running or refresh the page.</p>
                <Button 
                  onClick={() => window.location.reload()}
                  className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200 text-xs px-6"
@@ -425,12 +431,12 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-               <div className="h-12 w-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
+               <div className="h-12 w-12 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search size={24} />
                </div>
-               <h3 className="text-lg font-black text-[#1C1C1C] mb-1">No Data from Admin</h3>
-               <p className="text-xs text-[#686B78] max-w-xs mx-auto font-bold uppercase tracking-widest">Please add restaurants in Admin Panel</p>
+               <h3 className="text-lg font-black text-[#1C1C1C] dark:text-white mb-1">No Data from Admin</h3>
+               <p className="text-xs text-[#686B78] dark:text-gray-400 max-w-xs mx-auto font-bold uppercase tracking-widest">Please add restaurants in Admin Panel</p>
             </div>
           )}
         </div>

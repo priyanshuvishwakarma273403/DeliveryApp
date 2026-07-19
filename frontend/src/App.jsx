@@ -29,7 +29,10 @@ const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const AdminSales = lazy(() => import('./pages/AdminSales'));
 const DeliveryDashboard = lazy(() => import('./pages/DeliveryDashboard'));
-
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const AdminSecurityDashboard = lazy(() => import('./pages/AdminSecurityDashboard'));
 
 const NotFound = lazy(() => import('./pages/NotFound'));
 const About = lazy(() => import('./pages/About'));
@@ -70,7 +73,16 @@ const ProtectedRoute = ({ children, roles = [] }) => {
   const location = useLocation();
 
   if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location }} />;
-  if (roles.length > 0 && !roles.includes(user?.role)) return <Navigate to="/" replace />;
+  
+  if (roles.length > 0) {
+    const isAllowed = roles.some(r => {
+      if (r === 'ADMIN') {
+        return ['ADMIN', 'SUPER_ADMIN', 'PLATFORM_ADMIN'].includes(user?.role);
+      }
+      return r === user?.role;
+    });
+    if (!isAllowed) return <Navigate to="/" replace />;
+  }
   return children;
 };
 
@@ -110,6 +122,10 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/admin/iam" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLATFORM_ADMIN', 'ADMIN', 'SUPPORT_EXECUTIVE', 'MODERATOR']}><AdminSecurityDashboard /></ProtectedRoute>} />
                   <Route path="/restaurants" element={<Restaurants />} />
                   <Route path="/restaurants/:id" element={<RestaurantDetail />} />
                   <Route path="/cart" element={<Cart />} />

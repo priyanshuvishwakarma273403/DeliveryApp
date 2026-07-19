@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -452,10 +453,12 @@ public class FinancialService {
 
         // Update User Gold status if Plan is Gold
         if ("GOLD".equalsIgnoreCase(planType)) {
-            userRepository.findByEmail(userId).ifPresent(user -> {
-                user.setPremium(true);
-                userRepository.save(user);
-            });
+            try {
+                Wallet wallet = walletService.getWalletByUserId(Long.parseLong(userId));
+                wallet.setGoldMember(true);
+            } catch (Exception e) {
+                log.warn("Could not set gold status for user wallet: {}", e.getMessage());
+            }
         }
 
         return subscription;

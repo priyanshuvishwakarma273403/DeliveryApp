@@ -41,6 +41,7 @@ const Profile = () => {
     { id: 'tablebooking', label: 'Table Bookings', icon: Calendar, color: 'text-indigo-500', bg: 'bg-indigo-50' },
     { id: 'catering', label: 'Bulk & Catering', icon: ClipboardList, color: 'text-rose-500', bg: 'bg-rose-50' },
     { id: 'complaints', label: 'Help & Disputes', icon: HelpCircle, color: 'text-teal-500', bg: 'bg-teal-50' },
+    { id: 'security', label: 'Security & Sessions', icon: Shield, color: 'text-rose-600', bg: 'bg-rose-50' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
@@ -330,6 +331,80 @@ const Profile = () => {
                   )}
                   {activeTab === 'complaints' && (
                     <HelpSupportTab />
+                  )}
+                  {activeTab === 'security' && (
+                    <div className="p-6 md:p-10 space-y-8">
+                       <h3 className="text-2xl font-black text-[#1C1C1C] flex items-center gap-2">
+                         <Shield className="text-rose-500" size={24} />
+                         Security & Session Management
+                       </h3>
+                       
+                       {/* Change Password Panel */}
+                       <div className="p-6 bg-gray-50 rounded-3xl border border-gray-150 space-y-4">
+                         <h4 className="text-sm font-black uppercase text-[#1c1c1c]">Change Password</h4>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <div className="space-y-1">
+                             <label className="text-[10px] font-bold text-gray-500">Current Password</label>
+                             <input type="password" placeholder="••••••••" className="w-full p-3 bg-white border border-gray-250 rounded-xl text-xs font-bold" />
+                           </div>
+                           <div className="space-y-1">
+                             <label className="text-[10px] font-bold text-gray-500">New Password</label>
+                             <input type="password" placeholder="••••••••" className="w-full p-3 bg-white border border-gray-250 rounded-xl text-xs font-bold" />
+                           </div>
+                         </div>
+                         <Button onClick={() => {
+                           toast.success('Password updated successfully! Notification sent.');
+                         }} className="py-2.5 px-6 rounded-xl text-xs font-black">Update Password</Button>
+                       </div>
+
+                       {/* Active Sessions Panel */}
+                       <div className="space-y-4">
+                         <div className="flex justify-between items-center">
+                           <h4 className="text-sm font-black uppercase text-[#1c1c1c]">Active Device Sessions</h4>
+                           <button onClick={() => {
+                             toast.success('Revoked other active sessions.');
+                           }} className="text-xs font-bold text-primary hover:underline">Revoke Other Sessions</button>
+                         </div>
+                         <div className="space-y-3">
+                           <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex justify-between items-center">
+                             <div>
+                               <p className="text-xs font-black text-[#1c1c1c]">Chrome on Windows (Current Session)</p>
+                               <p className="text-[10px] text-gray-400 font-bold">IP: 192.168.1.45 • Delhi, India</p>
+                             </div>
+                             <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-black uppercase tracking-wider font-bold">Active</span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Data Portability & Termination */}
+                       <div className="pt-6 border-t border-gray-100 space-y-4">
+                         <h4 className="text-sm font-black uppercase text-[#1c1c1c]">Data Portability & Privacy</h4>
+                         <div className="flex flex-wrap gap-3">
+                           <button onClick={() => {
+                             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(user, null, 2));
+                             const downloadAnchor = document.createElement('a');
+                             downloadAnchor.setAttribute("href", dataStr);
+                             downloadAnchor.setAttribute("download", `foodiq_data_profile.json`);
+                             document.body.appendChild(downloadAnchor);
+                             downloadAnchor.click();
+                             downloadAnchor.remove();
+                             toast.success('Personal profile data downloaded successfully');
+                           }} className="bg-white border border-gray-200 hover:bg-gray-50 p-3 rounded-xl text-xs font-bold text-text-secondary flex items-center gap-1.5 shadow-sm">
+                             Download My Data
+                           </button>
+                           <button onClick={() => {
+                             toast.success('Account deactivated successfully.');
+                           }} className="bg-white border border-gray-200 hover:bg-rose-50 hover:text-rose-600 p-3 rounded-xl text-xs font-bold text-text-secondary flex items-center gap-1.5 shadow-sm">
+                             Deactivate Account
+                           </button>
+                           <button onClick={() => {
+                             toast.error('Deletion request queued. Verification required.');
+                           }} className="bg-white border border-rose-200 hover:bg-rose-100 p-3 rounded-xl text-xs font-bold text-rose-600 flex items-center gap-1.5 shadow-sm">
+                             Delete Account
+                           </button>
+                         </div>
+                       </div>
+                    </div>
                   )}
                 </motion.div>
              </AnimatePresence>

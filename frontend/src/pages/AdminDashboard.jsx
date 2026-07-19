@@ -22,7 +22,8 @@ import {
   Image as ImageIcon,
   Compass,
   CloudRain,
-  Building
+  Building,
+  ShieldCheck
 } from 'lucide-react';
 
 
@@ -221,6 +222,9 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/orders" className="flex items-center gap-4 text-text-secondary font-bold hover:text-primary p-4 rounded-2xl transition-all">
               <ShoppingBag size={20} /> Manage Orders
+            </Link>
+            <Link to="/admin/iam" className="flex items-center gap-4 text-rose-600 font-black hover:text-rose-500 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10 transition-all">
+              <ShieldCheck size={20} /> IAM Security
             </Link>
             <Link to="/admin/copilot" className="flex items-center gap-4 text-cyan-600 font-black hover:text-cyan-500 bg-cyan-500/5 p-4 rounded-2xl border border-cyan-500/10 transition-all">
               <Cpu size={20} /> AI Copilot

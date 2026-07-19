@@ -317,12 +317,16 @@ const Home = () => {
       </section>
 
       {/* ── What's On Your Mind (Cuisines) ── */}
-      <section className="bg-white py-10 md:py-16">
+      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <div>
-              <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] tracking-tight">What's on your mind?</h2>
-              <p className="text-[#686B78] text-sm mt-1">Explore our wide variety of cuisines</p>
+              <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white tracking-tight">
+                {t('language') === 'Idioma' ? '¿Qué tienes en mente?' : t('language') === 'भाषा' ? 'आपके मन में क्या है?' : "What's on your mind?"}
+              </h2>
+              <p className="text-[#686B78] dark:text-gray-400 text-sm mt-1">
+                {t('language') === 'Idioma' ? 'Explora nuestra amplia variedad de cocinas' : t('language') === 'भाषा' ? 'हमारे विभिन्न प्रकार के व्यंजनों का अन्वेषण करें' : 'Explore our wide variety of cuisines'}
+              </p>
             </div>
           </div>
 
@@ -334,10 +338,10 @@ const Home = () => {
                   whileTap={{ scale: 0.96 }}
                   className="flex flex-col items-center gap-2 cursor-pointer group"
                 >
-                  <div className="h-20 w-20 md:h-28 md:w-28 rounded-full bg-[#F5F5F6] border-2 border-[#F0F0F0] group-hover:border-primary/30 group-hover:shadow-lg flex items-center justify-center text-4xl md:text-6xl transition-all duration-300 overflow-hidden">
+                  <div className="h-20 w-20 md:h-28 md:w-28 rounded-full bg-[#F5F5F6] dark:bg-gray-900 border-2 border-[#F0F0F0] dark:border-gray-800 group-hover:border-primary/30 group-hover:shadow-lg flex items-center justify-center text-4xl md:text-6xl transition-all duration-300 overflow-hidden">
                     <span>{cuisine.icon}</span>
                   </div>
-                  <span className="font-semibold text-xs md:text-sm text-[#1C1C1C] group-hover:text-primary transition-colors text-center whitespace-nowrap leading-tight">
+                  <span className="font-semibold text-xs md:text-sm text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors text-center whitespace-nowrap leading-tight">
                     {cuisine.name}
                   </span>
                 </motion.div>
@@ -350,17 +354,17 @@ const Home = () => {
       <CategoryTabs />
 
       {/* ── Section Divider ── */}
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
 
       {/* ── AI Mood Search ── */}
-      <section className="bg-white py-8 md:py-12">
+      <section className="bg-white dark:bg-gray-950 py-8 md:py-12 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
           <MoodSearch />
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Top Rated Restaurants ── */}
       <section className="bg-white py-10 md:py-16">

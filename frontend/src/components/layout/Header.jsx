@@ -162,7 +162,7 @@ const Header = () => {
           ? 'bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-gray-800 shadow-sm' 
           : 'bg-white dark:bg-[#111827] border-b border-gray-200 dark:border-gray-800'
       )}>
-        <div className="container mx-auto px-4 md:px-6 flex items-center gap-2 md:gap-4 h-16 md:h-[72px]">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center gap-2 md:gap-4 h-16 md:h-[72px]">
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -185,7 +185,7 @@ const Header = () => {
             <ChevronDown size={16} className="text-[#686B78] group-hover:text-primary transition-colors shrink-0 ml-1" />
           </button>
 
-          <div className="hidden lg:flex items-center gap-0.5 bg-gray-50 dark:bg-gray-800/30 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 shrink-0">
+          <div className="hidden xl:flex items-center gap-0.5 bg-gray-50 dark:bg-gray-800/30 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 shrink-0">
             {[
               { label: t('home'), icon: ShoppingBag, path: '/', color: 'text-primary' },
               { label: t('dining'), icon: Utensils, path: '/dining', color: 'text-blue-600' },

@@ -179,6 +179,7 @@ function App() {
                   <Route path="/admin/sales" element={<ProtectedRoute roles={['ADMIN']}><AdminSales /></ProtectedRoute>} />
                   <Route path="/admin/finance" element={<ProtectedRoute roles={['ADMIN']}><AdminFinance /></ProtectedRoute>} />
                   <Route path="/admin/recommendations" element={<ProtectedRoute roles={['ADMIN']}><AdminRecommendations /></ProtectedRoute>} />
+                  <Route path="/admin/trust-fraud" element={<ProtectedRoute roles={['ADMIN']}><AdminTrustFraud /></ProtectedRoute>} />
                   <Route path="/admin/notifications" element={<ProtectedRoute roles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
 
 

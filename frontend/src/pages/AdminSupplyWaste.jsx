@@ -1,60 +1,156 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Leaf, ShoppingBag, AlertTriangle, ShieldAlert, 
   TrendingDown, RefreshCw, BarChart3, Truck, PackageCheck, 
-  Trash2, Sparkles, CheckCircle2, ChevronRight, Zap
+  Trash2, Sparkles, CheckCircle2, ChevronRight, Zap, Layers, 
+  Database, Navigation, ShieldCheck, Box, User, ArrowRight,
+  ClipboardList, Plus, FileText, Download, ShieldAlert as WarningIcon
 } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, BarChart, Bar, CartesianGrid
 } from 'recharts';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { toast } from 'react-hot-toast';
 
+// ── MOCK DATA FOR ENTERPRISE INVENTORY ──
+const INITIAL_INGREDIENTS = [
+  { 
+    id: "SKU-CHE-92", 
+    name: "Mozzarella Cheese", 
+    category: "Dairy", 
+    stock: 120, 
+    minStock: 200, 
+    maxStock: 800,
+    cost: 450, 
+    shelf: "Aisle 3", rack: "Rack B", bin: "Bin 12",
+    batchId: "BAT-9082", mfgDate: "2026-07-10", expiryDate: "2026-07-28",
+    lotStrategy: "FEFO", warehouse: "Cold Storage Room 1", supplier: "Amul Food Solutions",
+    status: "LOW_STOCK"
+  },
+  { 
+    id: "SKU-PAN-12", 
+    name: "Fresh Malai Paneer", 
+    category: "Dairy", 
+    stock: 18, 
+    minStock: 15, 
+    maxStock: 50,
+    cost: 320, 
+    shelf: "Aisle 3", rack: "Rack C", bin: "Bin 04",
+    batchId: "BAT-9111", mfgDate: "2026-07-17", expiryDate: "2026-07-21",
+    lotStrategy: "FEFO", warehouse: "Cold Storage Room 1", supplier: "Nanak Dairies Ltd",
+    status: "NEAR_EXPIRY"
+  },
+  { 
+    id: "SKU-RIC-09", 
+    name: "Basmati Rice (Classic)", 
+    category: "Grains", 
+    stock: 1200, 
+    minStock: 500, 
+    maxStock: 3000,
+    cost: 85, 
+    shelf: "Aisle 1", rack: "Rack A", bin: "Bin 44",
+    batchId: "BAT-8902", mfgDate: "2026-05-10", expiryDate: "2027-05-10",
+    lotStrategy: "FIFO", warehouse: "Dry Warehouse A", supplier: "Metro Wholesale Noida",
+    status: "HEALTHY"
+  },
+  { 
+    id: "SKU-CHK-33", 
+    name: "Fresh Chicken Breast", 
+    category: "Poultry", 
+    stock: 5, 
+    minStock: 40, 
+    maxStock: 150,
+    cost: 220, 
+    shelf: "Freezer Zone 1", rack: "Rack A", bin: "Bin 01",
+    batchId: "BAT-9218", mfgDate: "2026-07-18", expiryDate: "2026-07-20",
+    lotStrategy: "FEFO", warehouse: "Main Deep Freezer", supplier: "Venky's Farms",
+    status: "CRITICAL_SHORTAGE"
+  }
+];
+
+const INITIAL_PURCHASE_ORDERS = [
+  { id: "PO-2026-901", vendor: "Amul Food Solutions", value: 36000, items: "80kg Cheese", status: "submitted", date: "2026-07-19" },
+  { id: "PO-2026-902", vendor: "Venky's Farms", value: 8800, items: "40kg Chicken", status: "manager_approval", date: "2026-07-19" },
+  { id: "PO-2026-903", vendor: "Metro Wholesale Noida", value: 17000, items: "200kg Basmati Rice", status: "draft", date: "2026-07-18" }
+];
+
+const INITIAL_TRANSFERS = [
+  { id: "TR-801", source: "Dry Warehouse A", dest: "Sector 62 Branch", items: "100kg Basmati Rice", status: "IN_TRANSIT", transitEta: "1.5 hours" },
+  { id: "TR-802", source: "Main Deep Freezer", dest: "Lucknow Branch", items: "25kg Chicken Breast", status: "COMPLETED", transitEta: "Delivered" }
+];
+
+const MOCK_WASTAGE = [
+  { id: "WST-101", ingredient: "Paneer", qty: "3.5 kg", reason: "Expired Food", cost: 1120, employee: "Chef Rohit", date: "2026-07-18" },
+  { id: "WST-102", ingredient: "Mozzarella Cheese", qty: "1.2 kg", reason: "Cooking Waste", cost: 540, employee: "Chef Anita", date: "2026-07-19" }
+];
+
+const MOCK_SUPPLIERS = [
+  { name: "Amul Food Solutions", rating: 4.8, gst: "24AMULFS9012F1Z", balance: 45000, pendingOrders: 1 },
+  { name: "Venky's Farms", rating: 4.2, gst: "27VENKYS1102A1Z", balance: 8800, pendingOrders: 1 },
+  { name: "Nanak Dairies Ltd", rating: 4.6, gst: "09NANAK2290E1Z", balance: 0, pendingOrders: 0 }
+];
+
+const CONSUMPTION_FORECAST = [
+  { day: 'Mon', consumption: 450, forecast: 460 },
+  { day: 'Tue', consumption: 480, forecast: 490 },
+  { day: 'Wed', consumption: 520, forecast: 510 },
+  { day: 'Thu', consumption: 490, forecast: 550 },
+  { day: 'Fri', consumption: 680, forecast: 710 },
+  { day: 'Sat', consumption: 920, forecast: 950 },
+  { day: 'Sun', consumption: 850, forecast: 900 }
+];
+
 const AdminSupplyWaste = () => {
-  const [activeTab, setActiveTab] = useState('supply'); // supply, waste
-  const [autoReorder, setAutoReorder] = useState(true);
+  const [activeTab, setActiveTab] = useState('inventory'); // inventory, po, transfers, wastage, analytics, suppliers
+  const [ingredients, setIngredients] = useState(INITIAL_INGREDIENTS);
+  const [pos, setPos] = useState(INITIAL_PURCHASE_ORDERS);
+  const [transfers, setTransfers] = useState(INITIAL_TRANSFERS);
+  const [wastages, setWastages] = useState(MOCK_WASTAGE);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Supply inventory data
-  const [inventory, setInventory] = useState([
-    { id: 1, name: 'Mozzarella Cheese', stock: 12, unit: 'kg', minLimit: 20, consumption: '4.5 kg/day', forecastShortage: '2 days', supplierRisk: 'LOW', recommendPO: 50 },
-    { id: 2, name: 'Fresh Paneer', stock: 5, unit: 'kg', minLimit: 8, consumption: '3.2 kg/day', forecastShortage: '1 day', supplierRisk: 'MEDIUM', recommendPO: 25 },
-    { id: 3, name: 'Basmati Rice', stock: 120, unit: 'kg', minLimit: 50, consumption: '15.0 kg/day', forecastShortage: '8 days', supplierRisk: 'LOW', recommendPO: 100 },
-    { id: 4, name: 'Chicken Breast', stock: 8, unit: 'kg', minLimit: 15, consumption: '9.5 kg/day', forecastShortage: '12 hours', supplierRisk: 'HIGH (Transit Delay)', recommendPO: 40 },
-    { id: 5, name: 'Refined Flour', stock: 150, unit: 'kg', minLimit: 80, consumption: '22.0 kg/day', forecastShortage: '6 days', supplierRisk: 'LOW', recommendPO: 120 }
-  ]);
-
-  // Waste logs & analytics data
-  const wasteData = [
-    { name: 'Prep Waste (Trimmings)', value: 42, color: '#10b981' },
-    { name: 'Unsold Spoilage', value: 38, color: '#f59e0b' },
-    { name: 'Customer Leftovers', value: 20, color: '#ef4444' }
-  ];
-
-  // Simulated chart for consumption forecasting
-  const forecastChartData = [
-    { day: 'Mon', Actual: 60, Projected: 62 },
-    { day: 'Tue', Actual: 58, Projected: 64 },
-    { day: 'Wed', Actual: 72, Projected: 70 },
-    { day: 'Thu', Actual: 68, Projected: 75 },
-    { day: 'Fri', Actual: 85, Projected: 90 },
-    { day: 'Sat', Actual: null, Projected: 110 },
-    { day: 'Sun', Actual: null, Projected: 105 }
-  ];
-
-  const handleTriggerPO = (ingredient, qty) => {
-    toast.success(`Purchase Order generated: ${qty} units of ${ingredient}`);
+  // Auto-recall logic simulation
+  const handleRecallBatch = (batchId, ingredientName) => {
+    toast.error(`BATCH RECALL PROTOCOL DEPLOYED: Recalling batch ${batchId} of ${ingredientName} due to supplier safety flag!`);
+    setIngredients(prev => prev.map(ing => ing.batchId === batchId ? { ...ing, status: 'RECALLED_BLOCK' } : ing));
   };
 
-  const handleApplyWasteOptimization = () => {
-    toast.success("AI portion scaling applied. Future prep waste estimated to drop by 15%.");
+  const handleAdvancePo = (id, currentStatus) => {
+    const statusFlow = {
+      "draft": "submitted",
+      "submitted": "manager_approval",
+      "manager_approval": "finance_approval",
+      "finance_approval": "ordered",
+      "ordered": "received",
+      "received": "closed"
+    };
+    const nextStatus = statusFlow[currentStatus];
+    if (nextStatus) {
+      setPos(prev => prev.map(po => po.id === id ? { ...po, status: nextStatus } : po));
+      toast.success(`Purchase Order ${id} advanced to: ${nextStatus.toUpperCase()}`);
+    }
+  };
+
+  const handleInitiatePO = (name, cost, supplierName) => {
+    const newId = `PO-2026-${Date.now().toString().slice(-3)}`;
+    const newPO = {
+      id: newId,
+      vendor: supplierName,
+      value: cost * 50,
+      items: `50 units of ${name}`,
+      status: "draft",
+      date: new Date().toISOString().split('T')[0]
+    };
+    setPos(prev => [...prev, newPO]);
+    toast.success(`Draft Purchase Order ${newId} created for ${name}`);
   };
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-gray-100 pb-16 font-sans">
+    <div className="min-h-screen bg-[#070A13] text-gray-150 pb-16 font-sans">
+      
       {/* ── TOP HERO HEADER ── */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#0F172A] to-transparent border-b border-gray-800/60 py-6 px-4 md:px-12">
         <div className="absolute top-0 right-1/4 w-[450px] h-[130px] bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
@@ -71,292 +167,281 @@ const AdminSupplyWaste = () => {
               <div className="flex items-center gap-3 mb-1">
                 <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                   <Leaf size={10} />
-                  AI Green Intelligence Engine
+                  Enterprise Inventory Matrix
                 </span>
-                <span className="text-gray-500 text-xs font-bold">Carbon & Waste Verified</span>
+                <span className="text-gray-500 text-xs font-bold">FEFO & Auto-Picking Path Locked</span>
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                Supply Chain & <span className="text-emerald-500 font-light">Waste Intel</span>
+                Supply Chain & <span className="text-emerald-500 font-light">Inventory Console</span>
               </h1>
               <p className="text-gray-400 text-xs md:text-sm font-medium mt-0.5">
-                Predictive ingredient shortages, supplier risk metrics, and portion waste minimization
+                Manage multiple warehouses, shelf bin structures, batches recalls, LIFO/FEFO lots, and PO pipelines.
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 bg-[#111827] border border-gray-800 p-2 rounded-2xl">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-2">Auto-PO Reorders:</span>
-            <button
-              onClick={() => setAutoReorder(!autoReorder)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-                autoReorder ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'bg-gray-850 text-gray-400'
-              }`}
-            >
-              {autoReorder ? 'ACTIVE' : 'SUSPENDED'}
-            </button>
           </div>
         </div>
       </div>
 
       {/* ── SECTIONS NAVIGATION TABS ── */}
       <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
-        <div className="flex border-b border-gray-800 gap-6 mb-8">
+        
+        {/* Navigation Tabs Bar */}
+        <div className="flex flex-wrap gap-2.5 bg-[#0F1524] p-2 rounded-2.5xl border border-gray-850 mb-8">
           {[
-            { id: 'supply', label: 'AI Supply Chain & Forecasts', desc: 'Stock prediction & PO reorders' },
-            { id: 'waste', label: 'AI Food Waste Analytics', desc: 'Portion optimizer & spoilage logs' }
+            { id: 'inventory', label: 'Ingredient Stock', icon: Box },
+            { id: 'po', label: 'Purchase Orders', icon: Truck },
+            { id: 'transfers', label: 'Stock Transfers', icon: Navigation },
+            { id: 'wastage', label: 'Waste Logs', icon: Trash2 },
+            { id: 'suppliers', label: 'Suppliers Performance', icon: User },
+            { id: 'analytics', label: 'Forecasting Analytics', icon: BarChart3 }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-left border-b-2 transition-all relative ${
+              className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
                 activeTab === tab.id 
-                  ? 'border-emerald-500 text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <h3 className="text-sm font-black tracking-wide uppercase">{tab.label}</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{tab.desc}</p>
+              <tab.icon size={14} />
+              {tab.label}
             </button>
           ))}
         </div>
 
         {/* ── CONTENT AREA ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <AnimatePresence mode="wait">
           
-          {/* Main Module Content (8 Cols) */}
-          <div className="lg:col-span-8 space-y-6">
-            
-            {/* ════ MODULE 1: AI SUPPLY CHAIN FORECASTS ════ */}
-            {activeTab === 'supply' && (
-              <div className="space-y-6">
-                <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl">
-                  <div className="flex justify-between items-center mb-6">
-                    <div>
-                      <h3 className="text-lg font-black text-white flex items-center gap-2">
-                        <Truck className="text-emerald-400" size={20} />
-                        Predictive Shortage Monitor
-                      </h3>
-                      <p className="text-gray-400 text-xs mt-0.5">Ingredients tracking using real-time dining/order forecasting</p>
-                    </div>
+          {/* TAB 1: INGREDIENTS STOCK (Smart Shelf / FEFO lot details) */}
+          {activeTab === 'inventory' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-base font-black uppercase tracking-wider text-white">Ingredient Batch Inventory</h3>
+                    <p className="text-[10px] text-gray-400 mt-1">Smart Pick Path displays Bin locations following FEFO rules</p>
                   </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => toast.success('Initiating barcode scan...')} variant="outline" className="px-4 py-2 text-xs font-black">
+                      Scan Barcode
+                    </Button>
+                  </div>
+                </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-gray-850 text-gray-500 font-bold uppercase tracking-widest text-[9px]">
-                          <th className="pb-4">Ingredient</th>
-                          <th className="pb-4">Current Stock</th>
-                          <th className="pb-4">Est. Shortage In</th>
-                          <th className="pb-4">Supplier Risk</th>
-                          <th className="pb-4">AI Recommended PO</th>
-                          <th className="pb-4 text-right">Action</th>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">SKU & Ingredient</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Current Stock</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Smart Shelf Pick Path</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Batch & Expiry Date</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Lot Strat</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Warehouse Node</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {ingredients.map(ing => (
+                        <tr key={ing.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-white">
+                            <p className="font-bold">{ing.name}</p>
+                            <p className="text-[10px] text-cyan-400 font-black mt-0.5">{ing.id}</p>
+                          </td>
+                          <td className="py-4">
+                            <span className={ing.stock <= ing.minStock ? 'text-rose-400 font-black' : 'text-emerald-400'}>
+                              {ing.stock} units
+                            </span>
+                            <span className="text-[9px] text-gray-400 font-bold block mt-0.5">Min: {ing.minStock}</span>
+                          </td>
+                          <td className="py-4 text-gray-300">
+                            <span className="bg-gray-800/60 border border-gray-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                              {ing.shelf} ➔ {ing.rack} ➔ {ing.bin}
+                            </span>
+                          </td>
+                          <td className="py-4 text-white">
+                            <p>Batch: {ing.batchId}</p>
+                            <p className="text-[10px] text-amber-500 font-bold mt-0.5">Expires: {ing.expiryDate}</p>
+                          </td>
+                          <td className="py-4 text-gray-400">{ing.lotStrategy}</td>
+                          <td className="py-4 text-gray-300">{ing.warehouse}</td>
+                          <td className="py-4 text-right space-x-2">
+                            <button 
+                              onClick={() => handleRecallBatch(ing.batchId, ing.name)}
+                              className="text-red-500 hover:underline"
+                            >
+                              Recall Batch
+                            </button>
+                            <button 
+                              onClick={() => handleInitiatePO(ing.name, ing.cost, ing.supplier)}
+                              className="text-emerald-400 hover:underline"
+                            >
+                              Reorder
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-850">
-                        {inventory.map(item => {
-                          const isLow = item.stock <= item.minLimit;
-                          return (
-                            <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                              <td className="py-4 font-bold text-white flex items-center gap-2">
-                                {isLow && <AlertTriangle className="text-rose-500 shrink-0" size={14} />}
-                                {item.name}
-                              </td>
-                              <td className="py-4 font-bold text-gray-300">
-                                <span className={isLow ? 'text-rose-400 font-black' : 'text-emerald-400'}>
-                                  {item.stock} {item.unit}
-                                </span>
-                                <span className="text-gray-500 font-medium block text-[10px]">Min: {item.minLimit} {item.unit}</span>
-                              </td>
-                              <td className="py-4 text-gray-300 font-bold">
-                                {item.forecastShortage}
-                                <span className="text-gray-500 font-medium block text-[10px]">{item.consumption}</span>
-                              </td>
-                              <td className="py-4 font-bold">
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                                  item.supplierRisk.startsWith('HIGH') ? 'border-rose-500/20 bg-rose-500/10 text-rose-400' :
-                                  item.supplierRisk.startsWith('MEDIUM') ? 'border-amber-500/20 bg-amber-500/10 text-amber-400' :
-                                  'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                                }`}>
-                                  {item.supplierRisk}
-                                </span>
-                              </td>
-                              <td className="py-4 font-black text-emerald-400">+{item.recommendPO} {item.unit}</td>
-                              <td className="py-4 text-right">
-                                <Button 
-                                  onClick={() => handleTriggerPO(item.name, item.recommendPO)}
-                                  className="py-1 px-3 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black rounded-lg uppercase tracking-wider"
-                                >
-                                  Order Now
-                                </Button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Supply Forecast Chart */}
-                <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Aggregate Consumption & Projected Surge</h4>
-                  <div className="h-[220px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={forecastChartData}>
-                        <XAxis dataKey="day" stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                        <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
-                        <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '12px' }} />
-                        <Area type="monotone" dataKey="Actual" stroke="#10b981" fillOpacity={0.1} fill="url(#colorActual)" />
-                        <Area type="monotone" dataKey="Projected" stroke="#3b82f6" fillOpacity={0.1} fill="url(#colorProjected)" />
-                        <defs>
-                          <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ════ MODULE 2: AI FOOD WASTE ANALYTICS ════ */}
-            {activeTab === 'waste' && (
-              <div className="space-y-6">
-                <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                  
-                  {/* Left Pie chart */}
-                  <div>
-                    <h3 className="text-lg font-black text-white flex items-center gap-2 mb-4">
-                      <Trash2 className="text-rose-400" size={20} />
-                      Kitchen Waste Diagnostics
-                    </h3>
-                    <p className="text-gray-400 text-xs mb-6">Percentage breakdown of ingredient losses and preparation waste</p>
-                    
-                    <div className="h-[200px] flex justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={wasteData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {wasteData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '12px' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* Right diagnostics info */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400">Waste Log Insights</h4>
-                    
-                    <div className="space-y-3">
-                      {wasteData.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-black/20 p-3.5 rounded-xl border border-gray-850">
-                          <div className="flex items-center gap-2">
-                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-xs font-bold text-white">{item.name}</span>
-                          </div>
-                          <span className="text-xs font-black text-gray-300">{item.value}%</span>
-                        </div>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 2: PURCHASE ORDERS WORKFLOW */}
+          {activeTab === 'po' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-base font-black uppercase tracking-wider text-white">Purchase Orders Approval Pipeline</h3>
+                
+                <div className="space-y-3 font-bold text-xs">
+                  {pos.map(po => (
+                    <div key={po.id} className="p-4 bg-[#070A13] border border-gray-850 rounded-2.5xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-black text-sm">{po.id}</span>
+                          <span className="text-gray-400">Date: {po.date}</span>
+                        </div>
+                        <p className="text-gray-300 mt-1">Vendor: {po.vendor} • Value: <span className="text-primary">₹{po.value}</span></p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Line items: {po.items}</p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <span className="px-2.5 py-1 rounded bg-gray-800 text-gray-300 text-[10px] uppercase font-black tracking-wider border border-gray-700">
+                          {po.status}
+                        </span>
+                        {po.status !== 'closed' && (
+                          <Button 
+                            onClick={() => handleAdvancePo(po.id, po.status)}
+                            className="py-1.5 px-3 bg-emerald-500 hover:bg-emerald-400 text-black text-[10px] font-black rounded-lg uppercase tracking-wider"
+                          >
+                            Advance State
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
+              </div>
+            </motion.div>
+          )}
 
-                {/* Portions Optimizer block */}
-                <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl space-y-6">
-                  <div>
-                    <h3 className="text-lg font-black text-white flex items-center gap-2">
-                      <Sparkles className="text-emerald-400" size={20} />
-                      AI Portion & Purchase Optimizer
-                    </h3>
-                    <p className="text-gray-400 text-xs mt-0.5">Automated recommendations targeting expired inventory and customer leftovers</p>
-                  </div>
+          {/* TAB 3: STOCK TRANSFERS */}
+          {activeTab === 'transfers' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-base font-black uppercase tracking-wider text-white">Stock Transfers (Warehouse ➔ Branch)</h3>
+                
+                <div className="space-y-3 font-bold text-xs">
+                  {transfers.map(tr => (
+                    <div key={tr.id} className="p-4 bg-[#070A13] border border-gray-850 rounded-2.5xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-cyan-400 font-black">{tr.id}</span>
+                          <span className="text-gray-300 font-bold">{tr.items}</span>
+                        </div>
+                        <p className="text-gray-400 mt-1">Route: {tr.source} ➔ {tr.dest}</p>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-5 bg-white/5 border border-gray-850 rounded-2.5xl space-y-2">
-                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Leftover Minimization</span>
-                      <h4 className="text-sm font-bold text-white">Scale down Rice Biryani portions by 15%</h4>
-                      <p className="text-xs text-gray-400 leading-relaxed">
-                        Data shows customers consistently leave 22% of large Biryani portions untouched. Scale down size, lowering menu price by ₹20 and ingredient prep waste by 18%.
-                      </p>
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <span className="px-2.5 py-1 rounded bg-[#FC8019]/10 text-[#FC8019] text-[10px] uppercase font-black border border-[#FC8019]/20">
+                          {tr.status}
+                        </span>
+                        <p className="text-xs text-gray-450">{tr.transitEta}</p>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-                    <div className="p-5 bg-white/5 border border-gray-850 rounded-2.5xl space-y-2">
-                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Expired Inventory Alert</span>
-                      <h4 className="text-sm font-bold text-white">Surge discount on Paneer Sides</h4>
-                      <p className="text-xs text-gray-400 leading-relaxed">
-                        3.5 kg of fresh paneer will reach expiry within 24 hours. Suggest generating smart paneer combos for the lunch rush to clear inventory.
-                      </p>
+          {/* TAB 4: WASTAGE LOGS */}
+          {activeTab === 'wastage' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-base font-black uppercase tracking-wider text-white">Portion Spoilage & Wastage Roster</h3>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Ingredient</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Quantity</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Wastage Reason</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Loss (INR)</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Log Admin</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {wastages.map(w => (
+                        <tr key={w.id} className="hover:bg-white/5 transition-colors text-gray-300">
+                          <td className="py-4 text-cyan-400">{w.id}</td>
+                          <td className="py-4 text-white">{w.ingredient}</td>
+                          <td className="py-4">{w.qty}</td>
+                          <td className="py-4">
+                            <span className="px-2 py-0.5 rounded text-[9px] bg-red-500/10 text-red-400 border border-red-500/20">{w.reason}</span>
+                          </td>
+                          <td className="py-4 text-primary">₹{w.cost}</td>
+                          <td className="py-4">{w.employee}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 5: SUPPLIERS PERFORMANCE */}
+          {activeTab === 'suppliers' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-base font-black uppercase tracking-wider text-white">Vendor Performance Telemetry</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-bold">
+                  {MOCK_SUPPLIERS.map((sup, idx) => (
+                    <div key={idx} className="p-5 bg-[#070A13] border border-gray-850 rounded-2.5xl space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-white text-sm font-black">{sup.name}</h4>
+                        <span className="text-amber-500">★ {sup.rating}</span>
+                      </div>
+                      <p className="text-gray-400">GST: {sup.gst}</p>
+                      <p className="text-gray-300">Pending Orders: {sup.pendingOrders}</p>
+                      <p className="text-emerald-400 font-black">Outstanding Balance: ₹{sup.balance}</p>
                     </div>
-                  </div>
-
-                  <Button onClick={handleApplyWasteOptimization} className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-widest py-3.5 rounded-xl">
-                    Apply Recommended Scaling
-                  </Button>
+                  ))}
                 </div>
               </div>
-            )}
+            </motion.div>
+          )}
 
-          </div>
-
-          {/* Right Supply PO Alerts Feed (4 Cols) */}
-          <div className="lg:col-span-4 bg-[#111827]/90 border border-gray-800 rounded-3xl p-6 shadow-2xl flex flex-col h-[500px]">
-            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-              <Zap className="text-emerald-400" size={16} />
-              Supply Alert Broadcasts
-            </h3>
-            
-            <div className="flex-1 overflow-y-auto font-mono text-[10px] space-y-3 custom-scrollbar">
-              <div className="p-3 bg-rose-500/5 border border-rose-500/20 rounded-xl space-y-1">
-                <div className="flex justify-between items-center text-[9px]">
-                  <span className="text-rose-400 font-black">CRITICAL SHORTAGE</span>
-                  <span className="text-gray-500">14:26</span>
+          {/* TAB 6: FORECASTING ANALYTICS */}
+          {activeTab === 'analytics' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] p-6 md:p-8 rounded-[2.5rem] border border-gray-850 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">AI Consumption & Shortage Projection</h3>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={CONSUMPTION_FORECAST} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
+                      <XAxis dataKey="day" stroke="#4B5563" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                      <YAxis stroke="#4B5563" tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0F1524', borderColor: '#1F2937' }} />
+                      <Area type="monotone" dataKey="consumption" stroke="#10B981" strokeWidth={3} fill="#10B981" fillOpacity={0.05} />
+                      <Area type="monotone" dataKey="forecast" stroke="#3B82F6" strokeWidth={3} fill="#3B82F6" fillOpacity={0.05} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                <p className="text-gray-300">Chicken breast stock is 8kg (Safety limit: 15kg). Consumption peak forecast: 19:30 Dinner rush.</p>
               </div>
+            </motion.div>
+          )}
 
-              <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-1">
-                <div className="flex justify-between items-center text-[9px]">
-                  <span className="text-amber-400 font-black">SUPPLIER TRANSIT RISK</span>
-                  <span className="text-gray-500">14:15</span>
-                </div>
-                <p className="text-gray-300">National highway blockade has delayed Express Distributors truck. Cheese handoff delayed by 4.5 hours.</p>
-              </div>
-
-              <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-1">
-                <div className="flex justify-between items-center text-[9px]">
-                  <span className="text-emerald-400 font-black">AUTO-PO SENT</span>
-                  <span className="text-gray-500">12:00</span>
-                </div>
-                <p className="text-gray-300">Auto-Pilot successfully dispatched Purchase Order #8493 for 120kg Refined Flour to Metro Wholesalers.</p>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-850 pt-4 mt-4 text-center">
-              <span className="text-[10px] font-bold text-gray-500">
-                Connected to GreenChain Node 4.2
-              </span>
-            </div>
-          </div>
-
-        </div>
+        </AnimatePresence>
       </div>
+
     </div>
   );
 };

@@ -185,7 +185,7 @@ const Header = () => {
             <ChevronDown size={16} className="text-[#686B78] group-hover:text-primary transition-colors shrink-0 ml-1" />
           </button>
 
-          <div className="hidden xl:flex items-center gap-0.5 bg-gray-50 dark:bg-gray-800/30 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 shrink-0">
+          <div className="hidden lg:flex items-center gap-0.5 bg-gray-50 dark:bg-gray-800/30 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 shrink-0">
             {[
               { label: t('home'), icon: ShoppingBag, path: '/', color: 'text-primary' },
               { label: t('dining'), icon: Utensils, path: '/dining', color: 'text-blue-600' },
@@ -211,7 +211,7 @@ const Header = () => {
 
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md mx-2">
+          <div className="hidden md:flex flex-1 max-w-[180px] lg:max-w-[220px] xl:max-w-md mx-2">
             <div className="relative w-full group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#686B78] group-focus-within:text-primary transition-colors" size={16} />
               <input 

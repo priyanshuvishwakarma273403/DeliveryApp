@@ -65,16 +65,16 @@ public class FinancialService {
         }
 
         Map<String, Object> breakdown = new HashMap<>();
-        breakdown.add("subtotal", subtotal);
-        breakdown.add("discount", discount);
-        breakdown.add("cgst", cgst);
-        breakdown.add("sgst", sgst);
-        breakdown.add("packagingCharge", packagingCharge);
-        breakdown.add("deliveryCharge", deliveryCharge);
-        breakdown.add("platformFee", platformFee);
-        breakdown.add("walletDeduction", walletDeduction);
-        breakdown.add("finalAmount", Math.round(finalAmount * 100.0) / 100.0);
-        breakdown.add("estimatedDeliveryTime", "25 - 35 mins");
+        breakdown.put("subtotal", subtotal);
+        breakdown.put("discount", discount);
+        breakdown.put("cgst", cgst);
+        breakdown.put("sgst", sgst);
+        breakdown.put("packagingCharge", packagingCharge);
+        breakdown.put("deliveryCharge", deliveryCharge);
+        breakdown.put("platformFee", platformFee);
+        breakdown.put("walletDeduction", walletDeduction);
+        breakdown.put("finalAmount", Math.round(finalAmount * 100.0) / 100.0);
+        breakdown.put("estimatedDeliveryTime", "25 - 35 mins");
         return breakdown;
     }
 

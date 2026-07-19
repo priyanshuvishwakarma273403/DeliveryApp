@@ -30,6 +30,7 @@ import ReviewSection from '../components/restaurant/ReviewSection';
 import apiClient from '../api/axios';
 import { toast } from 'react-hot-toast';
 import AIImage from '../components/common/AIImage';
+import FoodDetailModal from '../components/restaurant/FoodDetailModal';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -212,7 +213,7 @@ const RestaurantDetail = () => {
 
   const MenuItem = ({ item }) => (
     <div className="flex justify-between items-start py-4 md:py-8 border-b border-gray-100 last:border-0 group">
-      <div className="flex-1 pr-3 md:pr-8">
+      <div className="flex-1 pr-3 md:pr-8 cursor-pointer" onClick={() => setSelectedFoodItem(item)}>
         <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2">
            <div className={`h-3.5 w-3.5 md:h-4 md:w-4 border-2 flex items-center justify-center rounded-sm ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
               <div className={`h-1 w-1 md:h-1.5 md:w-1.5 rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`} />
@@ -225,7 +226,7 @@ const RestaurantDetail = () => {
       </div>
 
       <div className="relative shrink-0">
-        <div className="h-20 w-20 md:h-32 md:w-32 rounded-xl md:rounded-2xl overflow-hidden shadow-premium">
+        <div className="h-20 w-20 md:h-32 md:w-32 rounded-xl md:rounded-2xl overflow-hidden shadow-premium cursor-pointer" onClick={() => setSelectedFoodItem(item)}>
           <AIImage 
             src={item.image} 
             dishName={item.name} 
@@ -491,6 +492,15 @@ const RestaurantDetail = () => {
         show={showReward} 
         coins={rewardCoins} 
         onClose={() => setShowReward(false)} 
+      />
+
+      <FoodDetailModal
+        isOpen={!!selectedFoodItem}
+        onClose={() => setSelectedFoodItem(null)}
+        item={selectedFoodItem}
+        restaurantName={restaurant.name}
+        cuisine={restaurant.cuisine}
+        onAdd={(customItem) => addItem(customItem, restaurant.id)}
       />
 
       {/* Review Section */}

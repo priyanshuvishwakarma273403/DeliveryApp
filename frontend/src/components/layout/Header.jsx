@@ -254,7 +254,7 @@ const Header = () => {
                         <button
                           key={res.id}
                           onClick={() => {
-                            navigate(`/restaurant/${res.id}`);
+                            navigate(`/restaurants/${res.id}`);
                             setShowResults(false);
                             setSearchQuery('');
                           }}

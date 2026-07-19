@@ -443,24 +443,24 @@ const Home = () => {
       </section>
 
 
-      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
+      <div className="h-2 bg-[#F5F5F5]" />
 
       {/* ── Browse by Category ── */}
-      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
+      <section className="bg-white py-10 md:py-16">
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white mb-2 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight">
             {t('language') === 'Idioma' ? 'Explorar por Categoría' : t('language') === 'भाषा' ? 'श्रेणी के अनुसार ब्राउज़ करें' : 'Browse by Category'}
           </h2>
-          <p className="text-[#686B78] dark:text-gray-400 text-sm mb-8">
+          <p className="text-[#686B78] text-sm mb-8">
             {t('language') === 'Idioma' ? 'Filtros rápidos para tus antojos' : t('language') === 'भाषा' ? 'आपकी लालसा के लिए त्वरित फ़िल्टर' : 'Quick filters for your cravings'}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {[
-              { label: t('language') === 'Idioma' ? 'Puro Veg' : t('language') === 'भाषा' ? 'शुद्ध शाकाहारी' : 'Pure Veg', emoji: '🥬', bg: 'bg-green-50 dark:bg-green-950/20', border: 'border-green-200 dark:border-green-900/30', hover: 'hover:border-green-400 hover:bg-green-100 dark:hover:bg-green-900/40', filter: 'veg' },
-              { label: t('language') === 'Idioma' ? 'Pollo' : t('language') === 'भाषा' ? 'चिकन' : 'Chicken', emoji: '🍗', bg: 'bg-red-50 dark:bg-red-950/20', border: 'border-red-200 dark:border-red-900/30', hover: 'hover:border-red-400 hover:bg-red-100 dark:hover:bg-red-900/40', filter: 'chicken' },
-              { label: t('language') === 'Idioma' ? 'Cordero' : t('language') === 'भाषा' ? 'मटन' : 'Mutton', emoji: '🍖', bg: 'bg-orange-50 dark:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-900/30', hover: 'hover:border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40', filter: 'mutton' },
-              { label: t('language') === 'Idioma' ? 'Pescado' : t('language') === 'भाषा' ? 'मछली' : 'Fish', emoji: '🐟', bg: 'bg-blue-50 dark:bg-blue-950/20', border: 'border-blue-200 dark:border-blue-900/30', hover: 'hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40', filter: 'fish' },
-              { label: t('language') === 'Idioma' ? 'Huevo' : t('language') === 'भाषा' ? 'अंडा' : 'Egg', emoji: '🥚', bg: 'bg-yellow-50 dark:bg-yellow-950/20', border: 'border-yellow-200 dark:border-yellow-900/30', hover: 'hover:border-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/40', filter: 'egg' },
+              { label: t('language') === 'Idioma' ? 'Puro Veg' : t('language') === 'भाषा' ? 'शुद्ध शाकाहारी' : 'Pure Veg', emoji: '🥬', bg: 'bg-green-50', border: 'border-green-200', hover: 'hover:border-green-400 hover:bg-green-100', filter: 'veg' },
+              { label: t('language') === 'Idioma' ? 'Pollo' : t('language') === 'भाषा' ? 'चिकन' : 'Chicken', emoji: '🍗', bg: 'bg-red-50', border: 'border-red-200', hover: 'hover:border-red-400 hover:bg-red-100', filter: 'chicken' },
+              { label: t('language') === 'Idioma' ? 'Cordero' : t('language') === 'भाषा' ? 'मटन' : 'Mutton', emoji: '🍖', bg: 'bg-orange-50', border: 'border-orange-200', hover: 'hover:border-orange-400 hover:bg-orange-100', filter: 'mutton' },
+              { label: t('language') === 'Idioma' ? 'Pescado' : t('language') === 'भाषा' ? 'मछली' : 'Fish', emoji: '🐟', bg: 'bg-blue-50', border: 'border-blue-200', hover: 'hover:border-blue-400 hover:bg-blue-100', filter: 'fish' },
+              { label: t('language') === 'Idioma' ? 'Huevo' : t('language') === 'भाषा' ? 'अंडा' : 'Egg', emoji: '🥚', bg: 'bg-yellow-50', border: 'border-yellow-200', hover: 'hover:border-yellow-400 hover:bg-yellow-100', filter: 'egg' },
             ].map((cat, i) => (
               <Link key={i} to={`/restaurants?filter=${cat.filter}`}>
                 <motion.div 
@@ -469,7 +469,7 @@ const Home = () => {
                   className={`p-5 md:p-6 rounded-2xl border-2 ${cat.bg} ${cat.border} ${cat.hover} cursor-pointer transition-all duration-200 group`}
                 >
                   <span className="text-3xl md:text-4xl">{cat.emoji}</span>
-                  <p className="text-xs md:text-sm font-bold mt-3 text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors">{cat.label}</p>
+                  <p className="text-xs md:text-sm font-bold mt-3 text-[#1C1C1C] group-hover:text-primary transition-colors">{cat.label}</p>
                 </motion.div>
               </Link>
             ))}
@@ -477,32 +477,32 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
+      <div className="h-2 bg-[#F5F5F5]" />
 
       {/* ── Why Tomato ── */}
-      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
+      <section className="bg-white py-10 md:py-16">
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white mb-2 tracking-tight text-center">{t('whyChoose')}</h2>
-          <p className="text-[#686B78] dark:text-gray-400 text-sm mb-10 text-center">{t('whyChooseSub')}</p>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight text-center">{t('whyChoose')}</h2>
+          <p className="text-[#686B78] text-sm mb-10 text-center">{t('whyChooseSub')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
               { icon: <Zap size={28} className="text-[#FC8019]" />, title: t('fastDelivery'), desc: t('fastDeliveryDesc') },
               { icon: <Shield size={28} className="text-[#26A541]" />, title: t('safeHygienic'), desc: t('safeHygienicDesc') },
               { icon: <Heart size={28} className="text-primary" />, title: t('choices'), desc: t('choicesDesc') },
             ].map((item, i) => (
-              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] dark:border-gray-800 hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 dark:bg-gray-900 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
+              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
                   {item.icon}
                 </div>
-                <h3 className="font-black text-[#1C1C1C] dark:text-white mb-2 text-base">{item.title}</h3>
-                <p className="text-sm text-[#686B78] dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                <h3 className="font-black text-[#1C1C1C] mb-2 text-base">{item.title}</h3>
+                <p className="text-sm text-[#686B78] leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
+      <div className="h-2 bg-[#F5F5F5]" />
 
       {/* ── Tomato Gold Section ── */}
       <section className="py-12 md:py-20 bg-white dark:bg-gray-950 transition-colors duration-300">

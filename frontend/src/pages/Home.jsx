@@ -443,20 +443,24 @@ const Home = () => {
       </section>
 
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Browse by Category ── */}
-      <section className="bg-white py-10 md:py-16">
+      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight">Browse by Category</h2>
-          <p className="text-[#686B78] text-sm mb-8">Quick filters for your cravings</p>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white mb-2 tracking-tight">
+            {t('language') === 'Idioma' ? 'Explorar por Categoría' : t('language') === 'भाषा' ? 'श्रेणी के अनुसार ब्राउज़ करें' : 'Browse by Category'}
+          </h2>
+          <p className="text-[#686B78] dark:text-gray-400 text-sm mb-8">
+            {t('language') === 'Idioma' ? 'Filtros rápidos para tus antojos' : t('language') === 'भाषा' ? 'आपकी लालसा के लिए त्वरित फ़िल्टर' : 'Quick filters for your cravings'}
+          </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {[
-              { label: 'Pure Veg', emoji: '🥬', bg: 'bg-green-50', border: 'border-green-200', hover: 'hover:border-green-400 hover:bg-green-100', filter: 'veg' },
-              { label: 'Chicken', emoji: '🍗', bg: 'bg-red-50', border: 'border-red-200', hover: 'hover:border-red-400 hover:bg-red-100', filter: 'chicken' },
-              { label: 'Mutton', emoji: '🍖', bg: 'bg-orange-50', border: 'border-orange-200', hover: 'hover:border-orange-400 hover:bg-orange-100', filter: 'mutton' },
-              { label: 'Fish', emoji: '🐟', bg: 'bg-blue-50', border: 'border-blue-200', hover: 'hover:border-blue-400 hover:bg-blue-100', filter: 'fish' },
-              { label: 'Egg', emoji: '🥚', bg: 'bg-yellow-50', border: 'border-yellow-200', hover: 'hover:border-yellow-400 hover:bg-yellow-100', filter: 'egg' },
+              { label: t('language') === 'Idioma' ? 'Puro Veg' : t('language') === 'भाषा' ? 'शुद्ध शाकाहारी' : 'Pure Veg', emoji: '🥬', bg: 'bg-green-50 dark:bg-green-950/20', border: 'border-green-200 dark:border-green-900/30', hover: 'hover:border-green-400 hover:bg-green-100 dark:hover:bg-green-900/40', filter: 'veg' },
+              { label: t('language') === 'Idioma' ? 'Pollo' : t('language') === 'भाषा' ? 'चिकन' : 'Chicken', emoji: '🍗', bg: 'bg-red-50 dark:bg-red-950/20', border: 'border-red-200 dark:border-red-900/30', hover: 'hover:border-red-400 hover:bg-red-100 dark:hover:bg-red-900/40', filter: 'chicken' },
+              { label: t('language') === 'Idioma' ? 'Cordero' : t('language') === 'भाषा' ? 'मटन' : 'Mutton', emoji: '🍖', bg: 'bg-orange-50 dark:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-900/30', hover: 'hover:border-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40', filter: 'mutton' },
+              { label: t('language') === 'Idioma' ? 'Pescado' : t('language') === 'भाषा' ? 'मछली' : 'Fish', emoji: '🐟', bg: 'bg-blue-50 dark:bg-blue-950/20', border: 'border-blue-200 dark:border-blue-900/30', hover: 'hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40', filter: 'fish' },
+              { label: t('language') === 'Idioma' ? 'Huevo' : t('language') === 'भाषा' ? 'अंडा' : 'Egg', emoji: '🥚', bg: 'bg-yellow-50 dark:bg-yellow-950/20', border: 'border-yellow-200 dark:border-yellow-900/30', hover: 'hover:border-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/40', filter: 'egg' },
             ].map((cat, i) => (
               <Link key={i} to={`/restaurants?filter=${cat.filter}`}>
                 <motion.div 
@@ -465,7 +469,7 @@ const Home = () => {
                   className={`p-5 md:p-6 rounded-2xl border-2 ${cat.bg} ${cat.border} ${cat.hover} cursor-pointer transition-all duration-200 group`}
                 >
                   <span className="text-3xl md:text-4xl">{cat.emoji}</span>
-                  <p className="text-xs md:text-sm font-bold mt-3 text-[#1C1C1C] group-hover:text-primary transition-colors">{cat.label}</p>
+                  <p className="text-xs md:text-sm font-bold mt-3 text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors">{cat.label}</p>
                 </motion.div>
               </Link>
             ))}
@@ -473,41 +477,41 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Why Tomato ── */}
-      <section className="bg-white py-10 md:py-16">
+      <section className="bg-white dark:bg-gray-950 py-10 md:py-16 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] mb-2 tracking-tight text-center">Why Choose FoodIQ?</h2>
-          <p className="text-[#686B78] text-sm mb-10 text-center">India's most trusted food delivery platform</p>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1C1C1C] dark:text-white mb-2 tracking-tight text-center">{t('whyChoose')}</h2>
+          <p className="text-[#686B78] dark:text-gray-400 text-sm mb-10 text-center">{t('whyChooseSub')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
-              { icon: <Zap size={28} className="text-[#FC8019]" />, title: 'Lightning Fast', desc: 'Average delivery in just 25-35 minutes, guaranteed fresh.' },
-              { icon: <Shield size={28} className="text-[#26A541]" />, title: 'Safe & Hygienic', desc: 'Every restaurant is quality-checked and hygiene-verified.' },
-              { icon: <Heart size={28} className="text-primary" />, title: '10,000+ Choices', desc: 'From local street food to fine dining, we have the largest variety in India.' },
+              { icon: <Zap size={28} className="text-[#FC8019]" />, title: t('fastDelivery'), desc: t('fastDeliveryDesc') },
+              { icon: <Shield size={28} className="text-[#26A541]" />, title: t('safeHygienic'), desc: t('safeHygienicDesc') },
+              { icon: <Heart size={28} className="text-primary" />, title: t('choices'), desc: t('choicesDesc') },
             ].map((item, i) => (
-              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
+              <div key={i} className="text-center p-6 rounded-2xl border border-[#F0F0F0] dark:border-gray-800 hover:border-primary/20 hover:shadow-md transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-50 dark:bg-gray-900 group-hover:bg-primary/5 rounded-2xl mb-4 transition-colors">
                   {item.icon}
                 </div>
-                <h3 className="font-black text-[#1C1C1C] mb-2 text-base">{item.title}</h3>
-                <p className="text-sm text-[#686B78] leading-relaxed">{item.desc}</p>
+                <h3 className="font-black text-[#1C1C1C] dark:text-white mb-2 text-base">{item.title}</h3>
+                <p className="text-sm text-[#686B78] dark:text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Tomato Gold Section ── */}
-      <section className="py-12 md:py-20 bg-white">
+      <section className="py-12 md:py-20 bg-white dark:bg-gray-950 transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-[3rem] md:rounded-[4rem] bg-gradient-to-br from-[#1C1C1C] via-[#2D2D2D] to-[#1C1C1C] p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.3)]"
+            className="relative overflow-hidden rounded-[3rem] md:rounded-[4rem] bg-gradient-to-br from-[#1C1C1C] via-[#2D2D2D] to-[#1C1C1C] dark:from-gray-900 dark:via-gray-800 dark:to-black p-8 md:p-16 shadow-[0_40px_100px_rgba(0,0,0,0.3)]"
           >
             {/* Animated Gold Glow */}
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-yellow-500/10 rounded-full blur-[100px] animate-pulse" />
@@ -521,16 +525,18 @@ const Home = () => {
                 </div>
                 
                 <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight tracking-tighter">
-                  One membership, <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">unlimited benefits</span>
+                  {t('language') === 'Idioma' ? 'Una membresía,' : t('language') === 'भाषा' ? 'एक सदस्यता,' : 'One membership,'} <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">
+                    {t('language') === 'Idioma' ? 'beneficios ilimitados' : t('language') === 'भाषा' ? 'असीमित लाभ' : 'unlimited benefits'}
+                  </span>
                 </h2>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                   {[
-                    { icon: '🚀', text: 'Free delivery on all orders' },
-                    { icon: '💰', text: 'Flat 10% extra coins back' },
-                    { icon: '⭐', text: 'Priority customer support' },
-                    { icon: '💎', text: 'Exclusive restaurant offers' },
+                    { icon: '🚀', text: t('language') === 'Idioma' ? 'Entrega gratuita en todos los pedidos' : t('language') === 'भाषा' ? 'सभी ऑर्डर पर मुफ्त डिलीवरी' : 'Free delivery on all orders' },
+                    { icon: '💰', text: t('language') === 'Idioma' ? '10% de devolución extra en monedas' : t('language') === 'भाषा' ? 'फ्लैट 10% अतिरिक्त सिक्के वापस' : 'Flat 10% extra coins back' },
+                    { icon: '⭐', text: t('language') === 'Idioma' ? 'Soporte al cliente prioritario' : t('language') === 'भाषा' ? 'प्राथमिकता ग्राहक सहायता' : 'Priority customer support' },
+                    { icon: '💎', text: t('language') === 'Idioma' ? 'Ofertas exclusivas de restaurantes' : t('language') === 'भाषा' ? 'विशेष रेस्तरां ऑफ़र' : 'Exclusive restaurant offers' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
                       <span className="text-xl">{item.icon}</span>
@@ -539,8 +545,8 @@ const Home = () => {
                   ))}
                 </div>
                 
-                <button className="group bg-yellow-500 hover:bg-yellow-400 text-[#1C1C1C] px-10 py-5 rounded-[2rem] font-black text-sm tracking-widest uppercase transition-all shadow-[0_20px_50px_rgba(234,179,8,0.3)] flex items-center gap-4 mx-auto md:mx-0">
-                  Get FoodIQ Gold @ ₹99
+                <button className="group bg-yellow-500 hover:bg-yellow-400 text-[#1C1C1C] px-10 py-5 rounded-[2rem] font-black text-sm tracking-widest uppercase transition-all shadow-[0_20px_50px_rgba(234,179,8,0.3)] flex items-center gap-4 mx-auto md:mx-0 cursor-pointer">
+                  {t('language') === 'Idioma' ? 'Obtén FoodIQ Gold @ ₹99' : t('language') === 'भाषा' ? 'FoodIQ गोल्ड प्राप्त करें @ ₹99' : 'Get FoodIQ Gold @ ₹99'}
                   <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
                 </button>
               </div>
@@ -596,43 +602,51 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       {/* ── Google-Style Testimonials ── */}
-      <section className="bg-white py-12 md:py-20 overflow-hidden">
+      <section className="bg-white dark:bg-gray-950 py-12 md:py-20 overflow-hidden transition-colors duration-300">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-12 md:mb-16">
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm"
+                className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/20 px-4 py-2 rounded-full border border-blue-100 dark:border-blue-900/30 shadow-sm"
               >
                 <div className="flex -space-x-1">
                   {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#4285F4" strokeWidth={0} />)}
                 </div>
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">4.8/5 on Google Reviews</span>
+                <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                  {t('language') === 'Idioma' ? '4.8/5 en Google Reviews' : t('language') === 'भाषा' ? 'Google समीक्षाओं पर 4.8/5' : '4.8/5 on Google Reviews'}
+                </span>
               </motion.div>
               
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-full border border-orange-100 shadow-sm"
+                className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-950/20 px-4 py-2 rounded-full border border-orange-100 dark:border-orange-900/30 shadow-sm"
               >
                 <div className="flex -space-x-2">
                    {[1,2,3,4].map(i => (
-                     <div key={i} className="h-5 w-5 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+                     <div key={i} className="h-5 w-5 rounded-full border-2 border-white dark:border-gray-800 overflow-hidden bg-gray-200 dark:bg-gray-700">
                        <img src={`https://i.pravatar.cc/100?u=user${i}`} alt="user" className="w-full h-full object-cover" />
                      </div>
                    ))}
                 </div>
-                <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">5 Million+ Total Users</span>
+                <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">
+                  {t('language') === 'Idioma' ? 'Más de 5 millones de usuarios' : t('language') === 'भाषा' ? '5 मिलियन+ कुल उपयोगकर्ता' : '5 Million+ Total Users'}
+                </span>
               </motion.div>
             </div>
             
-            <h2 className="text-3xl md:text-5xl font-black text-[#1C1C1C] mb-4 tracking-tight">What our foodies say</h2>
-            <p className="text-[#686B78] text-sm md:text-lg max-w-2xl mx-auto font-medium">Authentic reviews from our community across India</p>
+            <h2 className="text-3xl md:text-5xl font-black text-[#1C1C1C] dark:text-white mb-4 tracking-tight">
+              {t('language') === 'Idioma' ? 'Lo que dicen nuestros clientes' : t('language') === 'भाषा' ? 'हमारे फूडीज़ क्या कहते हैं' : 'What our foodies say'}
+            </h2>
+            <p className="text-[#686B78] dark:text-gray-400 text-sm md:text-lg max-w-2xl mx-auto font-medium">
+              {t('language') === 'Idioma' ? 'Reseñas auténticas de nuestra comunidad en toda la India' : t('language') === 'भाषा' ? 'पूरे भारत में हमारे समुदाय की प्रामाणिक समीक्षाएं' : 'Authentic reviews from our community across India'}
+            </p>
           </div>
 
           {/* Desktop Grid / Mobile Marquee */}
@@ -652,48 +666,45 @@ const Home = () => {
                 className="flex gap-4 px-4"
               >
                 {[
-                  { name: 'Ashu Yadav', date: '2 days ago', text: 'The best food delivery app in Mumbai! Delivery is always before time.', avatar: 'https://i.pravatar.cc/150?u=ashu' },
-                  { name: 'Faiz Khan', date: '1 week ago', text: 'Love the variety of cuisines. The dynamic hero section is so easy to use.', avatar: 'https://i.pravatar.cc/150?u=faiz' },
-                  { name: 'Ankit Kumar', date: '3 weeks ago', text: 'Lightning fast delivery. I ordered Biryani and it reached in 20 minutes!', avatar: 'https://i.pravatar.cc/150?u=ankit' },
-                  { name: 'Rahul Sharma', date: '1 month ago', text: 'Great experience overall. The food was hot and fresh.', avatar: 'https://i.pravatar.cc/150?u=rahul' },
-                  // Repeat for infinite effect
-                  { name: 'Ashu Yadav', date: '2 days ago', text: 'The best food delivery app in Mumbai! Delivery is always before time.', avatar: 'https://i.pravatar.cc/150?u=ashu' },
-                  { name: 'Faiz Khan', date: '1 week ago', text: 'Love the variety of cuisines. The dynamic hero section is so easy to use.', avatar: 'https://i.pravatar.cc/150?u=faiz' },
+                  { name: 'Ashu Yadav', date: t('language') === 'Idioma' ? 'hace 2 días' : t('language') === 'भाषा' ? '2 दिन पहले' : '2 days ago', text: t('language') === 'Idioma' ? '¡La mejor aplicación de comida a domicilio en Mumbai! Entrega siempre antes de tiempo.' : t('language') === 'भाषा' ? 'मुंबई में सबसे अच्छा खाना डिलीवरी ऐप! समय से पहले पहुंचता है।' : 'The best food delivery app in Mumbai! Delivery is always before time.', avatar: 'https://i.pravatar.cc/150?u=ashu' },
+                  { name: 'Faiz Khan', date: t('language') === 'Idioma' ? 'hace 1 semana' : t('language') === 'भाषा' ? '1 सप्ताह पहले' : '1 week ago', text: t('language') === 'Idioma' ? 'Me encanta la variedad. La sección del héroe dinámico es muy fácil de usar.' : t('language') === 'भाषा' ? 'विभिन्न प्रकार के व्यंजन पसंद हैं। नेविगेशन आसान है।' : 'Love the variety of cuisines. The dynamic hero section is so easy to use.', avatar: 'https://i.pravatar.cc/150?u=faiz' },
+                  { name: 'Ankit Kumar', date: t('language') === 'Idioma' ? 'hace 3 semanas' : t('language') === 'भाषा' ? '3 सप्ताह पहले' : '3 weeks ago', text: t('language') === 'Idioma' ? 'Entrega súper rápida. Pedí Biryani y llegó en 20 minutos.' : t('language') === 'भाषा' ? 'बिजली जैसी तेज डिलीवरी। बिरयानी 20 मिनट में आ गई!' : 'Lightning fast delivery. I ordered Biryani and it reached in 20 minutes!', avatar: 'https://i.pravatar.cc/150?u=ankit' },
+                  { name: 'Rahul Sharma', date: t('language') === 'Idioma' ? 'hace 1 mes' : t('language') === 'भाषा' ? '1 महीना पहले' : '1 month ago', text: t('language') === 'Idioma' ? 'Gran experiencia en general. Comida caliente y fresca.' : t('language') === 'भाषा' ? 'कुल मिलाकर शानदार अनुभव। गरम और ताज़ा भोजन।' : 'Great experience overall. The food was hot and fresh.', avatar: 'https://i.pravatar.cc/150?u=rahul' },
                 ].map((review, i) => (
                   <div 
                     key={i}
-                    className="min-w-[280px] bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 relative"
+                    className="min-w-[280px] bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-xl border border-gray-50 dark:border-gray-800 relative"
                   >
                     <div className="absolute top-6 right-6 opacity-20">
                       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="h-4" />
                     </div>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm">
                         <img src={review.avatar} alt={review.name} className="h-full w-full object-cover" />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-[#1C1C1C]">{review.name}</p>
+                        <p className="text-xs font-black text-[#1C1C1C] dark:text-white">{review.name}</p>
                         <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{review.date}</p>
                       </div>
                     </div>
                     <div className="flex gap-0.5 mb-3">
                       {[1,2,3,4,5].map(star => <Star key={star} size={10} fill="#FBBC05" strokeWidth={0} />)}
                     </div>
-                    <p className="text-[#1C1C1C] text-xs leading-relaxed font-medium">"{review.text}"</p>
+                    <p className="text-[#1C1C1C] dark:text-gray-300 text-xs leading-relaxed font-medium">"{review.text}"</p>
                   </div>
                 ))}
               </motion.div>
               {/* Gradient overlays for smooth fading at edges */}
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-gray-950 to-transparent z-10 pointer-events-none" />
             </div>
 
             {/* Desktop: Professional Grid */}
             <div className="hidden md:grid grid-cols-3 gap-8">
               {[
-                { name: 'Ashu Yadav', date: '2 days ago', text: 'The best food delivery app in Mumbai! Delivery is always before time and the packaging is superb. Highly recommended for daily office lunches.', avatar: 'https://i.pravatar.cc/150?u=ashu' },
-                { name: 'Faiz Khan', date: '1 week ago', text: 'Love the variety of cuisines. The dynamic hero section and category tabs make it so easy to find exactly what I am craving for. Great job!', avatar: 'https://i.pravatar.cc/150?u=faiz' },
-                { name: 'Ankit Kumar', date: '3 weeks ago', text: 'Lightning fast delivery. I ordered Biryani and it reached me in 20 minutes! The live tracking feature is really smooth and accurate.', avatar: 'https://i.pravatar.cc/150?u=ankit' }
+                { name: 'Ashu Yadav', date: t('language') === 'Idioma' ? 'hace 2 días' : t('language') === 'भाषा' ? '2 दिन पहले' : '2 days ago', text: t('language') === 'Idioma' ? '¡La mejor aplicación de comida a domicilio en Mumbai! Entrega siempre antes de tiempo y embalaje fantástico.' : t('language') === 'भाषा' ? 'मुंबई में सबसे अच्छा भोजन वितरण ऐप! हमेशा समय से पहले पहुंचता है और पैकेजिंग बहुत बढ़िया है।' : 'The best food delivery app in Mumbai! Delivery is always before time and the packaging is superb. Highly recommended for daily office lunches.', avatar: 'https://i.pravatar.cc/150?u=ashu' },
+                { name: 'Faiz Khan', date: t('language') === 'Idioma' ? 'hace 1 semana' : t('language') === 'भाषा' ? '1 सप्ताह पहले' : '1 week ago', text: t('language') === 'Idioma' ? 'Me encanta la variedad. La sección dinámica del héroe y las pestañas hacen que sea muy sencillo pedir lo que quiero.' : t('language') === 'भाषा' ? 'विभिन्न प्रकार के व्यंजन पसंद हैं। श्रेणी टैब से बिल्कुल वही खोजना आसान हो जाता है जिसकी लालसा है।' : 'Love the variety of cuisines. The dynamic hero section and category tabs make it so easy to find exactly what I am craving for. Great job!', avatar: 'https://i.pravatar.cc/150?u=faiz' },
+                { name: 'Ankit Kumar', date: t('language') === 'Idioma' ? 'hace 3 semanas' : t('language') === 'भाषा' ? '3 सप्ताह पहले' : '3 weeks ago', text: t('language') === 'Idioma' ? 'Entrega súper rápida. Pedí Biryani y me llegó en 20 minutos. ¡La función de rastreo en vivo es muy fluida!' : t('language') === 'भाषा' ? 'बिजली जैसी तेज डिलीवरी। बिरयानी 20 मिनट में मिल गई! लाइव ट्रैकिंग सुविधा वास्तव में सुचारू और सटीक है।' : 'Lightning fast delivery. I ordered Biryani and it reached me in 20 minutes! The live tracking feature is really smooth and accurate.', avatar: 'https://i.pravatar.cc/150?u=ankit' }
               ].map((review, i) => (
                 <motion.div 
                   key={i}
@@ -702,24 +713,24 @@ const Home = () => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -10 }}
-                  className="bg-white p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 relative group"
+                  className="bg-white dark:bg-gray-900 p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-gray-800 relative group"
                 >
                   <div className="absolute top-8 right-8 opacity-20 group-hover:opacity-100 transition-opacity">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="h-5" />
                   </div>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-white shadow-xl group-hover:scale-110 transition-transform duration-500">
+                    <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-xl group-hover:scale-110 transition-transform duration-500">
                       <img src={review.avatar} alt={review.name} className="h-full w-full object-cover" />
                     </div>
                     <div>
-                      <p className="text-base font-black text-[#1C1C1C]">{review.name}</p>
+                      <p className="text-base font-black text-[#1C1C1C] dark:text-white">{review.name}</p>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{review.date}</p>
                     </div>
                   </div>
                   <div className="flex gap-0.5 mb-6">
                     {[1,2,3,4,5].map(star => <Star key={star} size={14} fill="#FBBC05" strokeWidth={0} />)}
                   </div>
-                  <p className="text-[#1C1C1C] text-base leading-relaxed font-medium">"{review.text}"</p>
+                  <p className="text-[#1C1C1C] dark:text-gray-300 text-base leading-relaxed font-medium">"{review.text}"</p>
                 </motion.div>
               ))}
             </div>
@@ -730,29 +741,35 @@ const Home = () => {
             whileInView={{ opacity: 1 }}
             className="mt-16 flex flex-col items-center gap-6"
           >
-            <div className="flex items-center gap-4 bg-gray-50 px-6 py-3 rounded-full border border-gray-100">
+            <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-900 px-6 py-3 rounded-full border border-gray-100 dark:border-gray-800">
                <div className="flex -space-x-1">
                  {[1,2,3,4,5].map(i => <Star key={i} size={14} fill="#FBBC05" strokeWidth={0} />)}
                </div>
-               <span className="text-xs font-black text-[#1C1C1C]">4.8 Rating from 2,540+ Customers</span>
+               <span className="text-xs font-black text-[#1C1C1C] dark:text-white">
+                 {t('language') === 'Idioma' ? '4.8 Calificación de más de 2,540 clientes' : t('language') === 'भाषा' ? '2,540+ ग्राहकों से 4.8 रेटिंग' : '4.8 Rating from 2,540+ Customers'}
+               </span>
             </div>
             
             <button 
               onClick={() => setIsReviewsModalOpen(true)}
-              className="group relative bg-[#1C1C1C] text-white px-12 py-5 rounded-[2rem] font-black text-sm tracking-[0.2em] uppercase hover:bg-primary transition-all shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-primary/30 flex items-center gap-4"
+              className="group relative bg-[#1C1C1C] dark:bg-white text-white dark:text-[#1C1C1C] hover:text-white px-12 py-5 rounded-[2rem] font-black text-sm tracking-[0.2em] uppercase hover:bg-primary dark:hover:bg-primary transition-all shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-primary/30 flex items-center gap-4 cursor-pointer"
             >
-              <span>See All 2,540 Reviews</span>
-              <div className="h-8 w-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-primary transition-all">
+              <span>
+                {t('language') === 'Idioma' ? 'Ver todas las 2,540 reseñas' : t('language') === 'भाषा' ? 'सभी 2,540 समीक्षाएं देखें' : 'See All 2,540 Reviews'}
+              </span>
+              <div className="h-8 w-8 bg-white/10 dark:bg-black/10 rounded-full flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white group-hover:text-primary transition-all">
                 <ChevronRight size={20} />
               </div>
             </button>
             
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">⭐ Verified by Google Trust</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              {t('language') === 'Idioma' ? '⭐ Verificado por Google Trust' : t('language') === 'भाषा' ? '⭐ Google Trust द्वारा सत्यापित' : '⭐ Verified by Google Trust'}
+            </p>
           </motion.div>
         </div>
       </section>
 
-      <div className="h-2 bg-[#F5F5F5]" />
+      <div className="h-2 bg-[#F5F5F5] dark:bg-gray-900" />
 
       <LocationModal 
         isOpen={isLocationModalOpen} 

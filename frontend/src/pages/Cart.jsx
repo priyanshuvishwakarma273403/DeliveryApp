@@ -30,12 +30,55 @@ import apiClient from '../api/axios';
 import toast from 'react-hot-toast';
 
 const Cart = () => {
-  const { items, updateQuantity, removeItem, clearCart, getTotalAmount } = useCartStore();
+  const { items, updateQuantity, removeItem, clearCart, getTotalAmount, addItem } = useCartStore();
   const { coins, isApplyingCoins } = useWalletStore();
   const { user } = useAuthStore();
 
   const [greenDelivery, setGreenDelivery] = useState(false);
   const [noCutlery, setNoCutlery] = useState(true);
+
+  // Dynamic Combo States
+  const [combos, setCombos] = useState([]);
+  const [loadingCombos, setLoadingCombos] = useState(false);
+
+  const fetchCombos = async () => {
+    if (items.length === 0) return;
+    setLoadingCombos(true);
+    try {
+      const res = await apiClient.get('/recommendations/combos', {
+        params: {
+          cartItemIds: items.map(item => item.id)
+        }
+      });
+      if (res.data?.success) {
+        setCombos(res.data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingCombos(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCombos();
+  }, [items]);
+
+  const handleAddCombo = (combo) => {
+    combo.items.forEach(cItem => {
+      const exists = items.some(i => i.id === cItem.id);
+      if (!exists) {
+        addItem({
+          id: cItem.id,
+          name: cItem.name,
+          price: cItem.price,
+          imageUrl: cItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
+          quantity: 1
+        });
+      }
+    });
+    toast.success(`🎉 Combo "${combo.name}" added to cart!`);
+  };
 
   const subtotal = getTotalAmount();
   const deliveryFee = subtotal > 500 ? 0 : 40;

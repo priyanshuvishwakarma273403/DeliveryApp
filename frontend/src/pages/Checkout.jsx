@@ -45,16 +45,46 @@ const Checkout = () => {
   const isPremium = user?.isPremium;
   const subtotal = getTotalAmount();
   
-  // Calculate delivery fee
   const baseDelivery = 40;
   const deliveryFee = isPremium ? 0 : baseDelivery;
-  
   const taxes = Math.round(subtotal * 0.05);
-  
-  // Calculate gamification discounts
-  const coinDiscount = useCoins ? Math.min(coins, subtotal * 0.5) : 0; // Max 50% off via coins
-  
+  const coinDiscount = useCoins ? Math.min(coins, subtotal * 0.5) : 0;
   const total = subtotal + deliveryFee + taxes - coinDiscount;
+
+  const [breakdown, setBreakdown] = useState({
+    subtotal: subtotal,
+    discount: 0,
+    cgst: Math.round(subtotal * 0.025),
+    sgst: Math.round(subtotal * 0.025),
+    packagingCharge: 20,
+    deliveryCharge: deliveryFee,
+    platformFee: 5,
+    walletDeduction: 0,
+    finalAmount: total,
+    estimatedDeliveryTime: '25 - 35 mins'
+  });
+
+  const fetchBreakdown = async () => {
+    try {
+      const res = await apiClient.get('/finance/checkout', {
+        params: {
+          subtotal: subtotal,
+          discount: 0,
+          coinsUsed: useCoins ? coins : 0,
+          userId: user?.id
+        }
+      });
+      if (res.data?.success) {
+        setBreakdown(res.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBreakdown();
+  }, [useCoins, currentStep, subtotal]);
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -82,16 +112,39 @@ const Checkout = () => {
       const response = await orderService.placeOrder(orderRequest);
       
       if (response.success) {
-        if (useCoins && coinDiscount > 0) {
-          deductCoins(coinDiscount);
+        const orderId = response.data.id;
+        const idempotencyKey = `PAY-${orderId}-${Date.now()}`;
+        
+        // Execute dynamic transaction routing payment
+        const payRes = await apiClient.post('/finance/pay', null, {
+          headers: {
+            'Idempotency-Key': idempotencyKey
+          },
+          params: {
+            orderId: orderId,
+            customerId: user?.id,
+            restaurantId: response.data.restaurantId || '65f8c85c2b3f1a001d2c3b4a',
+            amount: breakdown.finalAmount,
+            walletDeduction: breakdown.walletDeduction,
+            paymentMethod: paymentMethod.toUpperCase()
+          }
+        });
+
+        if (payRes.data?.success) {
+          if (useCoins && breakdown.walletDeduction > 0) {
+            deductCoins(breakdown.walletDeduction);
+          }
+          
+          setPlacedOrderId(orderId);
+          clearCart();
+          
+          // Generate a Scratch Card!
+          const newCard = addScratchCard();
+          setWonCard(newCard); // Show modal
+        } else {
+          toast.error('Payment processing failed. Please check your bank card details or try another gateway.');
+          setIsPlacing(false);
         }
-        
-        setPlacedOrderId(response.data.id);
-        clearCart();
-        
-        // Generate a Scratch Card!
-        const newCard = addScratchCard();
-        setWonCard(newCard); // Show modal
       } else {
         toast.error(response.message || 'Failed to place order.');
         setIsPlacing(false);

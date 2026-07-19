@@ -172,6 +172,7 @@ function App() {
                   <Route path="/delivery/dashboard" element={<ProtectedRoute roles={['DELIVERY_PARTNER']}><DeliveryDashboard /></ProtectedRoute>} />
                   <Route path="/restaurant/portal" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN']}><RestaurantPortal /></ProtectedRoute>} />
                   <Route path="/restaurant/branches" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN']}><MultiBranchPortal /></ProtectedRoute>} />
+                  <Route path="/restaurant/kds" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'KITCHEN_STAFF', 'ADMIN', 'SUPER_ADMIN']}><KitchenDisplaySystem /></ProtectedRoute>} />
                   <Route path="/feed" element={<ProtectedRoute roles={['CUSTOMER']}><FoodieFeed /></ProtectedRoute>} />
                   <Route path="/dining" element={<DiningOut />} />
                   <Route path="/events" element={<LiveEvents />} />

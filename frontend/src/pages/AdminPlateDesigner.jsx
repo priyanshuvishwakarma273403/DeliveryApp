@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Compass, ShieldAlert, Award, Grid, HelpCircle } from 'lucide-react';
+import { Sparkles, Compass, ShieldAlert, Award, Grid, HelpCircle, RefreshCw } from 'lucide-react';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { getUniqueFoodImage } from '../utils/imageProvider';

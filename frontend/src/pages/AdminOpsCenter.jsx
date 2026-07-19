@@ -1,127 +1,171 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Cpu, Shield, MapPin, Users, Flame, Navigation, 
   TrendingUp, RefreshCw, AlertTriangle, Zap, CheckCircle2, 
   Layers, Settings, Play, Pause, ChevronRight, BarChart2, ShieldAlert,
-  Activity, ActivityIcon, Bike, DollarSign
+  Activity, Bike, DollarSign, Search, Filter, Trash2, XOctagon, 
+  UserCheck, Ban, ShieldCheck, CreditCard, Gift, Star, Phone, MessageSquare,
+  AlertCircle, Download, FileText, Send, Lock
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip
-} from 'recharts';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { toast } from 'react-hot-toast';
 
+// ── MOCK DATA ENGINE ──
+const MOCK_CUSTOMERS = [
+  { id: "C-901", name: "Priyanshu Vishwakarma", email: "priyanshu@foodiq.com", phone: "+91 83768 41256", status: "ACTIVE", tier: "GOLD", points: 840, wallet: 1200, orders: 42, spent: 18450 },
+  { id: "C-902", name: "Ananya Sen", email: "ananya.sen@gmail.com", phone: "+91 99218 90122", status: "VERIFIED", tier: "SILVER", points: 310, wallet: 150, orders: 18, spent: 6200 },
+  { id: "C-903", name: "Rohan Malhotra", email: "rohan.m@yahoo.com", phone: "+91 85951 91162", status: "SUSPENDED", tier: "BRONZE", points: 0, wallet: 0, orders: 5, spent: 1100 }
+];
+
+const MOCK_RESTAURANTS = [
+  { id: "R-501", name: "Tuscany Grill", owner: "Giovanni Rossi", status: "ACTIVE", gst: "09AAACT9012F1Z4", fssai: "12723001000892", branches: 4, orders: 1240, revenue: 384000, rating: 4.8 },
+  { id: "R-502", name: "Bikanervala Sweets", owner: "Shyam Sundar", status: "PENDING_VERIFY", gst: "09AAACB1102A1Z9", fssai: "11521008000412", branches: 2, orders: 850, revenue: 192000, rating: 4.2 },
+  { id: "R-503", name: "Punjab Grill Delhi", owner: "Gurpreet Singh", status: "VACATION", gst: "07AAACP9912E1Z8", fssai: "10014011002012", branches: 5, orders: 2200, revenue: 750000, rating: 4.6 }
+];
+
+const MOCK_RIDERS = [
+  { id: "DP-301", name: "Rider Shiva", vehicle: "TVS iQube (EV)", status: "ONLINE", bgCheck: "VERIFIED", acceptRate: "98%", rating: 4.9, wallet: 840 },
+  { id: "DP-302", name: "Kabir Singh", vehicle: "Bajaj Pulsar 150", status: "OFFLINE", bgCheck: "PENDING", acceptRate: "85%", rating: 4.2, wallet: 150 },
+  { id: "DP-303", name: "Anita Desai", vehicle: "Ather 450X (EV)", status: "BUSY", bgCheck: "VERIFIED", acceptRate: "94%", rating: 4.7, wallet: 920 }
+];
+
+const MOCK_PAYMENTS = [
+  { id: "TX-9002", orderId: "OD-4402", customer: "Aditya Roy", method: "UPI (GPay)", status: "SUCCESS", amount: 450, tax: 22.5, ref: "stripe_ref_99218902" },
+  { id: "TX-9003", orderId: "OD-4403", customer: "Divya Negi", method: "Credit Card", status: "FAILED", amount: 280, tax: 14.0, ref: "stripe_ref_err_9082", reason: "Insufficient balance" },
+  { id: "TX-9004", orderId: "OD-4404", customer: "Kabir Mehra", method: "Wallet Balance", status: "SUCCESS", amount: 1200, tax: 60.0, ref: "wallet_tx_091289" }
+];
+
+const MOCK_REFUNDS = [
+  { id: "RF-8812", orderId: "OD-4403", amount: 280, reason: "Order delivery time exceeded 90 mins", requestedBy: "Customer", status: "PENDING" },
+  { id: "RF-8813", orderId: "OD-4390", amount: 150, reason: "Spilled items / missing sauce packaging", requestedBy: "Support Team", status: "APPROVED" }
+];
+
+const MOCK_TICKETS = [
+  { id: "TK-101", customer: "Aditya Roy", category: "Delayed Delivery", priority: "HIGH", status: "OPEN", assignedAgent: "Agent Clara" },
+  { id: "TK-102", customer: "Rohan Malhotra", category: "Incorrect Order Refund", priority: "CRITICAL", status: "ESCALATED", assignedAgent: "Agent Vikram" }
+];
+
+const MOCK_REVIEWS = [
+  { id: "RV-501", customer: "Priyanshu V.", rating: 5, text: "Excellent pizza packaging, double seal was perfect!", status: "APPROVED" },
+  { id: "RV-502", customer: "Ananya Sen", rating: 2, text: "Food arrived cold and garlic sticks were missing.", status: "REPORTED_SPAM" }
+];
+
+const MOCK_AUDIT_LOGS = [
+  { id: "LOG-9001", admin: "Super Admin", action: "SUSPEND_USER", target: "C-903", time: "15:05", ip: "192.168.1.100" },
+  { id: "LOG-9002", admin: "Platform Admin", action: "APPROVE_RESTAURANT", target: "R-501", time: "14:52", ip: "192.168.1.102" }
+];
+
 const AdminOpsCenter = () => {
-  // Autopilot status
-  const [autoPilot, setAutoPilot] = useState(true);
-  const [simulationHour, setSimulationHour] = useState(1); // 1hr, 2hr, 4hr forecasts
-  const [activeTab, setActiveTab] = useState('orders'); // orders, map, kitchen, telemetry
+  const [activeTab, setActiveTab] = useState('customers'); // customers, restaurants, riders, payments, coupons, support, audits
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Telemetry logs including fraud and risk logs
-  const [opsLogs, setOpsLogs] = useState([
-    { id: 1, time: '14:24:10', type: 'INFO', text: 'Autonomous pilot initialized.' },
-    { id: 2, time: '14:24:15', type: 'SUCCESS', text: 'Optimal chef assignment locked: Chef A assigned to Order #3290 (Italian specialist).' },
-    { id: 3, time: '14:24:22', type: 'LOGISTICS', text: 'Rider Kabir assigned to Order #3290. Distance: 1.2km. ETA: 8m.' },
-    { id: 4, time: '14:24:35', type: 'FRAUD ALERT', text: 'Blocked checkout anomaly: Multiple voucher retries from IP 192.168.42.1 (Flagged & cleared).' },
-    { id: 5, time: '14:24:50', type: 'WARNING', text: 'Bypass Road traffic congestion detected (+8 min transit latency). Auto-routing Order #3285 via Sector 62.' }
+  // Local state directory stores
+  const [customers, setCustomers] = useState(MOCK_CUSTOMERS);
+  const [restaurants, setRestaurants] = useState(MOCK_RESTAURANTS);
+  const [riders, setRiders] = useState(MOCK_RIDERS);
+  const [payments, setPayments] = useState(MOCK_PAYMENTS);
+  const [refunds, setRefunds] = useState(MOCK_REFUNDS);
+  const [tickets, setTickets] = useState(MOCK_TICKETS);
+  const [reviews, setReviews] = useState(MOCK_REVIEWS);
+  const [audits, setAudits] = useState(MOCK_AUDIT_LOGS);
+
+  // Coupon Generator State
+  const [couponForm, setCouponForm] = useState({
+    code: "", type: "PERCENTAGE", discount: 15, minOrder: 300, maxDiscount: 100, expiry: ""
+  });
+  const [couponList, setCouponList] = useState([
+    { code: "FOODIQ50", type: "PERCENTAGE", discount: 50, minOrder: 499, maxDiscount: 150 },
+    { code: "FREEDEL", type: "FREE_DELIVERY", discount: 100, minOrder: 200, maxDiscount: 40 }
   ]);
 
-  // Autopilot loop simulation
-  useEffect(() => {
-    if (!autoPilot) return;
+  // Operational toggles
+  const handleToggleCustomerStatus = (id, currentStatus) => {
+    const nextStatus = currentStatus === 'ACTIVE' || currentStatus === 'VERIFIED' ? 'SUSPENDED' : 'ACTIVE';
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: nextStatus } : c));
+    
+    // Add audit log
+    const logEntry = {
+      id: `LOG-${Date.now()}`,
+      admin: "Super Admin",
+      action: nextStatus === 'SUSPENDED' ? 'SUSPEND_USER' : 'REACTIVATE_USER',
+      target: id,
+      time: new Date().toTimeString().split(' ')[0],
+      ip: "192.168.1.100"
+    };
+    setAudits(prev => [logEntry, ...prev]);
+    toast.success(`Customer status updated to ${nextStatus}!`);
+  };
 
-    const interval = setInterval(() => {
-      const timestamp = new Date().toTimeString().split(' ')[0];
-      const logTemplates = [
-        { type: 'SUCCESS', text: 'Cooking priority updated: Order #3295 bumped up in queue due to delivery courier location lock.' },
-        { type: 'LOGISTICS', text: 'Best-suited driver selected: Rider Anita assigned to Order #3298. GPS proximity verified.' },
-        { type: 'WARNING', text: 'Kitchen load imbalance: Chef A at 92% capacity. Dynamic reassignment of Order #3301 to Chef B.' },
-        { type: 'FRAUD ALERT', text: 'AI Shield: Prevented multi-accounting card checkout attempt on Noida node.' },
-        { type: 'SUCCESS', text: 'Route optimization resolved: Saved 4.2 mins for Order #3292 via Sector 18 bypass.' }
-      ];
+  const handleVerifyCustomer = (id) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: 'VERIFIED' } : c));
+    toast.success('Customer profile marked as VERIFIED.');
+  };
 
-      const selectedTemplate = logTemplates[Math.floor(Math.random() * logTemplates.length)];
-      setOpsLogs(prev => [
-        { id: Date.now(), time: timestamp, ...selectedTemplate },
-        ...prev.slice(0, 7)
-      ]);
+  const handleAdjustWallet = (id, amount) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, wallet: c.wallet + amount } : c));
+    toast.success(`Wallet balance corrected by ₹${amount}`);
+  };
 
-      if (selectedTemplate.type === 'FRAUD ALERT') {
-        toast.error('AI Shield blocked a potential fraud event!', { icon: '🛡️' });
-      }
-    }, 6000);
+  const handleToggleRestaurantStatus = (id, currentStatus) => {
+    const nextStatus = currentStatus === 'ACTIVE' ? 'VACATION' : 'ACTIVE';
+    setRestaurants(prev => prev.map(r => r.id === id ? { ...r, status: nextStatus } : r));
+    toast.success(`Restaurant operating state shifted to ${nextStatus}.`);
+  };
 
-    return () => clearInterval(interval);
-  }, [autoPilot]);
+  const handleVerifyFssai = (id) => {
+    setRestaurants(prev => prev.map(r => r.id === id ? { ...r, status: 'ACTIVE' } : r));
+    toast.success('FSSAI documents verified & restaurant account activated!');
+  };
 
-  // Simulated orders queue for Autonomous Assignment
-  const [activeQueue, setActiveQueue] = useState([
-    { 
-      id: '3290', 
-      customer: 'Priyanshu V.', 
-      items: '1x Veg Burger, 1x Fries', 
-      chef: 'Chef A (Burger Specialist)', 
-      rider: 'Rider Kabir', 
-      route: 'Sector 62 (Saved 8m)', 
-      delayRisk: 'LOW', 
-      priority: 'CRITICAL',
-      status: 'PREPARING'
-    },
-    { 
-      id: '3292', 
-      customer: 'Neha Sharma', 
-      items: '1x Paneer Tikka Pizza', 
-      chef: 'Chef B (Pizza Specialist)', 
-      rider: 'Rider Anita', 
-      route: 'Sector 18 Bypass (Saved 4m)', 
-      delayRisk: 'LOW', 
-      priority: 'HIGH',
-      status: 'CONFIRMED'
-    },
-    { 
-      id: '3295', 
-      customer: 'Aman Verma', 
-      items: '2x Butter Chicken, 3x Naan', 
-      chef: 'Chef C (Trainee)', 
-      rider: 'Re-assigning (Searching)', 
-      route: 'Link Road (Standard)', 
-      delayRisk: 'MEDIUM', 
-      priority: 'STANDARD',
-      status: 'PLACED'
+  const handleApproveRefund = (id) => {
+    setRefunds(prev => prev.map(rf => rf.id === id ? { ...rf, status: 'APPROVED' } : rf));
+    toast.success(`Refund approved! Credit queued at gateway processor.`);
+  };
+
+  const handleRejectRefund = (id) => {
+    setRefunds(prev => prev.map(rf => rf.id === id ? { ...rf, status: 'REJECTED' } : rf));
+    toast.error(`Refund request rejected.`);
+  };
+
+  const handleCreateCoupon = (e) => {
+    e.preventDefault();
+    if (!couponForm.code) {
+      toast.error('Coupon code cannot be empty.');
+      return;
     }
-  ]);
+    setCouponList(prev => [...prev, { ...couponForm }]);
+    setCouponForm({ code: "", type: "PERCENTAGE", discount: 15, minOrder: 300, maxDiscount: 100, expiry: "" });
+    toast.success(`Coupon ${couponForm.code} successfully deployed platform-wide!`);
+  };
 
-  // Simulated Kitchen workloads
-  const chefWorkloadData = [
-    { name: 'Chef A', Load: 92, status: 'Overloaded', color: '#ef4444' },
-    { name: 'Chef B', Load: 65, status: 'Optimal', color: '#10b981' },
-    { name: 'Chef C', Load: 25, status: 'Under-utilized', color: '#06b6d4' }
-  ];
+  const handleModerateReview = (id, action) => {
+    if (action === 'DELETE') {
+      setReviews(prev => prev.filter(rv => rv.id !== id));
+      toast.success('Review removed.');
+    } else {
+      setReviews(prev => prev.map(rv => rv.id === id ? { ...rv, status: 'APPROVED' } : rv));
+      toast.success('Review verified & approved.');
+    }
+  };
 
-  // AI Demand Heat Map zones (Noida / Delhi simulation)
-  const heatMapZones = [
-    { name: 'Sector 62', demand: 'CRITICAL SURGE', expectedOrders: 145, ridersAlloc: 18, rating: 4.8, statusColor: 'border-rose-500 bg-rose-500/10 text-rose-400' },
-    { name: 'Sector 18', demand: 'HIGH DEMAND', expectedOrders: 92, ridersAlloc: 12, rating: 4.5, statusColor: 'border-amber-500 bg-amber-500/10 text-amber-400' },
-    { name: 'Indirapuram', demand: 'STANDARD', expectedOrders: 48, ridersAlloc: 6, rating: 4.2, statusColor: 'border-cyan-500 bg-cyan-500/10 text-cyan-400' },
-    { name: 'Vasundhara', demand: 'LOW DEMAND', expectedOrders: 15, ridersAlloc: 2, rating: 4.6, statusColor: 'border-gray-800 bg-gray-900/40 text-gray-500' },
-    { name: 'Sector 15', demand: 'HIGH DEMAND', expectedOrders: 84, ridersAlloc: 10, rating: 4.7, statusColor: 'border-amber-500 bg-amber-500/10 text-amber-400' },
-    { name: 'Noida Expressway', demand: 'STANDARD', expectedOrders: 56, ridersAlloc: 8, rating: 4.1, statusColor: 'border-cyan-500 bg-cyan-500/10 text-cyan-400' },
-  ];
+  const handleResolveTicket = (id) => {
+    setTickets(prev => prev.map(tk => tk.id === id ? { ...tk, status: 'CLOSED' } : tk));
+    toast.success('Support ticket closed.');
+  };
 
-  const handleForceBalancing = () => {
-    toast.success("AI redistribution protocol executed. Workloads stabilized.");
+  // Export CSV simulation
+  const handleExportData = (type) => {
+    toast.success(`Exporting ${type} dataset as CSV. Download queued.`);
   };
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-gray-100 pb-16 font-sans">
+    <div className="min-h-screen bg-[#070A13] text-gray-150 pb-16 font-sans">
       
-      {/* ── TOP HERO HEADER (NASA MISSION STYLE) ── */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#0F172A] to-transparent border-b border-gray-800/60 py-6 px-4 md:px-12">
-        <div className="absolute top-0 right-1/4 w-[450px] h-[130px] bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
-
+      {/* ── TOP HERO HEADER ── */}
+      <div className="relative overflow-hidden bg-[#0F172A] border-b border-gray-800/60 py-6 px-4 md:px-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
             <Link 
@@ -134,364 +178,503 @@ const AdminOpsCenter = () => {
               <div className="flex items-center gap-3 mb-1">
                 <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
                   <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
-                  NASA Mission Control Active
+                  FoodIQ Operations Console
                 </span>
-                <span className="text-gray-500 text-xs font-bold">Vite Telemetry Feed Lock</span>
+                <span className="text-gray-500 text-xs font-bold">Phase 2: Management & Moderation</span>
               </div>
-              <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                AI Operations <span className="text-cyan-500 font-light">Mission Control</span>
+              <h1 className="text-3xl font-black tracking-tight text-white">
+                Platform Operations <span className="text-cyan-500 font-light">Control Room</span>
               </h1>
               <p className="text-gray-400 text-xs md:text-sm font-medium mt-0.5">
-                Real-time autonomous courier tracking, platform health monitoring, and fraud prevention
+                Centralized registry directory for managing customers, vendors, branches, delivery partners, and payments.
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 bg-[#111827] border border-gray-800 p-2 rounded-2xl">
-            <button
-              onClick={() => setAutoPilot(true)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-                autoPilot ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Play size={12} /> Auto-Pilot
-            </button>
-            <button
-              onClick={() => setAutoPilot(false)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-                !autoPilot ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Pause size={12} /> Suspended
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* ── NASA TELEMETRY PANEL OVERVIEW ── */}
-      <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8 grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
-          <div className="h-10 w-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400">
-            <Bike size={20} />
-          </div>
-          <div>
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Active Couriers</span>
-            <p className="text-lg font-black text-white">42 Riders Online</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
-          <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
-            <DollarSign size={20} />
-          </div>
-          <div>
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Hourly Net Revenue</span>
-            <p className="text-lg font-black text-emerald-400">₹24,850/hr</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
-          <div className="h-10 w-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-400">
-            <ShieldAlert size={20} className="animate-pulse" />
-          </div>
-          <div>
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Fraud Alerts (1hr)</span>
-            <p className="text-lg font-black text-rose-400">1 Blocked Anomaly</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111827] border border-gray-800 rounded-2.5xl p-5 flex items-center gap-4">
-          <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
-            <Activity size={20} />
-          </div>
-          <div>
-            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Platform Health Score</span>
-            <p className="text-lg font-black text-indigo-400">99.85% (Excellent)</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── SECTIONS NAVIGATION TABS ── */}
-      <div className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="flex border-b border-gray-800 gap-6 mb-8">
+      {/* ── CENTRALIZED DIRECTORY TABS ── */}
+      <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
+        
+        {/* Navigation tabs row */}
+        <div className="flex flex-wrap gap-2.5 bg-[#0F1524] p-2 rounded-2.5xl border border-gray-850 mb-8">
           {[
-            { id: 'orders', label: 'Autonomous Order Management', desc: 'Auto-dispatch dispatch queue' },
-            { id: 'map', label: 'AI Demand Heat Map', desc: 'City-wide forecast zones' },
-            { id: 'kitchen', label: 'AI Kitchen Optimizer', desc: 'Workload & prep queue monitoring' }
+            { id: 'customers', label: 'Customers', icon: Users },
+            { id: 'restaurants', label: 'Restaurants', icon: Building },
+            { id: 'riders', label: 'Riders', icon: Bike },
+            { id: 'payments', label: 'Payments & Refunds', icon: CreditCard },
+            { id: 'coupons', label: 'Coupons Builder', icon: Gift },
+            { id: 'support', label: 'Support & Reviews', icon: MessageSquare },
+            { id: 'audits', label: 'Audit Logs', icon: Lock }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-left border-b-2 transition-all relative ${
+              className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
                 activeTab === tab.id 
-                  ? 'border-cyan-500 text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <h3 className="text-sm font-black tracking-wide uppercase">{tab.label}</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{tab.desc}</p>
+              <tab.icon size={14} />
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* ── CONTENT AREA ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── CONTENT RENDERING ENGINE ── */}
+        <AnimatePresence mode="wait">
           
-          {/* Main Module Content (8 Cols) */}
-          <div className="lg:col-span-8 space-y-6">
-            
-            {/* ════ MODULE 1: AUTONOMOUS ORDER DISPATCH ════ */}
-            {activeTab === 'orders' && (
-              <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-lg font-black text-white flex items-center gap-2">
-                      <Zap className="text-cyan-400" size={20} />
-                      Autonomous Dispatch Queue
-                    </h3>
-                    <p className="text-gray-400 text-xs mt-0.5">Real-time task dispatching without manager intervention</p>
-                  </div>
-                  <span className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-cyan-500/20">
-                    Live Syncing
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {activeQueue.map(order => (
-                    <div key={order.id} className="p-5 bg-white/5 border border-gray-800 hover:border-cyan-500/30 rounded-2xl transition-all relative group">
-                      <div className="absolute top-0 right-0 h-full w-1.5 bg-cyan-500 rounded-r-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-black text-white">Order #{order.id}</span>
-                          <span className="text-xs text-gray-400">· {order.customer}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={order.priority === 'CRITICAL' ? 'error' : order.priority === 'HIGH' ? 'warning' : 'info'} className="text-[9px] font-black tracking-widest">
-                            {order.priority}
-                          </Badge>
-                          <Badge variant="success" className="text-[9px] font-black tracking-widest">
-                            AUTO-ASSIGNED
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Menu items</span>
-                          <p className="text-white font-bold mt-0.5 truncate">{order.items}</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Chef Assigned</span>
-                          <p className="text-cyan-400 font-bold mt-0.5 flex items-center gap-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                            {order.chef}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Delivery Partner</span>
-                          <p className="text-white font-bold mt-0.5 flex items-center gap-1">
-                            <Navigation size={10} className="text-cyan-400" />
-                            {order.rider}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Optimized Route</span>
-                          <p className="text-green-400 font-bold mt-0.5 truncate">{order.route}</p>
-                        </div>
-                      </div>
-
-                      {/* Explainable AI block (Requirement 24) */}
-                      <div className="mt-4 pt-3 border-t border-white/5 text-[10px] text-gray-450 leading-relaxed bg-[#070A13]/30 p-2.5 rounded-xl border border-white/5">
-                        <span className="font-bold text-cyan-400">Explainable AI trace:</span> Chef A selected due to 98% burger prep specialization. Rider Kabir auto-routed via Sector 62 as traffic latency on bypass exceeds 12 mins.
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ════ MODULE 2: AI DEMAND HEAT MAP ════ */}
-            {activeTab === 'map' && (
-              <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h3 className="text-lg font-black text-white flex items-center gap-2">
-                      <Layers className="text-cyan-400" size={20} />
-                      Live City Demand Zones
-                    </h3>
-                    <p className="text-gray-400 text-xs mt-0.5">Simulating demand surges and allocating courier partners proactively</p>
-                  </div>
-
-                  {/* Hour Simulation Slider */}
-                  <div className="flex items-center gap-4 bg-white/5 border border-gray-800 px-4 py-2.5 rounded-2xl">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Forecast:</span>
-                    <div className="flex gap-2">
-                      {[1, 2, 4].map(h => (
-                        <button
-                          key={h}
-                          onClick={() => setSimulationHour(h)}
-                          className={`px-3 py-1 rounded-xl text-xs font-black transition-all ${
-                            simulationHour === h 
-                              ? 'bg-cyan-500 text-black' 
-                              : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`}
-                        >
-                          +{h}hr
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Heat Map Grid simulation */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {heatMapZones.map((zone, i) => (
-                    <div key={i} className={`p-5 rounded-2xl border transition-all ${zone.statusColor}`}>
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-black text-sm text-white">{zone.name}</h4>
-                        <span className="text-[9px] font-black tracking-wider uppercase px-2 py-0.5 bg-black/20 rounded-full border border-current">
-                          {zone.demand}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="bg-black/25 rounded-xl p-2.5">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Orders</span>
-                          <p className="text-white font-black mt-0.5">{Math.round(zone.expectedOrders * (simulationHour === 2 ? 1.3 : simulationHour === 4 ? 1.6 : 1))}</p>
-                        </div>
-                        <div className="bg-black/25 rounded-xl p-2.5">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Need Rider</span>
-                          <p className="text-white font-black mt-0.5">{Math.round(zone.ridersAlloc * (simulationHour === 2 ? 1.25 : simulationHour === 4 ? 1.5 : 1))}</p>
-                        </div>
-                        <div className="bg-black/25 rounded-xl p-2.5">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">AOD Rating</span>
-                          <p className="text-white font-black mt-0.5">{zone.rating}★</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Dispatch Suggestion Info banner */}
-                <div className="p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl flex items-center gap-3">
-                  <AlertTriangle className="text-cyan-400" size={20} />
-                  <p className="text-xs text-gray-300 leading-relaxed">
-                    <strong>AI Recommendation:</strong> Relocate <strong>6 delivery riders</strong> from <em>Vasundhara</em> zone to <em>Sector 62</em> zone to handle the rain-induced surge forecast in the next 60 minutes.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* ════ MODULE 3: AI KITCHEN OPTIMIZER ════ */}
-            {activeTab === 'kitchen' && (
-              <div className="bg-[#111827]/90 border border-gray-800 rounded-3xl p-8 shadow-2xl space-y-6">
-                <div>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
-                    <Flame className="text-cyan-400" size={20} />
-                    AI Kitchen Dispatch & Capacity Optimizer
-                  </h3>
-                  <p className="text-gray-400 text-xs mt-0.5">Workload status, bottleneck projection, and queue order re-sorting recommendations</p>
-                </div>
-
-                {/* Chef Workload Bar chart */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                  <div className="bg-black/20 p-6 rounded-2.5xl border border-gray-800">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Chef Active Workloads</h4>
-                    <div className="h-[180px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chefWorkloadData}>
-                          <XAxis dataKey="name" stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                          <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
-                          <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '12px' }} />
-                          <Bar dataKey="Load" radius={[8, 8, 0, 0]}>
-                            {chefWorkloadData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* Active Bottlenecks & Prep Queue Sorting */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400">Kitchen Bottleneck Forecast</h4>
-                    
-                    <div className="p-4 bg-rose-500/5 border border-rose-500/30 text-rose-400 rounded-2xl flex items-start gap-3">
-                      <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                      <div>
-                        <h5 className="text-xs font-bold text-white">Stove station 3 overheat anomaly</h5>
-                        <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
-                          Causing a 12% capacity lag. Reroute pan-fried items to Assembly Station 2 to avoid order backlog.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-cyan-500/5 border border-cyan-500/20 text-cyan-400 rounded-2xl flex items-start gap-3">
-                      <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
-                      <div>
-                        <h5 className="text-xs font-bold text-white">Optimal Cook-Order Re-sequence</h5>
-                        <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
-                          Auto-prioritize Order #3292 paneer pizza prep before #3295 dessert plating to clear double oven slots.
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleForceBalancing} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs uppercase tracking-widest py-3.5 rounded-xl">
-                      Rebalance Workloads Now
+          {/* TAB 1: CUSTOMERS DIRECTORY */}
+          {activeTab === 'customers' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <h3 className="text-base font-black uppercase tracking-wider text-white">Registered Customer Directory</h3>
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleExportData('customers')} variant="outline" className="px-4 py-2 text-xs font-black flex items-center gap-1.5">
+                      <Download size={14} /> Export CSV
                     </Button>
                   </div>
                 </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Customer Details</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Tier</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Spent</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Wallet</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Status</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {customers.map(c => (
+                        <tr key={c.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-cyan-400">{c.id}</td>
+                          <td className="py-4">
+                            <p className="text-white">{c.name}</p>
+                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">{c.email} • {c.phone}</p>
+                          </td>
+                          <td className="py-4">
+                            <span className="text-amber-500">★ {c.tier}</span>
+                          </td>
+                          <td className="py-4 text-white">₹{c.spent}</td>
+                          <td className="py-4 text-emerald-400">₹{c.wallet}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              c.status === 'ACTIVE' || c.status === 'VERIFIED' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                              {c.status}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right space-x-2">
+                            {c.status !== 'VERIFIED' && c.status !== 'SUSPENDED' && (
+                              <button onClick={() => handleVerifyCustomer(c.id)} className="text-green-500 hover:underline">Verify</button>
+                            )}
+                            <button onClick={() => handleAdjustWallet(c.id, 100)} className="text-emerald-400 hover:underline">+₹100</button>
+                            <button 
+                              onClick={() => handleToggleCustomerStatus(c.id, c.status)} 
+                              className={c.status === 'SUSPENDED' ? 'text-green-500 hover:underline' : 'text-red-500 hover:underline'}
+                            >
+                              {c.status === 'SUSPENDED' ? 'Reactivate' : 'Suspend'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            )}
+            </motion.div>
+          )}
 
-          </div>
+          {/* TAB 2: RESTAURANT & BRANCHES */}
+          {activeTab === 'restaurants' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <h3 className="text-base font-black uppercase tracking-wider text-white">Restaurant Network & FSSAI Logs</h3>
+                  <Button onClick={() => handleExportData('restaurants')} variant="outline" className="px-4 py-2 text-xs font-black flex items-center gap-1.5">
+                    <Download size={14} /> Export CSV
+                  </Button>
+                </div>
 
-          {/* Real-time Simulation Telemetry Log (4 Cols) */}
-          <div className="lg:col-span-4 bg-[#111827]/90 border border-gray-800 rounded-3xl p-6 shadow-2xl flex flex-col h-[520px]">
-            <h3 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-              <Cpu className="text-cyan-400" size={16} />
-              AI Automation Telemetry Logs
-            </h3>
-            
-            <div className="flex-1 overflow-y-auto font-mono text-[10px] space-y-3 custom-scrollbar">
-              <AnimatePresence initial={false}>
-                {opsLogs.map(log => (
-                  <motion.div
-                    key={log.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="p-3 bg-black/45 border border-gray-850 rounded-xl space-y-1.5"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-[9px] font-bold">{log.time}</span>
-                      <span className={`text-[8px] font-black uppercase tracking-widest ${
-                        log.type === 'SUCCESS' ? 'text-green-400' :
-                        log.type === 'WARNING' ? 'text-rose-450' :
-                        log.type === 'FRAUD ALERT' ? 'text-rose-400 border border-rose-500/25 px-1 bg-rose-500/5 rounded' :
-                        log.type === 'LOGISTICS' ? 'text-cyan-400' : 'text-gray-400'
-                      }`}>
-                        {log.type}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Restaurant Name</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">GST & FSSAI</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Branches</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Rating</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Status</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {restaurants.map(r => (
+                        <tr key={r.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-cyan-400">{r.id}</td>
+                          <td className="py-4 text-white">
+                            <p>{r.name}</p>
+                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">Owner: {r.owner}</p>
+                          </td>
+                          <td className="py-4">
+                            <p className="text-gray-300">GST: {r.gst}</p>
+                            <p className="text-[10px] text-gray-450 mt-0.5">FSSAI: {r.fssai}</p>
+                          </td>
+                          <td className="py-4 text-white">{r.branches} nodes</td>
+                          <td className="py-4 text-amber-500">★ {r.rating}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              r.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+                              r.status === 'PENDING_VERIFY' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                              'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right space-x-2">
+                            {r.status === 'PENDING_VERIFY' && (
+                              <button onClick={() => handleVerifyFssai(r.id)} className="text-green-500 hover:underline">Verify FSSAI</button>
+                            )}
+                            <button onClick={() => handleToggleRestaurantStatus(r.id, r.status)} className="text-cyan-400 hover:underline">Vacation mode</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 3: RIDERS DIRECTORY */}
+          {activeTab === 'riders' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <h3 className="text-base font-black uppercase tracking-wider text-white">Delivery Partner Verification Console</h3>
+                  <Button onClick={() => handleExportData('riders')} variant="outline" className="px-4 py-2 text-xs font-black flex items-center gap-1.5">
+                    <Download size={14} /> Export CSV
+                  </Button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">Rider Details</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Vehicle</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Accept Rate</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Background Check</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Wallet</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {riders.map(r => (
+                        <tr key={r.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-white">
+                            <p>{r.name}</p>
+                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">ID: {r.id} • {r.status}</p>
+                          </td>
+                          <td className="py-4 text-gray-300">{r.vehicle}</td>
+                          <td className="py-4 text-white">{r.acceptRate}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              r.bgCheck === 'VERIFIED' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            }`}>
+                              {r.bgCheck}
+                            </span>
+                          </td>
+                          <td className="py-4 text-emerald-400">₹{r.wallet}</td>
+                          <td className="py-4 text-right space-x-2">
+                            <button onClick={() => toast.success(`Zone settings updated for ${r.name}`)} className="text-cyan-400 hover:underline">Zones</button>
+                            <button onClick={() => toast.success(`Earnings adjusted`)} className="text-emerald-400 hover:underline">Pay adjustment</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 4: PAYMENTS & REFUNDS */}
+          {activeTab === 'payments' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              
+              {/* Transactions grid */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Gateway Transaction Logs</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">Transaction ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Customer</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Method</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Amount</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Ref</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {payments.map(p => (
+                        <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-cyan-400">{p.id}</td>
+                          <td className="py-4 text-white">{p.customer}</td>
+                          <td className="py-4 text-gray-300">{p.method}</td>
+                          <td className="py-4 text-white">₹{p.amount}</td>
+                          <td className="py-4 text-gray-450">{p.ref}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              p.status === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                              {p.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Refund Management */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Refund Escalation Queue</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">Refund ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Reason</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Amount</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Status</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {refunds.map(rf => (
+                        <tr key={rf.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-cyan-400">{rf.id}</td>
+                          <td className="py-4 text-gray-300">
+                            <p>{rf.reason}</p>
+                            <p className="text-[10px] text-gray-450 mt-0.5">Requested by: {rf.requestedBy}</p>
+                          </td>
+                          <td className="py-4 text-primary">₹{rf.amount}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              rf.status === 'APPROVED' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+                              rf.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                              'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                              {rf.status}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right space-x-2">
+                            {rf.status === 'PENDING' && (
+                              <>
+                                <button onClick={() => handleApproveRefund(rf.id)} className="text-green-500 hover:underline">Approve</button>
+                                <button onClick={() => handleRejectRefund(rf.id)} className="text-red-500 hover:underline">Reject</button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* TAB 5: COUPONS BUILDER */}
+          {activeTab === 'coupons' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Creator Form */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6 lg:col-span-1">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Deploy Coupon Code</h3>
+                <form onSubmit={handleCreateCoupon} className="space-y-4 text-xs font-bold">
+                  <div className="space-y-1">
+                    <label className="text-gray-400">Coupon Code</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. MONSOON30"
+                      value={couponForm.code}
+                      onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
+                      className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-gray-400">Discount type</label>
+                    <select 
+                      value={couponForm.type}
+                      onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value })}
+                      className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                    >
+                      <option value="PERCENTAGE">Percentage Discount (%)</option>
+                      <option value="FLAT">Flat Discount (₹)</option>
+                      <option value="FREE_DELIVERY">Free Delivery</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-gray-400">Discount Value</label>
+                    <input 
+                      type="number"
+                      value={couponForm.discount}
+                      onChange={(e) => setCouponForm({ ...couponForm, discount: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-gray-400">Minimum Order Value</label>
+                    <input 
+                      type="number"
+                      value={couponForm.minOrder}
+                      onChange={(e) => setCouponForm({ ...couponForm, minOrder: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full py-3 rounded-xl font-black uppercase tracking-wider">Deploy Coupon</Button>
+                </form>
+              </div>
+
+              {/* Roster of active coupons */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6 lg:col-span-2">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Active Coupons</h3>
+                <div className="space-y-3 text-xs font-bold">
+                  {couponList.map((c, i) => (
+                    <div key={i} className="p-4 bg-[#070A13] border border-gray-850 rounded-2xl flex items-center justify-between">
+                      <div>
+                        <span className="text-primary font-black text-sm block">{c.code}</span>
+                        <span className="text-[10px] text-gray-400 mt-0.5">Min Order: ₹{c.minOrder} • Cap: ₹{c.maxDiscount}</span>
+                      </div>
+                      <span className="text-green-400 bg-green-500/10 px-2 py-1 rounded-xl text-[10px] font-black uppercase">
+                        {c.type === 'PERCENTAGE' ? `${c.discount}% Off` : c.type === 'FREE_DELIVERY' ? 'Free Shipping' : `₹${c.discount} Off`}
                       </span>
                     </div>
-                    <p className="text-gray-300 leading-relaxed">{log.text}</p>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-            
-            <div className="border-t border-gray-850 pt-4 mt-4 flex items-center justify-between text-xs text-gray-500 font-bold">
-              <span>Auto-Pilot Status</span>
-              <span className="text-green-400 flex items-center gap-1">
-                <span className="h-1.5 w-1.5 bg-green-400 rounded-full animate-ping" />
-                ACTIVE & LEARNING
-              </span>
-            </div>
-          </div>
+                  ))}
+                </div>
+              </div>
 
-        </div>
+            </motion.div>
+          )}
+
+          {/* TAB 6: SUPPORT & REVIEWS */}
+          {activeTab === 'support' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              
+              {/* Ticket Roster */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Platform Support Tickets</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                        <th className="pb-3 font-black uppercase tracking-widest">Ticket ID</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Customer</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Category</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Priority</th>
+                        <th className="pb-3 font-black uppercase tracking-widest">Status</th>
+                        <th className="pb-3 font-black uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                      {tickets.map(tk => (
+                        <tr key={tk.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 text-cyan-400">{tk.id}</td>
+                          <td className="py-4 text-white">{tk.customer}</td>
+                          <td className="py-4 text-gray-300">{tk.category}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                              tk.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            }`}>
+                              {tk.priority}
+                            </span>
+                          </td>
+                          <td className="py-4">
+                            <span className="text-gray-300">{tk.status}</span>
+                          </td>
+                          <td className="py-4 text-right">
+                            {tk.status !== 'CLOSED' && (
+                              <button onClick={() => handleResolveTicket(tk.id)} className="text-green-500 hover:underline">Mark Resolved</button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Review Moderation */}
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-wider text-white">Review Moderation Center</h3>
+                <div className="space-y-4 text-xs font-bold">
+                  {reviews.map(rv => (
+                    <div key={rv.id} className="p-4 bg-[#070A13] border border-gray-850 rounded-2.5xl flex flex-col sm:flex-row justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-black">{rv.customer}</span>
+                          <span className="text-amber-500">★ {rv.rating} stars</span>
+                          <span className="text-[9px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-lg border border-red-500/20">{rv.status}</span>
+                        </div>
+                        <p className="text-gray-300 italic">"{rv.text}"</p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <button onClick={() => handleModerateReview(rv.id, 'APPROVE')} className="text-green-500 hover:underline">Approve</button>
+                        <button onClick={() => handleModerateReview(rv.id, 'DELETE')} className="text-red-500 hover:underline">Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* TAB 7: AUDIT LOGS */}
+          {activeTab === 'audits' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-6">
+              <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-white">Immutable Platform Audit Trail</h3>
+                  <Badge variant="info">ReadOnly Log Feed</Badge>
+                </div>
+                
+                <div className="space-y-3 font-bold text-xs">
+                  {audits.map((l, i) => (
+                    <div key={i} className="p-3 bg-[#070A13] border border-gray-850 rounded-2xl flex items-center justify-between text-gray-300">
+                      <div>
+                        <p className="text-white">Admin action: <span className="text-primary font-black uppercase">{l.action}</span> on target {l.target}</p>
+                        <p className="text-[9px] text-gray-500 mt-0.5">Admin: {l.admin} • IP: {l.ip}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-bold shrink-0">{l.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </div>
+
     </div>
   );
 };

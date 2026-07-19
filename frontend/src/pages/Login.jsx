@@ -112,10 +112,10 @@ const Login = () => {
   const redirectUser = (role) => {
     if (role === 'SUPER_ADMIN' || role === 'PLATFORM_ADMIN' || role === 'SUPPORT_EXECUTIVE' || role === 'MODERATOR') {
       navigate('/admin/iam');
-    } else if (role === 'RESTAURANT_OWNER' || role === 'BRANCH_MANAGER') {
+    } else if (role === 'RESTAURANT_OWNER' || role === 'BRANCH_MANAGER' || role === 'CASHIER') {
       navigate('/restaurant/portal');
-    } else if (role === 'KITCHEN_STAFF' || role === 'CASHIER') {
-      navigate('/admin');
+    } else if (role === 'KITCHEN_STAFF') {
+      navigate('/restaurant/kds');
     } else if (role === 'DELIVERY_PARTNER') {
       navigate('/delivery/dashboard');
     } else {

@@ -87,6 +87,48 @@ export const WebSocketProvider = ({ children }) => {
         }
       });
 
+      // Subscribe to User's personal real-time notifications
+      stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
+        if (message.body) {
+          const notification = JSON.parse(message.body);
+          
+          toast.custom((t) => (
+            <div
+              className={`${
+                t.visible ? 'animate-enter' : 'animate-leave'
+              } max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 dark:ring-white/10 z-[9999]`}
+            >
+              <div className="flex-1 w-0 p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 pt-0.5 text-3xl">
+                    {notification.type === 'ERROR' || notification.type === 'CRITICAL' ? '⚠️' : '🔔'}
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-black text-gray-900 dark:text-white">
+                      {notification.title}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      {notification.body}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex border-l border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-black text-orange-500 hover:text-orange-600 focus:outline-none"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          ), { duration: 6000 });
+
+          // Dispatch a custom event to update badge in Navbar
+          window.dispatchEvent(new CustomEvent('new-notification', { detail: notification }));
+        }
+      });
+
       // If user is ADMIN, subscribe to global admin topic
       if (user.role === 'ADMIN') {
         stompClient.subscribe('/topic/admin/orders', (message) => {

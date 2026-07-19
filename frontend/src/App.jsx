@@ -38,6 +38,7 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 const AdminFinance = lazy(() => import('./pages/AdminFinance'));
 const WalletDashboard = lazy(() => import('./pages/WalletDashboard'));
+const AdminRecommendations = lazy(() => import('./pages/AdminRecommendations'));
 
 const NotFound = lazy(() => import('./pages/NotFound'));
 const About = lazy(() => import('./pages/About'));

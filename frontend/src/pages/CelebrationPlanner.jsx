@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Calendar, Users, DollarSign, Clock, ShoppingCart } from 'lucide-react';
+import { Sparkles, Calendar, Users, DollarSign, Clock, ShoppingCart, RefreshCw } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';

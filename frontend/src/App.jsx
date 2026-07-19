@@ -66,6 +66,7 @@ const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
 const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut as placeholder for now
 const RestaurantPortal = lazy(() => import('./pages/RestaurantPortal'));
+const MultiBranchPortal = lazy(() => import('./pages/MultiBranchPortal'));
 
 const queryClient = new QueryClient();
 

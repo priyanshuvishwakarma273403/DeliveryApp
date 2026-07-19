@@ -455,6 +455,10 @@ const Header = () => {
                             <User size={18} className="text-[#686B78]" /> {t('adminPanel')}
                             <ChevronRight size={14} className="text-[#686B78] ml-auto" />
                           </Link>
+                          <Link to="/admin/notifications" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
+                            <Bell size={18} className="text-[#686B78]" /> Notification Center
+                            <ChevronRight size={14} className="text-[#686B78] ml-auto" />
+                          </Link>
                           <Link to="/admin/blogs" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
                             <ClipboardList size={18} className="text-[#686B78]" /> Manage Blogs
                             <ChevronRight size={14} className="text-[#686B78] ml-auto" />

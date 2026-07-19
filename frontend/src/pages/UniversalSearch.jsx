@@ -58,6 +58,7 @@ const ENTITY_ICONS = {
 
 const UniversalSearch = () => {
   const { user, isAuthenticated } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -85,11 +86,17 @@ const UniversalSearch = () => {
   const [filterBudget, setFilterBudget] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState([]);
 
-  // Fetch initial history and trending
+  // Fetch initial history and trending, plus run initial URL query
   useEffect(() => {
     fetchHistory();
     fetchTrending();
-  }, [isAuthenticated]);
+    
+    const qParam = searchParams.get('q');
+    if (qParam) {
+      setQuery(qParam);
+      handleSearch(qParam);
+    }
+  }, [isAuthenticated, searchParams]);
 
   // Debounced autocomplete suggestions
   useEffect(() => {

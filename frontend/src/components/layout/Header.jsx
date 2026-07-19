@@ -281,14 +281,7 @@ const Header = () => {
 
           {/* Right Actions */}
           <div className="hidden md:flex items-center gap-2 shrink-0 ml-auto">
-            {/* Dark Mode Switch */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-[#1C1C1C] dark:text-gray-300"
-              title={isDark ? t('lightMode') : t('darkMode')}
-            >
-              {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} />}
-            </button>
+
 
             {/* Language Selector Dropdown */}
             <div className="relative" id="lang-dropdown">

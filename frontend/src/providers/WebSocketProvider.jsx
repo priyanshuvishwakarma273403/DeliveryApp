@@ -19,7 +19,14 @@ export const WebSocketProvider = ({ children }) => {
   useEffect(() => {
     if (!token || !user || !user.id) return;
 
-    const socket = new SockJS(WS_URL);
+    let socket;
+    try {
+      const formattedWsUrl = WS_URL.replace(/^ws(s)?:\/\//, 'http$1://');
+      socket = new SockJS(formattedWsUrl);
+    } catch (err) {
+      console.error('Failed to initialize SockJS socket:', err);
+      return;
+    }
     const stompClient = Stomp.over(socket);
     
     // Disable extensive logging

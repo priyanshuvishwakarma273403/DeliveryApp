@@ -1,4 +1,6 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../utils/cn';
 
 const CRAVINGS = [
   { 
@@ -23,7 +25,7 @@ const CRAVINGS = [
     id: 4, 
     name: 'Desserts', 
     video: 'https://assets.mixkit.co/videos/preview/mixkit-top-view-of-a-chocolate-cake-with-fruit-40662-large.mp4',
-    image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?w=400&q=80' 
+    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80' 
   },
   { 
     id: 5, 
@@ -46,10 +48,60 @@ const CRAVINGS = [
 ];
 
 const Stories = () => {
+  const [activeStoryIndex, setActiveStoryIndex] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [videoLoaded, setVideoLoaded] = useState({});
+  const [activeVideoLoaded, setActiveVideoLoaded] = useState(false);
+
   const scrollToCategory = (category) => {
     const element = document.getElementById('category-tabs');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (activeStoryIndex === null) return;
+    
+    setActiveVideoLoaded(false);
+    setProgress(0);
+    
+    const intervalTime = 50;
+    const step = 1;
+    
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          if (activeStoryIndex < CRAVINGS.length - 1) {
+            setActiveStoryIndex((idx) => idx + 1);
+            return 0;
+          } else {
+            setActiveStoryIndex(null);
+            return 0;
+          }
+        }
+        return prev + step;
+      });
+    }, intervalTime);
+    
+    return () => clearInterval(timer);
+  }, [activeStoryIndex]);
+
+  const handlePrevStory = (e) => {
+    e.stopPropagation();
+    if (activeStoryIndex > 0) {
+      setActiveStoryIndex((prev) => prev - 1);
+    } else {
+      setProgress(0);
+    }
+  };
+
+  const handleNextStory = (e) => {
+    e.stopPropagation();
+    if (activeStoryIndex < CRAVINGS.length - 1) {
+      setActiveStoryIndex((prev) => prev + 1);
+    } else {
+      setActiveStoryIndex(null);
     }
   };
 
@@ -69,12 +121,12 @@ const Stories = () => {
         </div>
         
         <div className="flex overflow-x-auto gap-5 md:gap-10 pb-6 scrollbar-hide snap-x snap-mandatory">
-          {CRAVINGS.map((item) => (
+          {CRAVINGS.map((item, index) => (
             <motion.div
               key={item.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToCategory(item.name)}
+              onClick={() => setActiveStoryIndex(index)}
               className="flex flex-col items-center gap-4 cursor-pointer snap-start min-w-[85px]"
             >
               <div className="relative group">
@@ -99,7 +151,11 @@ const Stories = () => {
                     loop
                     muted
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover z-20"
+                    onPlay={() => setVideoLoaded(prev => ({ ...prev, [item.id]: true }))}
+                    className={cn(
+                      "absolute inset-0 w-full h-full object-cover z-20 transition-opacity duration-300",
+                      videoLoaded[item.id] ? "opacity-100" : "opacity-0"
+                    )}
                   />
 
                   {/* Subtle Overlay */}
@@ -122,6 +178,103 @@ const Stories = () => {
           ))}
         </div>
       </div>
+
+      {/* Full Screen Instagram-style Story Player */}
+      <AnimatePresence>
+        {activeStoryIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/98 flex flex-col items-center justify-center select-none"
+          >
+            {/* Instagram-style top progress bars */}
+            <div className="absolute top-4 left-0 right-0 px-4 flex gap-1 z-50 max-w-lg mx-auto">
+              {CRAVINGS.map((item, idx) => (
+                <div key={item.id} className="h-1 flex-1 bg-white/35 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white transition-all duration-75 ease-linear"
+                    style={{
+                      width: 
+                        idx < activeStoryIndex 
+                          ? '100%' 
+                          : idx === activeStoryIndex 
+                            ? `${progress}%` 
+                            : '0%'
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Close Button and Info Header */}
+            <div className="absolute top-8 left-0 right-0 px-4 flex justify-between items-center z-50 max-w-lg mx-auto w-full">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full border border-white/20 overflow-hidden bg-white/10">
+                  <img src={CRAVINGS[activeStoryIndex].image} alt="" className="h-full w-full object-cover" />
+                </div>
+                <div>
+                  <h4 className="text-white font-black text-sm uppercase tracking-wider">{CRAVINGS[activeStoryIndex].name}</h4>
+                  <span className="text-[10px] text-primary font-black uppercase tracking-widest bg-primary/20 border border-primary/30 px-2 py-0.5 rounded-full">Live Craving</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveStoryIndex(null)}
+                className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+              >
+                <span className="text-sm font-bold">✕</span>
+              </button>
+            </div>
+
+            {/* Left/Right Click zones */}
+            <div className="absolute inset-0 z-40 flex max-w-lg mx-auto w-full">
+              <div onClick={handlePrevStory} className="w-[30%] h-full cursor-w-resize" />
+              <div onClick={handleNextStory} className="w-[70%] h-full cursor-e-resize" />
+            </div>
+
+            {/* Main Video & Fallback Image Container */}
+            <div className="w-full max-w-lg aspect-[9/16] relative overflow-hidden bg-black flex items-center justify-center">
+              <img
+                src={CRAVINGS[activeStoryIndex].image}
+                alt={CRAVINGS[activeStoryIndex].name}
+                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none animate-pulse"
+              />
+              
+              <video
+                key={CRAVINGS[activeStoryIndex].video}
+                src={CRAVINGS[activeStoryIndex].video}
+                autoPlay
+                loop
+                muted
+                playsInline
+                onPlay={() => setActiveVideoLoaded(true)}
+                className={cn(
+                  "absolute inset-0 w-full h-full object-cover z-20 select-none pointer-events-none transition-opacity duration-300",
+                  activeVideoLoaded ? "opacity-100" : "opacity-0"
+                )}
+              />
+
+              {/* Dark overlay at bottom for readable actions */}
+              <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-30 pointer-events-none" />
+            </div>
+
+            {/* Bottom Order Action Button */}
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50 px-4 max-w-lg mx-auto w-full">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToCategory(CRAVINGS[activeStoryIndex].name);
+                  setActiveStoryIndex(null);
+                }}
+                className="w-full max-w-xs bg-primary hover:bg-primary-dark text-white font-black text-sm uppercase py-4 rounded-2xl shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                Explore {CRAVINGS[activeStoryIndex].name} Cravings
+                <span className="text-lg">➔</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

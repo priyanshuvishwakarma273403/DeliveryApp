@@ -134,6 +134,7 @@ const Header = () => {
     setIsProfileOpen(false);
     setShowResults(false);
     setIsLangDropdownOpen(false);
+    setIsExploreDropdownOpen(false);
   }, [location.pathname]);
 
   // Autocomplete logic
@@ -173,6 +174,15 @@ const Header = () => {
     if (isLangDropdownOpen) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isLangDropdownOpen]);
+
+  // Close explore dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.closest('#explore-dropdown')) setIsExploreDropdownOpen(false);
+    };
+    if (isExploreDropdownOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isExploreDropdownOpen]);
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';

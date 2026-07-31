@@ -234,9 +234,6 @@ const Header = () => {
             {[
               { label: t('home'), icon: ShoppingBag, path: '/', color: 'text-primary' },
               { label: t('dining'), icon: Utensils, path: '/dining', color: 'text-blue-600' },
-              { label: t('events'), icon: Ticket, path: '/events', color: 'text-purple-600' },
-              { label: t('battleArena'), icon: Swords, path: '/battle', color: 'text-orange-600' },
-              { label: t('partyPlanner'), icon: Calendar, path: '/celebration-planner', color: 'text-rose-600' },
             ].map((nav) => (
               <Link 
                 key={nav.path} 
@@ -250,9 +247,48 @@ const Header = () => {
                 title={nav.label}
               >
                 <nav.icon size={14} className={cn("shrink-0", location.pathname === nav.path ? nav.color : 'text-gray-400')} />
-                <span className="hidden xl:inline">{nav.label}</span>
+                <span>{nav.label}</span>
               </Link>
             ))}
+
+            {/* Explore Dropdown */}
+            <div className="relative" id="explore-dropdown">
+              <button
+                onClick={() => setIsExploreDropdownOpen(!isExploreDropdownOpen)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all duration-300 font-bold text-xs whitespace-nowrap text-gray-400 hover:text-[#1C1C1C] dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/30 cursor-pointer",
+                  ['/events', '/battle', '/celebration-planner'].some(path => location.pathname.startsWith(path)) && "bg-white dark:bg-gray-700 shadow-sm text-[#1C1C1C] dark:text-white font-black"
+                )}
+              >
+                <Globe size={14} className="shrink-0 text-purple-600" />
+                <span>Explore</span>
+                <ChevronDown size={12} className={cn("transition-transform duration-200", isExploreDropdownOpen && "rotate-180")} />
+              </button>
+              {isExploreDropdownOpen && (
+                <div className="absolute left-0 top-full mt-2 w-48 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-850 overflow-hidden z-50 py-1">
+                  {[
+                    { label: t('events'), icon: Ticket, path: '/events', color: 'text-purple-600' },
+                    { label: t('battleArena'), icon: Swords, path: '/battle', color: 'text-orange-600' },
+                    { label: t('partyPlanner'), icon: Calendar, path: '/celebration-planner', color: 'text-rose-600' },
+                  ].map((nav) => (
+                    <Link 
+                      key={nav.path} 
+                      to={nav.path}
+                      onClick={() => setIsExploreDropdownOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 text-xs font-bold transition-colors hover:bg-gray-50 dark:hover:bg-gray-855",
+                        location.pathname === nav.path 
+                          ? "text-primary bg-primary/5 dark:bg-primary/10" 
+                          : "text-text-secondary dark:text-gray-400 hover:text-[#1C1C1C] dark:hover:text-white"
+                      )}
+                    >
+                      <nav.icon size={14} className={cn("shrink-0", location.pathname === nav.path ? nav.color : 'text-gray-400')} />
+                      <span>{nav.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
 

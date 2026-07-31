@@ -32,7 +32,7 @@ const WalletBadge = () => {
           {coins}
         </motion.span>
       </AnimatePresence>
-      <span className="coin-label">Coins</span>
+      <span className="coin-label hidden xl:inline">Coins</span>
     </motion.div>
   );
 };

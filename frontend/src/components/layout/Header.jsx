@@ -236,9 +236,10 @@ const Header = () => {
                     ? "bg-white dark:bg-gray-700 shadow-sm text-[#1C1C1C] dark:text-white" 
                     : "text-gray-400 hover:text-[#1C1C1C] dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/30"
                 )}
+                title={nav.label}
               >
-                <nav.icon size={14} className={location.pathname === nav.path ? nav.color : 'text-gray-400'} />
-                {nav.label}
+                <nav.icon size={14} className={cn("shrink-0", location.pathname === nav.path ? nav.color : 'text-gray-400')} />
+                <span className="hidden xl:inline">{nav.label}</span>
               </Link>
             ))}
           </div>
@@ -325,7 +326,7 @@ const Header = () => {
                 title={t('language')}
               >
                 <Globe size={20} />
-                <span className="text-xs font-bold uppercase">{language}</span>
+                <span className="text-xs font-bold uppercase hidden xl:inline">{language}</span>
               </button>
               {isLangDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-850 overflow-hidden z-50 py-1">
@@ -382,7 +383,7 @@ const Header = () => {
                   </span>
                 )}
               </div>
-              <span className="text-sm font-bold text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors">{t('cart')}</span>
+              <span className="text-sm font-bold text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors hidden xl:inline">{t('cart')}</span>
             </button>
 
             {/* Auth */}
@@ -392,10 +393,10 @@ const Header = () => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center gap-2.5 pl-2 pr-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                 >
-                  <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white font-black text-sm shadow-sm">
+                  <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white font-black text-sm shadow-sm shrink-0">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  <div className="text-left hidden lg:block">
+                  <div className="text-left hidden xl:block">
                     <p className="text-sm font-bold text-[#1C1C1C] dark:text-white leading-tight">{user?.name?.split(' ')[0]}</p>
                     <p className="text-[10px] text-[#686B78] dark:text-gray-400 leading-tight capitalize">{user?.role?.toLowerCase()}</p>
                   </div>

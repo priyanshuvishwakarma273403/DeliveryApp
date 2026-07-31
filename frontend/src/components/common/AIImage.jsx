@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
-import { getUniqueFoodImage, getFallbackUnsplashImage } from '../../utils/imageProvider';
-
-// Global cache to track resolved image statuses and prevent layout reflows/flickering
-// Maps src -> { status: 'LOADED' | 'FAILED', resolvedSrc: string }
-const imageCache = new Map();
+import { getUniqueFoodImage } from '../../utils/imageProvider';
 
 const AIImage = ({ 
   src, 
@@ -23,68 +19,45 @@ const AIImage = ({
     src.includes('default');
 
   // Generate target unique URL if placeholder
-  const targetSrc = isPlaceholder 
+  const initialSrc = isPlaceholder 
     ? getUniqueFoodImage(dishName, restaurantName) 
     : src;
 
-  // Check if we already resolved/cached this URL
-  const cached = imageCache.get(targetSrc);
-  const initialResolvedSrc = cached ? cached.resolvedSrc : null;
-  const initialLoading = !cached;
+  const [currentSrc, setCurrentSrc] = useState(initialSrc);
+  const [loading, setLoading] = useState(true);
+  const [errorCount, setErrorCount] = useState(0);
 
-  const [resolvedSrc, setResolvedSrc] = useState(initialResolvedSrc || targetSrc);
-  const [loading, setLoading] = useState(initialLoading);
-
+  // When src/dishName/restaurantName changes, reset the state
   useEffect(() => {
-    // If already cached, we don't need to do any background loading
-    if (imageCache.has(targetSrc)) {
-      const cachedData = imageCache.get(targetSrc);
-      setResolvedSrc(cachedData.resolvedSrc);
-      setLoading(false);
+    setCurrentSrc(initialSrc);
+    setLoading(true);
+    setErrorCount(0);
+  }, [src, dishName, restaurantName, initialSrc]);
+
+  const handleLoad = () => {
+    setLoading(false);
+  };
+
+  const handleError = () => {
+    if (errorCount === 0) {
+      // Try a secondary high-quality fallback from our category pool
+      setErrorCount(1);
+      const fallbackUrl = getUniqueFoodImage(dishName, restaurantName);
+      if (fallbackUrl !== currentSrc) {
+        setCurrentSrc(fallbackUrl);
+        return;
+      }
+    }
+    
+    // Absolute fallback to a generic Unsplash image
+    if (errorCount === 1) {
+      setErrorCount(2);
+      setCurrentSrc('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80');
       return;
     }
 
-    setLoading(true);
-    let active = true;
-
-    const img = new Image();
-    img.src = targetSrc;
-    img.onload = () => {
-      if (!active) return;
-      imageCache.set(targetSrc, { status: 'LOADED', resolvedSrc: targetSrc });
-      setResolvedSrc(targetSrc);
-      setLoading(false);
-    };
-
-    img.onerror = () => {
-      if (!active) return;
-      console.warn(`Primary image load failed: ${targetSrc}. Cascading to verified Unsplash fallback.`);
-      
-      // Fallback to verified category-specific Unsplash image
-      const fallbackUrl = getFallbackUnsplashImage(dishName, restaurantName);
-      
-      const fallbackImg = new Image();
-      fallbackImg.src = fallbackUrl;
-      fallbackImg.onload = () => {
-        if (!active) return;
-        imageCache.set(targetSrc, { status: 'FAILED', resolvedSrc: fallbackUrl });
-        setResolvedSrc(fallbackUrl);
-        setLoading(false);
-      };
-      fallbackImg.onerror = () => {
-        if (!active) return;
-        // Absolute fallback to a generic Unsplash image
-        const absoluteFallback = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600';
-        imageCache.set(targetSrc, { status: 'FAILED', resolvedSrc: absoluteFallback });
-        setResolvedSrc(absoluteFallback);
-        setLoading(false);
-      };
-    };
-
-    return () => {
-      active = false;
-    };
-  }, [targetSrc, dishName, restaurantName]);
+    setLoading(false);
+  };
 
   return (
     <div className={`relative overflow-hidden group w-full h-full ${className}`}>
@@ -95,11 +68,11 @@ const AIImage = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse flex items-center justify-center z-10"
+            className="absolute inset-0 bg-gradient-to-r from-gray-150 via-gray-200 to-gray-150 animate-pulse flex items-center justify-center z-10"
           >
-            <div className="flex flex-col items-center gap-1.5 opacity-65">
+            <div className="flex flex-col items-center gap-1.5 opacity-60">
               <Sparkles className="text-primary animate-pulse" size={16} />
-              <span className="text-[8px] font-black uppercase tracking-widest text-text-secondary">FoodIQ Vision...</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-[#686B78]">FoodIQ Vision...</span>
             </div>
           </motion.div>
         )}
@@ -107,8 +80,10 @@ const AIImage = ({
 
       {/* ── MAIN IMAGE RENDER ── */}
       <img 
-        src={resolvedSrc} 
+        src={currentSrc} 
         alt={alt}
+        onLoad={handleLoad}
+        onError={handleError}
         className={`w-full h-full object-cover transition-opacity duration-300 ${
           loading ? 'opacity-0' : 'opacity-100'
         }`}
@@ -130,4 +105,3 @@ const AIImage = ({
 };
 
 export default AIImage;
-export { imageCache };

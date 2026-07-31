@@ -187,36 +187,7 @@ export const getFallbackUnsplashImage = (dishName = '', restaurantName = '', ite
  * If LoremFlickr fails, the AIImage component automatically cascades to getFallbackUnsplashImage.
  */
 export const getUniqueFoodImage = (dishName = '', restaurantName = '', itemPrice = 0, itemId = '') => {
-  const category = getFoodCategory(dishName);
-  
-  // Hash calculation
-  const seedString = `${dishName.trim()}-${restaurantName.trim()}-${itemPrice}-${itemId}`;
-  const hash = getHashCode(seedString);
-  
-  // Custom tag mappings to ensure high relevance and visual premiumness on LoremFlickr
-  const flickrTags = {
-    pizza: 'pizza,food',
-    burger: 'burger,fastfood',
-    biryani: 'biryani,rice',
-    curry: 'curry,indianfood',
-    dosa: 'dosa,southindianfood',
-    noodles: 'noodles,pasta,ramen',
-    sushi: 'sushi,japanese',
-    desserts: 'dessert,sweet,cake',
-    salad: 'salad,healthyfood',
-    wrap: 'wrap,roll,sandwich',
-    fries: 'fries,chips',
-    drinks: 'beverage,drink,coffee',
-    generic: 'food,dish'
-  };
-  
-  const tag = flickrTags[category] || flickrTags.generic;
-  
-  // lockValue creates a stable unique ID (1 to 10000) so that LoremFlickr returns a distinct image for this item
-  const lockValue = (hash % 10000) + 1;
-  
-  // We return a high quality loremflickr url with category constraints
-  return `https://loremflickr.com/600/450/${tag}?lock=${lockValue}`;
+  return getFallbackUnsplashImage(dishName, restaurantName, itemPrice, itemId);
 };
 
 // Clear registry for dynamic testing / reloading

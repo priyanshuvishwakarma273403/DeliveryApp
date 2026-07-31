@@ -28,8 +28,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      const token = useAuthStore.getState().token;
+      const isMock = token && (token.startsWith('mock-') || token.startsWith('otp-'));
+      if (!isMock) {
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

@@ -373,7 +373,7 @@ const Header = () => {
                 title={t('language')}
               >
                 <Globe size={20} />
-                <span className="text-xs font-bold uppercase hidden xl:inline">{language}</span>
+                <span className="text-xs font-bold uppercase">{language}</span>
               </button>
               {isLangDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-850 overflow-hidden z-50 py-1">
@@ -430,7 +430,7 @@ const Header = () => {
                   </span>
                 )}
               </div>
-              <span className="text-sm font-bold text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors hidden xl:inline">{t('cart')}</span>
+              <span className="text-sm font-bold text-[#1C1C1C] dark:text-gray-300 group-hover:text-primary transition-colors">{t('cart')}</span>
             </button>
 
             {/* Auth */}
@@ -443,7 +443,7 @@ const Header = () => {
                   <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center text-white font-black text-sm shadow-sm shrink-0">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
-                  <div className="text-left hidden xl:block">
+                  <div className="text-left hidden lg:block">
                     <p className="text-sm font-bold text-[#1C1C1C] dark:text-white leading-tight">{user?.name?.split(' ')[0]}</p>
                     <p className="text-[10px] text-[#686B78] dark:text-gray-400 leading-tight capitalize">{user?.role?.toLowerCase()}</p>
                   </div>

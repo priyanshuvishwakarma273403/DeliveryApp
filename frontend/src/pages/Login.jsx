@@ -143,38 +143,30 @@ const Login = () => {
     try {
       // 1. Enterprise Mock Fallback check
       const mockUser = users.find(u => u.email.toLowerCase() === loweredEmail);
-      if (mockUser) {
+      if (mockUser && data.password === 'FoodIQ@Secure2026') {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Mock password check
-        if (data.password === 'FoodIQ@Secure2026') {
-          // Check trusted device simulation
-          const devInfo = getDeviceInfo();
-          const isNewDevice = Math.random() > 0.7; // Simulate trusted check
-          
-          if (isNewDevice) {
-            addSecurityLog({
-              email: mockUser.email,
-              action: 'SUSPICIOUS_LOGIN_DETECTED',
-              status: 'WARNING',
-              details: `Login detected from a new device: ${devInfo.browser} on ${devInfo.os}`
-            });
-            toast.success('New device recognized. Login security alert sent to email.');
-          }
-
-          login(mockUser, 'mock-jwt-token-' + Date.now());
-          toast.success(`Welcome back, ${mockUser.name}! (${mockUser.role})`);
-          
-          setFailedCount(0);
-          setCaptchaPassed(false);
-          redirectUser(mockUser.role);
-          return;
-        } else {
-          // Increment failed logins
-          incrementFailedLogins(data.email);
-          setFailedCount(prev => prev + 1);
-          throw new Error('Invalid email or password');
+        // Check trusted device simulation
+        const devInfo = getDeviceInfo();
+        const isNewDevice = Math.random() > 0.7; // Simulate trusted check
+        
+        if (isNewDevice) {
+          addSecurityLog({
+            email: mockUser.email,
+            action: 'SUSPICIOUS_LOGIN_DETECTED',
+            status: 'WARNING',
+            details: `Login detected from a new device: ${devInfo.browser} on ${devInfo.os}`
+          });
+          toast.success('New device recognized. Login security alert sent to email.');
         }
+
+        login(mockUser, 'mock-jwt-token-' + Date.now());
+        toast.success(`Welcome back, ${mockUser.name}! (${mockUser.role})`);
+        
+        setFailedCount(0);
+        setCaptchaPassed(false);
+        redirectUser(mockUser.role);
+        return;
       }
 
       // 2. Real API Connection

@@ -51,6 +51,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isExploreDropdownOpen, setIsExploreDropdownOpen] = useState(false);
   
   const { user, logout, isAuthenticated } = useAuthStore();
   const { items, toggleDrawer } = useCartStore();

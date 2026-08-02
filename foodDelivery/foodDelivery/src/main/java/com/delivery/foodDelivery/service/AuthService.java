@@ -84,6 +84,11 @@ public class AuthService {
         
         log.info("New user registered: {} [{}]", user.getEmail(), user.getRole());
 
+        // Send Welcome Email
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+        }
+
         // Auto-login after registration
         UserDetails userDetails = toSpringUser(user);
         String accessToken  = jwtUtils.generateAccessToken(userDetails);
@@ -115,6 +120,11 @@ public class AuthService {
             kafkaService.sendMessage("user-analytics", 
                 String.format("{\"userId\": %d, \"action\": \"LOGIN\", \"timestamp\": %d}", 
                 user.getId(), System.currentTimeMillis()));
+
+            // Send Login Alert Email
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), "Local Host (127.0.0.1)", "Web Browser / Device");
+            }
 
             String accessToken  = jwtUtils.generateAccessToken(userDetails);
         String refreshToken = jwtUtils.generateRefreshToken(userDetails);
@@ -171,6 +181,11 @@ public class AuthService {
             UserDetails userDetails = toSpringUser(user);
             String accessToken  = jwtUtils.generateAccessToken(userDetails);
             String refreshToken = jwtUtils.generateRefreshToken(userDetails);
+
+            // Send Login Alert Email for Google Login
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), "Google OAuth 2.0 Integration", "Google Authenticated Client");
+            }
 
             return buildAuthResponse(accessToken, refreshToken, user);
 

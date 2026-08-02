@@ -283,4 +283,234 @@ public class EmailService {
         sb.append("</div>");
         return sb.toString();
     }
+
+    @Async("emailExecutor")
+    public void sendLoginAlertEmail(String toEmail, String userName, String ipAddress, String userAgent) {
+        try {
+            log.info("Sending login alert email to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }" +
+                    "  .header { background: linear-gradient(135deg, #111827 0%, #1F2937 100%); color: white; padding: 25px 20px; text-align: center; }" +
+                    "  .header h2 { margin: 0; font-size: 22px; }" +
+                    "  .content { padding: 30px; line-height: 1.8; color: #374151; background: #ffffff; }" +
+                    "  .details { background-color: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #111827; font-size: 14px; }" +
+                    "  .footer { background-color: #F9FAFB; padding: 15px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'><h2>Security Alert: New Login Detected</h2></div>" +
+                    "    <div class='content'>" +
+                    "      <p>Hello <strong>" + userName + "</strong>,</p>" +
+                    "      <p>We noticed a new login to your FoodIQ account. Here are the details:</p>" +
+                    "      <div class='details'>" +
+                    "        <strong>Email:</strong> " + toEmail + "<br/>" +
+                    "        <strong>Time:</strong> " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "<br/>" +
+                    "        <strong>IP Address:</strong> " + (ipAddress != null ? ipAddress : "Unknown IP") + "<br/>" +
+                    "        <strong>Device/Client:</strong> " + (userAgent != null ? userAgent : "Unknown Device") + "<br/>" +
+                    "      </div>" +
+                    "      <p>If this was you, no action is needed. If you did not log in, please reset your password immediately to protect your account.</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("🔒 Security Alert: New login to FoodIQ");
+            helper.setText(content, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send login alert email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendWelcomeEmail(String toEmail, String userName) {
+        try {
+            log.info("Sending welcome email to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: linear-gradient(135deg, #FF5500 0%, #FF9933 100%); color: white; padding: 35px 20px; text-align: center; }" +
+                    "  .header h1 { margin: 0; font-size: 28px; font-weight: 800; }" +
+                    "  .content { padding: 30px; line-height: 1.8; color: #374151; background: #ffffff; }" +
+                    "  .welcome-badge { font-size: 50px; text-align: center; margin-bottom: 20px; }" +
+                    "  .btn { display: inline-block; padding: 12px 24px; background-color: #FF5500; color: white !important; text-decoration: none; border-radius: 50px; font-weight: bold; margin: 20px 0; }" +
+                    "  .footer { background-color: #F9FAFB; padding: 15px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'><h1>Welcome to FoodIQ! 🍔</h1></div>" +
+                    "    <div class='content'>" +
+                    "      <div class='welcome-badge'>🎉✨🎉</div>" +
+                    "      <p>Hello <strong>" + userName + "</strong>,</p>" +
+                    "      <p>We are absolutely thrilled to welcome you to the FoodIQ family! You have successfully registered your account.</p>" +
+                    "      <p>Get ready to explore top-rated restaurants, enjoy lightning-fast deliveries, and earn FoodIQ loyalty coins on every single order!</p>" +
+                    "      <p style='text-align:center;'><a href='http://localhost:5173' class='btn'>Explore FoodIQ</a></p>" +
+                    "      <p>Happy eating!<br/>The FoodIQ Team 🧠</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("👋 Welcome to FoodIQ - Let's get eating!");
+            helper.setText(content, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendGenericNotificationEmail(String toEmail, String userName, String subject, String body) {
+        try {
+            log.info("Sending generic notification email to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: linear-gradient(135deg, #FF5500 0%, #FF2200 100%); color: white; padding: 25px 20px; text-align: center; }" +
+                    "  .header h2 { margin: 0; font-size: 22px; }" +
+                    "  .content { padding: 30px; line-height: 1.8; color: #374151; background: #ffffff; }" +
+                    "  .footer { background-color: #F9FAFB; padding: 15px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'><h2>" + subject + "</h2></div>" +
+                    "    <div class='content'>" +
+                    "      <p>Hello <strong>" + userName + "</strong>,</p>" +
+                    "      <p>" + body + "</p>" +
+                    "      <p>Warm regards,<br/>The FoodIQ Team 🧠</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("🔔 FoodIQ Update: " + subject);
+            helper.setText(content, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send generic notification email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendDailyReminderEmail(String toEmail, String userName) {
+        try {
+            log.info("Sending daily reminder email to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }" +
+                    "  .header { background: linear-gradient(135deg, #FF5500 0%, #FF9933 100%); color: white; padding: 30px 20px; text-align: center; }" +
+                    "  .header h2 { margin: 0; font-size: 24px; }" +
+                    "  .content { padding: 30px; line-height: 1.8; color: #374151; background: #ffffff; }" +
+                    "  .menu-highlight { background: #FFF3E0; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #FF5500; text-align: center; font-weight: bold; color: #D32F2F; }" +
+                    "  .btn { display: inline-block; padding: 12px 24px; background-color: #FF5500; color: white !important; text-decoration: none; border-radius: 50px; font-weight: bold; margin: 15px 0; }" +
+                    "  .footer { background-color: #F9FAFB; padding: 15px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'><h2>Hungry? We've Got You Covered! 🍕</h2></div>" +
+                    "    <div class='content'>" +
+                    "      <p>Hello <strong>" + userName + "</strong>,</p>" +
+                    "      <p>It's that time of the day! Don't let your stomach wait. Delicious meals from your favorite local kitchens are just a few taps away.</p>" +
+                    "      <div class='menu-highlight'>" +
+                    "        ✨ Special: Earn Double FoodIQ Coins on all orders placed within the next 2 hours! ✨" +
+                    "      </div>" +
+                    "      <p style='text-align:center;'><a href='http://localhost:5173' class='btn'>Order Now</a></p>" +
+                    "      <p>Enjoy your meal!<br/>The FoodIQ Team</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("🍽️ Hungry? Your favorite meal is waiting for you!");
+            helper.setText(content, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send daily reminder email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendAdminOrderNotification(String adminEmail, String adminName, Long orderId, String customerName, double amount) {
+        try {
+            log.info("Sending admin order notification to: {}", adminEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: linear-gradient(135deg, #111827 0%, #374151 100%); color: white; padding: 25px 20px; text-align: center; }" +
+                    "  .header h2 { margin: 0; font-size: 22px; }" +
+                    "  .content { padding: 30px; line-height: 1.8; color: #374151; background: #ffffff; }" +
+                    "  .details { background-color: #F9FAFB; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #E5E7EB; }" +
+                    "  .footer { background-color: #F9FAFB; padding: 15px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'><h2>New Order Placed 🛍️</h2></div>" +
+                    "    <div class='content'>" +
+                    "      <p>Hello " + adminName + ",</p>" +
+                    "      <p>A new order has been successfully placed on the FoodIQ platform.</p>" +
+                    "      <div class='details'>" +
+                    "        <strong>Order ID:</strong> #" + orderId + "<br/>" +
+                    "        <strong>Customer Name:</strong> " + customerName + "<br/>" +
+                    "        <strong>Total Amount:</strong> ₹" + amount + "<br/>" +
+                    "        <strong>Time:</strong> " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "<br/>" +
+                    "      </div>" +
+                    "      <p>Please check the admin control center to review details and track updates.</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>&copy; 2026 FoodIQ Management Console.</div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(adminEmail);
+            helper.setSubject("🔔 Admin Alert: New Order #" + orderId + " Placed");
+            helper.setText(content, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send admin order notification to {}: {}", adminEmail, e.getMessage());
+        }
+    }
 }

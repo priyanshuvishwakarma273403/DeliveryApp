@@ -146,6 +146,24 @@ public class OrderService {
             emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), saved.getId(), "PLACED");
         }
 
+        // Send Email to Admin(s)
+        try {
+            List<User> admins = userRepository.findByRole(Role.ADMIN);
+            for (User admin : admins) {
+                if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
+                    emailService.sendAdminOrderNotification(
+                        admin.getEmail(), 
+                        admin.getName(), 
+                        saved.getId(), 
+                        customer.getName(), 
+                        total
+                    );
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error sending admin order notifications: {}", e.getMessage());
+        }
+
         return response;
     }
 

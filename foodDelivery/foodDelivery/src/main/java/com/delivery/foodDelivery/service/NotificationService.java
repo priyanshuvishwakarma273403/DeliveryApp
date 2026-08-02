@@ -223,8 +223,10 @@ public class NotificationService {
                             emailService.sendOrderUpdateEmail(user.getEmail(), user.getName(), 
                                 Long.parseLong(message.getVariables().getOrDefault("orderId", "0")), 
                                 message.getVariables().getOrDefault("status", "PLACED"));
-                        } else {
+                        } else if ("OTP_RECEIVED".equals(message.getEvent())) {
                             emailService.sendVerificationEmail(user.getEmail(), message.getVariables().getOrDefault("otp", "123456"));
+                        } else {
+                            emailService.sendGenericNotificationEmail(user.getEmail(), user.getName(), message.getTitle(), message.getBody());
                         }
                     } else {
                         log.warn("Skipping email delivery. No email found for userId: {}", message.getUserId());

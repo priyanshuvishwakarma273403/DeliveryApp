@@ -152,10 +152,10 @@ function App() {
                   <Route path="/battle" element={<RestaurantBattle />} />
                   <Route path="/celebration-planner" element={<CelebrationPlanner />} />
                   <Route path="/checkout" element={<ProtectedRoute roles={['CUSTOMER']}><Checkout /></ProtectedRoute>} />
-                  <Route path="/orders" element={<ProtectedRoute roles={['CUSTOMER']}><Orders /></ProtectedRoute>} />
-                  <Route path="/orders/:id" element={<ProtectedRoute roles={['CUSTOMER']}><OrderDetail /></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute roles={['CUSTOMER']}><Profile /></ProtectedRoute>} />
-                  <Route path="/wallet" element={<ProtectedRoute roles={['CUSTOMER']}><WalletDashboard /></ProtectedRoute>} />
+                  <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                  <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/wallet" element={<ProtectedRoute><WalletDashboard /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/restaurants" element={<ProtectedRoute roles={['ADMIN']}><AdminRestaurants /></ProtectedRoute>} />
                   <Route path="/admin/restaurants/:id/twin" element={<ProtectedRoute roles={['ADMIN']}><AdminDigitalTwin /></ProtectedRoute>} />

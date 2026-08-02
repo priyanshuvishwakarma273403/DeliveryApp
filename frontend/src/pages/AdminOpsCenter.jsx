@@ -7,7 +7,7 @@ import {
   Layers, Settings, Play, Pause, ChevronRight, BarChart2, ShieldAlert,
   Activity, Bike, DollarSign, Search, Filter, Trash2, XOctagon, 
   UserCheck, Ban, ShieldCheck, CreditCard, Gift, Star, Phone, MessageSquare,
-  AlertCircle, Download, FileText, Send, Lock
+  AlertCircle, Download, FileText, Send, Lock, Building
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';

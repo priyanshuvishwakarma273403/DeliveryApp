@@ -31,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Seed Admin User
-        if (userRepository.findByEmail("admin@foodiq.com").isEmpty()) {
+        if (!userRepository.existsByEmail("admin@foodiq.com") && !userRepository.existsByPhone("9988776655")) {
             User admin = User.builder()
                     .name("FoodIQ Admin")
                     .email("admin@foodiq.com")

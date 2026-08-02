@@ -110,7 +110,9 @@ const Login = () => {
   }, [emailValue, lockedAccounts]);
 
   const redirectUser = (role) => {
-    if (role === 'SUPER_ADMIN' || role === 'PLATFORM_ADMIN' || role === 'SUPPORT_EXECUTIVE' || role === 'MODERATOR') {
+    if (role === 'ADMIN') {
+      navigate('/admin');
+    } else if (role === 'SUPER_ADMIN' || role === 'PLATFORM_ADMIN' || role === 'SUPPORT_EXECUTIVE' || role === 'MODERATOR') {
       navigate('/admin/iam');
     } else if (role === 'RESTAURANT_OWNER' || role === 'BRANCH_MANAGER' || role === 'CASHIER') {
       navigate('/restaurant/portal');
@@ -160,7 +162,19 @@ const Login = () => {
           toast.success('New device recognized. Login security alert sent to email.');
         }
 
-        login(mockUser, 'mock-jwt-token-' + Date.now());
+        let token = 'mock-jwt-token-' + Date.now();
+        if (loweredEmail === 'admin@foodiq.com') {
+          try {
+            const apiRes = await authService.login('admin@foodiq.com', 'admin123');
+            if (apiRes.success && apiRes.data?.accessToken) {
+              token = apiRes.data.accessToken;
+            }
+          } catch (e) {
+            console.warn('Real API login failed for mock admin fallback, using mock token', e);
+          }
+        }
+
+        login(mockUser, token);
         toast.success(`Welcome back, ${mockUser.name}! (${mockUser.role})`);
         
         setFailedCount(0);

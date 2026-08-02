@@ -5,7 +5,8 @@ import {
   Search, LayoutDashboard, Home as HomeIcon, Bell, Cpu, Activity, Leaf, 
   Sliders, Eye, Globe, FlaskConical, Network, Image as ImageIcon, Compass, 
   CloudRain, Building, ShieldCheck, Server, AlertTriangle, ShieldAlert, 
-  Terminal, Wifi, Database, Radio, RefreshCw, Layers, CheckCircle2, XCircle
+  Terminal, Wifi, Database, Radio, RefreshCw, Layers, CheckCircle2, XCircle,
+  Clock
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,

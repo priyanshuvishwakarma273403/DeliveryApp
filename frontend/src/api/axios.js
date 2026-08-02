@@ -30,7 +30,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const token = useAuthStore.getState().token;
       const isMock = token && (token.startsWith('mock-') || token.startsWith('otp-'));
-      if (!isMock) {
+      if (token && !isMock) {
         useAuthStore.getState().logout();
         window.location.href = '/login';
       }

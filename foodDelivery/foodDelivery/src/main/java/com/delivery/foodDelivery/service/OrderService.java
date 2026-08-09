@@ -48,130 +48,158 @@ public class OrderService {
 
     @Transactional
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {
-
-        // 1. Load and validate cart
-        Cart cart = cartService.getOrCreateCart(customerId);
-        if (cart.getItems().isEmpty()) {
-            throw new BusinessException("Cannot place order: cart is empty.");
-        }
-
-        // Assuming all items are from the same restaurant. 
-        // We get the restaurant ID from the first item.
-        String firstMenuItemId = cart.getItems().get(0).getMenuItemId();
-        MenuItem firstMenuItem = menuItemService.findById(firstMenuItemId);
-        String restaurantId = firstMenuItem.getRestaurantId();
-        
-        Restaurant restaurant = restaurantService.findById(restaurantId);
-        if (!restaurant.isOpen()) {
-            throw new BusinessException("Restaurant is currently closed.");
-        }
-
-        double total = cart.getTotalAmount();
-        double coinsToUse = 0.0;
-        
-        // Handle FoodIQ Coins redemption
-        if (request.isUseCoins()) {
-            Wallet wallet = walletService.getWalletByUserId(customerId);
-            coinsToUse = Math.min(wallet.getBalance(), total); 
-            walletService.spendCoins(customerId, coinsToUse);
-            total -= coinsToUse;
-            log.info("Used {} FoodIQ Coins for user {}. New total: {}", coinsToUse, customerId, total);
-        }
-
-        if (total < restaurant.getMinOrderAmount()) {
-            throw new BusinessException("Minimum order amount is ₹" + restaurant.getMinOrderAmount());
-        }
-
-        // 2. Process payment
-        PaymentResponse payment = paymentService.processPayment(
-                null, total, request.getPaymentMethod(), request.getPaymentToken());
-
-        if (PaymentStatus.FAILED.name().equals(payment.getStatus())) {
-            throw new BusinessException("Payment failed: " + payment.getMessage());
-        }
-
-        // 3. Build Order entity
-        User customer = userRepository.findById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", customerId));
-
-        Order order = Order.builder()
-                .customer(customer)
-                .restaurantId(restaurantId)
-                .deliveryAddress(request.getDeliveryAddress())
-                .totalAmount(total)
-                .paymentStatus(PaymentStatus.valueOf(payment.getStatus()))
-                .paymentMethod(request.getPaymentMethod())
-                .paymentId(payment.getPaymentId())
-                .specialInstructions(request.getSpecialInstructions())
-                .status(OrderStatus.PLACED)
-                .coinsUsed(coinsToUse)
-                .finalAmount(total)
-                .build();
-
-        // 4. Convert cart items → order items 
-        List<OrderItem> orderItems = cart.getItems().stream()
-                .map(ci -> OrderItem.builder()
-                        .order(order)
-                        .menuItemId(ci.getMenuItemId())
-                        .quantity(ci.getQuantity())
-                        .priceAtOrderTime(ci.getPrice())
-                        .build())
-                .collect(Collectors.toList());
-        order.setOrderItems(orderItems);
-
-        Order saved = orderRepository.save(order);
-
-        // 5. Clear cart
-        cartService.clearCart(customerId);
-
-        // 6. Reward Loyalty Coins (1% cashback)
-        double rewardCoins = Math.floor(total * 0.01); 
-        if (rewardCoins > 0) {
-            walletService.addCoins(customerId, rewardCoins);
-        }
-
-        log.info("Order placed: id={} customer={} amount={} (Rewards: {})", saved.getId(), customerId, total, rewardCoins);
-        
-        kafkaService.sendMessage("order-events", 
-            String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": \"%s\", \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
-            saved.getId(), customerId, restaurantId, total, System.currentTimeMillis()));
-
-        OrderResponse response = toResponse(saved, restaurant.getName());
-
-        // Notify user via WebSocket
-        String userDestination = "/topic/order/" + customerId;
-        messagingTemplate.convertAndSend(userDestination, response);
-        log.info("WebSocket order placed notification sent to user {}", userDestination);
-
-        // Notify admin via WebSocket
-        String adminDestination = "/topic/admin/orders";
-        messagingTemplate.convertAndSend(adminDestination, response);
-        log.info("WebSocket order placed notification sent to admin {}", adminDestination);
-
-        // Send Email to User
-        if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
-            emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), saved.getId(), "PLACED");
-        }
-
-        // Send Email to Admin(s)
+        cartMetrics.incrementCheckoutStarted();
         try {
-            List<User> admins = userRepository.findByRole(Role.ADMIN);
-            for (User admin : admins) {
-                if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
-                    emailService.sendAdminOrderNotification(
-                        admin.getEmail(), 
-                        admin.getName(), 
-                        saved.getId(), 
-                        customer.getName(), 
-                        total
-                    );
+            // 1. Load and validate cart
+            Cart cart = cartService.getOrCreateCart(customerId);
+            if (cart.getItems().isEmpty()) {
+                throw new BusinessException("Cannot place order: cart is empty.");
+            }
+
+            // Assuming all items are from the same restaurant. 
+            // We get the restaurant ID from the first item.
+            String firstMenuItemId = cart.getItems().get(0).getMenuItemId();
+            MenuItem firstMenuItem = menuItemService.findById(firstMenuItemId);
+            String restaurantId = firstMenuItem.getRestaurantId();
+            
+            Restaurant restaurant = restaurantService.findById(restaurantId);
+            if (!restaurant.isOpen()) {
+                throw new BusinessException("Restaurant is currently closed.");
+            }
+
+            // Simulated Inventory/Stock Reservation check
+            for (CartItem ci : cart.getItems()) {
+                MenuItem mi = menuItemService.findById(ci.getMenuItemId());
+                if (!mi.isAvailable()) {
+                    inventoryMetrics.incrementOutOfStock();
+                    inventoryMetrics.incrementReservationFailed();
+                    throw new BusinessException("Menu item is currently unavailable: " + mi.getName());
                 }
             }
-        } catch (Exception e) {
-            log.error("Error sending admin order notifications: {}", e.getMessage());
-        }
+            inventoryMetrics.incrementReservationSuccess();
 
-        return response;
+            double total = cart.getTotalAmount();
+            double coinsToUse = 0.0;
+            
+            // Handle FoodIQ Coins redemption
+            if (request.isUseCoins()) {
+                Wallet wallet = walletService.getWalletByUserId(customerId);
+                coinsToUse = Math.min(wallet.getBalance(), total); 
+                walletService.spendCoins(customerId, coinsToUse);
+                total -= coinsToUse;
+                log.info("Used {} FoodIQ Coins for user {}. New total: {}", coinsToUse, customerId, total);
+            }
+
+            if (total < restaurant.getMinOrderAmount()) {
+                throw new BusinessException("Minimum order amount is ₹" + restaurant.getMinOrderAmount());
+            }
+
+            // 2. Process payment
+            paymentMetrics.incrementAttempts();
+            long paymentStart = System.currentTimeMillis();
+            PaymentResponse payment;
+            try {
+                payment = paymentService.processPayment(
+                        null, total, request.getPaymentMethod(), request.getPaymentToken());
+            } catch (Exception e) {
+                paymentMetrics.incrementFailed();
+                throw e;
+            }
+            paymentMetrics.recordPaymentLatency(request.getPaymentMethod(), Duration.ofMillis(System.currentTimeMillis() - paymentStart));
+
+            if (PaymentStatus.FAILED.name().equals(payment.getStatus())) {
+                paymentMetrics.incrementFailed();
+                throw new BusinessException("Payment failed: " + payment.getMessage());
+            }
+            paymentMetrics.incrementSuccess();
+
+            // 3. Build Order entity
+            User customer = userRepository.findById(customerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", customerId));
+
+            Order order = Order.builder()
+                    .customer(customer)
+                    .restaurantId(restaurantId)
+                    .deliveryAddress(request.getDeliveryAddress())
+                    .totalAmount(total)
+                    .paymentStatus(PaymentStatus.valueOf(payment.getStatus()))
+                    .paymentMethod(request.getPaymentMethod())
+                    .paymentId(payment.getPaymentId())
+                    .specialInstructions(request.getSpecialInstructions())
+                    .status(OrderStatus.PLACED)
+                    .coinsUsed(coinsToUse)
+                    .finalAmount(total)
+                    .build();
+
+            // 4. Convert cart items → order items 
+            List<OrderItem> orderItems = cart.getItems().stream()
+                    .map(ci -> OrderItem.builder()
+                            .order(order)
+                            .menuItemId(ci.getMenuItemId())
+                            .quantity(ci.getQuantity())
+                            .priceAtOrderTime(ci.getPrice())
+                            .build())
+                    .collect(Collectors.toList());
+            order.setOrderItems(orderItems);
+
+            Order saved = orderRepository.save(order);
+            orderMetrics.incrementCreated();
+
+            // 5. Clear cart
+            cartService.clearCart(customerId);
+
+            // 6. Reward Loyalty Coins (1% cashback)
+            double rewardCoins = Math.floor(total * 0.01); 
+            if (rewardCoins > 0) {
+                walletService.addCoins(customerId, rewardCoins);
+            }
+
+            log.info("Order placed: id={} customer={} amount={} (Rewards: {})", saved.getId(), customerId, total, rewardCoins);
+            
+            kafkaService.sendMessage("order-events", 
+                String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": \"%s\", \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
+                saved.getId(), customerId, restaurantId, total, System.currentTimeMillis()));
+
+            OrderResponse response = toResponse(saved, restaurant.getName());
+
+            // Notify user via WebSocket
+            String userDestination = "/topic/order/" + customerId;
+            messagingTemplate.convertAndSend(userDestination, response);
+            log.info("WebSocket order placed notification sent to user {}", userDestination);
+
+            // Notify admin via WebSocket
+            String adminDestination = "/topic/admin/orders";
+            messagingTemplate.convertAndSend(adminDestination, response);
+            log.info("WebSocket order placed notification sent to admin {}", adminDestination);
+
+            // Send Email to User
+            if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
+                emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), saved.getId(), "PLACED");
+            }
+
+            // Send Email to Admin(s)
+            try {
+                List<User> admins = userRepository.findByRole(Role.ADMIN);
+                for (User admin : admins) {
+                    if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
+                        emailService.sendAdminOrderNotification(
+                            admin.getEmail(), 
+                            admin.getName(), 
+                            saved.getId(), 
+                            customer.getName(), 
+                            total
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error sending admin order notifications: {}", e.getMessage());
+            }
+
+            return response;
+        } catch (Exception e) {
+            orderMetrics.incrementFailed();
+            throw e;
+        }
     }
 
     @Transactional
@@ -179,9 +207,23 @@ public class OrderService {
         Order order = findById(orderId);
         OrderStatus newStatus = parseStatus(newStatusStr);
         validateStatusTransition(order.getStatus(), newStatus);
+
+        OrderStatus currentStatus = order.getStatus();
+        LocalDateTime lastUpdated = order.getUpdatedDate();
+        if (lastUpdated != null) {
+            Duration duration = Duration.between(lastUpdated, LocalDateTime.now());
+            orderMetrics.recordTransitionDuration(currentStatus.name(), newStatus.name(), duration);
+        }
+
         order.setStatus(newStatus);
         Order updated = orderRepository.save(order);
         log.info("Order {} status → {}", orderId, newStatus);
+
+        if (newStatus == OrderStatus.CONFIRMED) {
+            orderMetrics.incrementConfirmed();
+        } else if (newStatus == OrderStatus.DELIVERED) {
+            orderMetrics.incrementCompleted();
+        }
 
         kafkaService.sendOrderStatusUpdate(orderId, newStatus.name());
 
@@ -220,7 +262,15 @@ public class OrderService {
             throw new BusinessException("Cannot cancel order that is already " + order.getStatus());
         }
 
+        OrderStatus currentStatus = order.getStatus();
+        LocalDateTime lastUpdated = order.getUpdatedDate();
+        if (lastUpdated != null) {
+            Duration duration = Duration.between(lastUpdated, LocalDateTime.now());
+            orderMetrics.recordTransitionDuration(currentStatus.name(), OrderStatus.CANCELLED.name(), duration);
+        }
+
         order.setStatus(OrderStatus.CANCELLED);
+        orderMetrics.incrementCancelled();
 
         if (order.getPaymentStatus() == PaymentStatus.SUCCESS) {
             paymentService.processRefund(order.getPaymentId(), order.getTotalAmount());

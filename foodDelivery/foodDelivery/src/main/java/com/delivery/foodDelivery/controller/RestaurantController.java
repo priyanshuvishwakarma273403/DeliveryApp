@@ -34,6 +34,7 @@ import java.util.List;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
+    private final com.delivery.foodDelivery.observability.metrics.ProductMetrics productMetrics;
 
     // ── Public ────────────────────────────────────
 
@@ -44,12 +45,14 @@ public class RestaurantController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantById(@PathVariable String id) {
+        productMetrics.incrementViews();
         return ResponseEntity.ok(ApiResponse.success(restaurantService.getRestaurantById(id)));
     }
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<RestaurantResponse>>> searchRestaurants(
             @RequestParam("q") String keyword) {
+        productMetrics.incrementSearch();
         return ResponseEntity.ok(ApiResponse.success(restaurantService.searchRestaurants(keyword)));
     }
 

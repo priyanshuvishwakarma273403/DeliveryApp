@@ -26,6 +26,7 @@ public class SearchController {
 
     private final UniversalSearchService searchService;
     private final UserRepository userRepository;
+    private final com.delivery.foodDelivery.observability.metrics.ProductMetrics productMetrics;
 
     // Helper to get authenticated user
     private User getAuthenticatedUser() {
@@ -47,6 +48,7 @@ public class SearchController {
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "50") int limit) {
 
+        productMetrics.incrementSearch();
         User user = getAuthenticatedUser();
         String userIdStr = user != null ? String.valueOf(user.getId()) : null;
         String roleStr = user != null ? user.getRole().name() : "GUEST";

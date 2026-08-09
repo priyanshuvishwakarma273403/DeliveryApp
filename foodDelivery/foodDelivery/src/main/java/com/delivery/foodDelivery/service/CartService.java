@@ -10,6 +10,7 @@ import com.delivery.foodDelivery.entity.Restaurant;
 import com.delivery.foodDelivery.exception.BusinessException;
 import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.repository.mongo.CartRepository;
+import com.delivery.foodDelivery.observability.metrics.CartMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final MenuItemService menuItemService;
     private final RestaurantService restaurantService;
+    private final CartMetrics cartMetrics;
 
     public CartResponse getCart(Long userId) {
         Cart cart = getOrCreateCart(userId);
@@ -39,6 +41,8 @@ public class CartService {
         if (!menuItem.isAvailable()) {
             throw new BusinessException("Menu item is currently unavailable: " + menuItem.getName());
         }
+
+        cartMetrics.incrementItemsAdded(request.getQuantity());
 
         if (cart.getRestaurantId() != null &&
                 !cart.getRestaurantId().equals(menuItem.getRestaurantId())) {
@@ -101,6 +105,7 @@ public class CartService {
     public Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUserId(userId).orElseGet(() -> {
             Cart cart = Cart.builder().userId(userId).build();
+            cartMetrics.incrementCartCreated();
             return cartRepository.save(cart);
         });
     }

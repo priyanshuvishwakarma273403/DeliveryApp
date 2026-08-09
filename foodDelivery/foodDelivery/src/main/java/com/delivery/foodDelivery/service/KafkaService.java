@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.config.KafkaConfig;
+import com.delivery.foodDelivery.observability.metrics.KafkaMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -17,6 +18,7 @@ public class KafkaService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final KafkaMetrics kafkaMetrics;
 
     @Value("${spring.kafka.listener.auto-startup:false}")
     private boolean kafkaEnabled;
@@ -32,13 +34,26 @@ public class KafkaService {
             log.warn("Kafka is DISABLED. Skipping message to topic: {}", topic);
             return;
         }
+        String eventType = "GENERIC";
+        if ("order-events".equals(topic)) {
+            eventType = "ORDER_PLACED";
+        } else if ("order-updates".equals(topic)) {
+            eventType = "ORDER_STATUS_UPDATE";
+        } else if ("delivery-locations".equals(topic)) {
+            eventType = "LOCATION_UPDATE";
+        } else if (KafkaConfig.SALE_TOPIC.equals(topic)) {
+            eventType = "SALE_EVENT";
+        }
+
         try {
             log.info("Sending message to Kafka topic {}: {}", topic, message);
             kafkaTemplate.send(topic, message);
+            kafkaMetrics.incrementProduced(topic, eventType, "SUCCESS");
         } catch (Exception e) {
             log.error("Kafka ERROR: Could not send message to topic {}. Is Kafka connected? Error: {}", 
                 topic, e.getMessage());
-            // We catch exception so that main flow (like Login/OTP) is not blocked
+            kafkaMetrics.incrementErrors(topic, eventType, e.getClass().getSimpleName());
+            kafkaMetrics.incrementProduced(topic, eventType, "ERROR");
         }
     }
 

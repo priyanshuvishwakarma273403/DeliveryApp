@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private String allowedOrigins;
 
     private final WebSocketAuthChannelInterceptor authChannelInterceptor;
-
+    private final com.delivery.foodDelivery.observability.metrics.WebSocketMetrics webSocketMetrics;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -36,10 +36,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
-
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authChannelInterceptor);
+        registration.interceptors(authChannelInterceptor, new org.springframework.messaging.support.ChannelInterceptor() {
+            @Override
+            public org.springframework.messaging.Message<?> preSend(org.springframework.messaging.Message<?> message, org.springframework.messaging.MessageChannel channel) {
+                webSocketMetrics.incrementReceived(message);
+                return message;
+            }
+        });
+    }
+
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new org.springframework.messaging.support.ChannelInterceptor() {
+            @Override
+            public org.springframework.messaging.Message<?> preSend(org.springframework.messaging.Message<?> message, org.springframework.messaging.MessageChannel channel) {
+                webSocketMetrics.incrementSent(message);
+                return message;
+            }
+        });
     }
 
 }

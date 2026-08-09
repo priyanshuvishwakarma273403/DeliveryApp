@@ -14,11 +14,14 @@ import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.exception.UnauthorizedException;
 import com.delivery.foodDelivery.repository.jpa.OrderRepository;
 import com.delivery.foodDelivery.repository.jpa.UserRepository;
+import com.delivery.foodDelivery.observability.metrics.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,8 +39,12 @@ public class OrderService {
     private final RestaurantService   restaurantService;
     private final MenuItemService     menuItemService;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
-
     private final EmailService        emailService;
+
+    private final OrderMetrics        orderMetrics;
+    private final PaymentMetrics      paymentMetrics;
+    private final InventoryMetrics    inventoryMetrics;
+    private final CartMetrics         cartMetrics;
 
     @Transactional
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {

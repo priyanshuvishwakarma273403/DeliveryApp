@@ -113,22 +113,23 @@ public class EmailService {
             mailSender.send(message);
             log.info("Successfully sent email to: {}", toEmail);
             
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
-            // In a real scenario, you might want to re-throw or handle differently
+            log.info("[MOCK EMAIL FALLBACK] Subject: 🪔 Special Diwali Offer: {} 🪔, To: {}, Promo Code: {}", 
+                     saleEvent.getTitle(), toEmail, saleEvent.getPromoCode());
         }
     }
 
     @Async("emailExecutor")
     public void sendOrderUpdateEmail(String toEmail, String userName, Long orderId, String status) {
+        String title = "Order Update";
+        String emoji = "🔔";
         try {
             log.info("Sending order update email to: {} for order #{} status: {}", toEmail, orderId, status);
             
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
 
-            String title = "";
-            String emoji = "";
             String bodyMessage = "";
             String headerColor = "#FF5500";
             String statusStep = "";
@@ -258,8 +259,10 @@ public class EmailService {
             mailSender.send(message);
             log.info("Successfully sent order email to: {}", toEmail);
             
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send order email to {}: {}", toEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: FoodIQ Food - {} Update, To: {}, Order ID: {}, Status: {}", 
+                     emoji + " " + title, toEmail, orderId, status);
         }
     }
 

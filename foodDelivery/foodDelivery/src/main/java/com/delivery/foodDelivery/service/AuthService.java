@@ -47,7 +47,7 @@ public class AuthService {
         
         log.info("Generating OTP for email: {}", email);
         String otp = otpService.generateOtp(email);
-        emailService.sendVerificationEmail(email, otp);
+        kafkaService.sendMessage("auth-events", String.format("{\"action\": \"OTP_REQUEST\", \"email\": \"%s\", \"otp\": \"%s\"}", email, otp));
     }
 
 
@@ -84,9 +84,9 @@ public class AuthService {
         
         log.info("New user registered: {} [{}]", user.getEmail(), user.getRole());
 
-        // Send Welcome Email
+        // Send Welcome Email via Kafka
         if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-            emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+            kafkaService.sendMessage("auth-events", String.format("{\"action\": \"USER_REGISTER\", \"email\": \"%s\", \"name\": \"%s\"}", user.getEmail(), user.getName()));
         }
 
         // Auto-login after registration

@@ -172,28 +172,7 @@ public class OrderService {
             messagingTemplate.convertAndSend(adminDestination, response);
             log.info("WebSocket order placed notification sent to admin {}", adminDestination);
 
-            // Send Email to User
-            if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
-                emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), saved.getId(), "PLACED");
-            }
-
-            // Send Email to Admin(s)
-            try {
-                List<User> admins = userRepository.findByRole(Role.ADMIN);
-                for (User admin : admins) {
-                    if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
-                        emailService.sendAdminOrderNotification(
-                            admin.getEmail(), 
-                            admin.getName(), 
-                            saved.getId(), 
-                            customer.getName(), 
-                            total
-                        );
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Error sending admin order notifications: {}", e.getMessage());
-            }
+            // Email dispatch is delegated to the Kafka 'order-events' consumer to ensure asynchronous processing.
 
             return response;
         } catch (Exception e) {
@@ -240,10 +219,7 @@ public class OrderService {
         messagingTemplate.convertAndSend(adminDestination, response);
         log.info("WebSocket status update sent to admin {}", adminDestination);
 
-        // Send Email to User
-        if (order.getCustomer().getEmail() != null && !order.getCustomer().getEmail().isEmpty()) {
-            emailService.sendOrderUpdateEmail(order.getCustomer().getEmail(), order.getCustomer().getName(), orderId, newStatusStr);
-        }
+        // Email dispatch is delegated to the Kafka 'order-updates' consumer.
 
         return response;
     }

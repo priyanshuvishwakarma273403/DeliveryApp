@@ -3,8 +3,12 @@ package com.delivery.foodDelivery.service;
 import com.delivery.foodDelivery.config.KafkaConfig;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.entity.User;
+import com.delivery.foodDelivery.entity.Order;
+import com.delivery.foodDelivery.enums.Role;
 import com.delivery.foodDelivery.repository.jpa.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.OrderRepository;
 import com.delivery.foodDelivery.observability.metrics.KafkaMetrics;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,6 +18,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -21,8 +27,10 @@ import java.time.Duration;
 public class KafkaConsumerService {
 
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final EmailService emailService;
     private final KafkaMetrics kafkaMetrics;
+    private final ObjectMapper objectMapper;
 
     /**
      * Listener for Sale Events.
@@ -83,5 +91,133 @@ public class KafkaConsumerService {
     public void consumeDlt(SaleEventDTO saleEvent) {
         log.error("EVENT MOVED TO DLT: {}", saleEvent);
         kafkaMetrics.incrementConsumed(KafkaConfig.SALE_DLT_TOPIC, "SALE_DLT", "SUCCESS");
+    }
+
+    /**
+     * Listener for Authentication/Verification Events (OTP, Welcome Email).
+     */
+    @KafkaListener(
+            topics = KafkaConfig.AUTH_TOPIC,
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeAuthEvent(String message) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed Auth event: {}", message);
+        try {
+            Map<String, String> payload = objectMapper.readValue(message, Map.class);
+            String action = payload.get("action");
+            String email = payload.get("email");
+            if ("OTP_REQUEST".equals(action)) {
+                String otp = payload.get("otp");
+                emailService.sendVerificationEmail(email, otp);
+            } else if ("USER_REGISTER".equals(action)) {
+                String name = payload.get("name");
+                emailService.sendWelcomeEmail(email, name);
+            }
+            kafkaMetrics.incrementConsumed(KafkaConfig.AUTH_TOPIC, "AUTH_EVENT", "SUCCESS");
+        } catch (Exception e) {
+            log.error("Error processing consumed Auth event: {}", e.getMessage());
+            kafkaMetrics.incrementErrors(KafkaConfig.AUTH_TOPIC, "AUTH_EVENT", e.getClass().getSimpleName());
+            kafkaMetrics.incrementConsumed(KafkaConfig.AUTH_TOPIC, "AUTH_EVENT", "ERROR");
+        } finally {
+            kafkaMetrics.recordProcessingTime(KafkaConfig.AUTH_TOPIC, "AUTH_EVENT", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
+    }
+
+    /**
+     * Listener for Order Placement Events. Sends customer confirmation and admin notification.
+     */
+    @KafkaListener(
+            topics = KafkaConfig.ORDER_EVENTS_TOPIC,
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeOrderEvents(String message) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed Order Placement event: {}", message);
+        try {
+            Map<String, Object> payload = objectMapper.readValue(message, Map.class);
+            Long orderId = ((Number) payload.get("orderId")).longValue();
+            Long customerId = ((Number) payload.get("customerId")).longValue();
+            double total = ((Number) payload.get("total")).doubleValue();
+            
+            User customer = userRepository.findById(customerId).orElse(null);
+            if (customer != null && customer.getEmail() != null) {
+                // Send confirmation email to customer
+                emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), orderId, "PLACED");
+                
+                // Send alert email to admins
+                List<User> admins = userRepository.findByRole(Role.ADMIN);
+                for (User admin : admins) {
+                    if (admin.getEmail() != null && !admin.getEmail().isEmpty()) {
+                        emailService.sendAdminOrderNotification(admin.getEmail(), admin.getName(), orderId, customer.getName(), total);
+                    }
+                }
+            }
+            kafkaMetrics.incrementConsumed(KafkaConfig.ORDER_EVENTS_TOPIC, "ORDER_EVENT", "SUCCESS");
+        } catch (Exception e) {
+            log.error("Error processing consumed Order placement event: {}", e.getMessage());
+            kafkaMetrics.incrementErrors(KafkaConfig.ORDER_EVENTS_TOPIC, "ORDER_EVENT", e.getClass().getSimpleName());
+            kafkaMetrics.incrementConsumed(KafkaConfig.ORDER_EVENTS_TOPIC, "ORDER_EVENT", "ERROR");
+        } finally {
+            kafkaMetrics.recordProcessingTime(KafkaConfig.ORDER_EVENTS_TOPIC, "ORDER_EVENT", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
+    }
+
+    /**
+     * Listener for Order Status Updates (PREPARING, READY_FOR_PICKUP, etc.)
+     */
+    @KafkaListener(
+            topics = KafkaConfig.ORDER_UPDATES_TOPIC,
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeOrderUpdates(String message) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed Order Status Update event: {}", message);
+        try {
+            Map<String, Object> payload = objectMapper.readValue(message, Map.class);
+            Long orderId = ((Number) payload.get("orderId")).longValue();
+            String status = (String) payload.get("status");
+            
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order != null && order.getCustomer() != null && order.getCustomer().getEmail() != null) {
+                emailService.sendOrderUpdateEmail(order.getCustomer().getEmail(), order.getCustomer().getName(), orderId, status);
+            }
+            kafkaMetrics.incrementConsumed(KafkaConfig.ORDER_UPDATES_TOPIC, "ORDER_UPDATE", "SUCCESS");
+        } catch (Exception e) {
+            log.error("Error processing consumed Order status update event: {}", e.getMessage());
+            kafkaMetrics.incrementErrors(KafkaConfig.ORDER_UPDATES_TOPIC, "ORDER_UPDATE", e.getClass().getSimpleName());
+            kafkaMetrics.incrementConsumed(KafkaConfig.ORDER_UPDATES_TOPIC, "ORDER_UPDATE", "ERROR");
+        } finally {
+            kafkaMetrics.recordProcessingTime(KafkaConfig.ORDER_UPDATES_TOPIC, "ORDER_UPDATE", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
+    }
+
+    /**
+     * Listener for Daily Meal Reminders.
+     */
+    @KafkaListener(
+            topics = KafkaConfig.DAILY_REMINDERS_TOPIC,
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeDailyReminders(String message) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed Daily Reminder event: {}", message);
+        try {
+            Map<String, String> payload = objectMapper.readValue(message, Map.class);
+            String email = payload.get("email");
+            String name = payload.get("name");
+            emailService.sendDailyReminderEmail(email, name);
+            kafkaMetrics.incrementConsumed(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", "SUCCESS");
+        } catch (Exception e) {
+            log.error("Error processing consumed Daily reminder event: {}", e.getMessage());
+            kafkaMetrics.incrementErrors(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", e.getClass().getSimpleName());
+            kafkaMetrics.incrementConsumed(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", "ERROR");
+        } finally {
+            kafkaMetrics.recordProcessingTime(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
     }
 }

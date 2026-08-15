@@ -16,7 +16,8 @@ import {
   Clock,
   CheckCircle,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Gift
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../api/axios';
@@ -48,6 +49,40 @@ const AdminNotifications = () => {
     channel: 'PUSH'
   });
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
+
+  // Festive Blast state
+  const [festiveForm, setFestiveForm] = useState({
+    festivalName: '',
+    title: '',
+    message: ''
+  });
+  const [sendingFestive, setSendingFestive] = useState(false);
+
+  const handleFestiveBlast = async (e) => {
+    e.preventDefault();
+    if (!festiveForm.festivalName || !festiveForm.title || !festiveForm.message) {
+      toast.error('All fields are required for the Festive Blast');
+      return;
+    }
+    setSendingFestive(true);
+    try {
+      const response = await apiClient.post('/notifications/festival-blast', festiveForm);
+      if (response.data?.success) {
+        toast.success('Festive greetings event published to Kafka! Mass emailing initiated.');
+        setFestiveForm({
+          festivalName: '',
+          title: '',
+          message: ''
+        });
+      } else {
+        toast.error(response.data?.message || 'Failed to dispatch festive blast');
+      }
+    } catch (error) {
+      toast.error('Failed to submit festive blast via Kafka');
+    } finally {
+      setSendingFestive(false);
+    }
+  };
 
   // Campaign state
   const [campaignForm, setCampaignForm] = useState({
@@ -226,6 +261,7 @@ const AdminNotifications = () => {
           {[
             { id: 'ANALYTICS', label: 'Delivery Analytics', icon: TrendingUp },
             { id: 'BROADCAST', label: 'Broadcast Center', icon: Megaphone },
+            { id: 'FESTIVE_BLAST', label: 'Festive Blast (Kafka)', icon: Gift },
             { id: 'CAMPAIGNS', label: 'Campaign Manager', icon: Sparkles },
             { id: 'TEMPLATES', label: 'Template Engine', icon: FileText }
           ].map(tab => {
@@ -408,6 +444,75 @@ const AdminNotifications = () => {
                 >
                   <Send size={16} />
                   {sendingBroadcast ? 'Sending Broadcast...' : 'Dispatch Broadcast'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeSubTab === 'FESTIVE_BLAST' && (
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm max-w-3xl mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-[#FC8019]/10 text-[#FC8019] rounded-2xl">
+                <Gift size={24} className="animate-bounce" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black">Festive Blast (Kafka Event Stream)</h2>
+                <p className="text-xs text-gray-550 dark:text-gray-400">Broadcast holiday wishes asynchronously to all active platform users via Kafka queue.</p>
+              </div>
+            </div>
+            
+            <div className="my-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl flex gap-3 text-xs text-amber-600 dark:text-amber-400 font-medium">
+              <span className="text-lg">⚡</span>
+              <div>
+                <span className="font-bold">Asynchronous Delivery Engine:</span> Submitting this form publishes a message to the <code className="bg-amber-500/10 px-1.5 py-0.5 rounded font-mono">festival-greetings</code> Kafka topic. The background workers consume it to send high-quality responsive email cards in database-friendly batches, ensuring zero platform slowdown.
+              </div>
+            </div>
+
+            <form onSubmit={handleFestiveBlast} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Festival / Holiday Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Diwali, Eid, Christmas, Holi"
+                    value={festiveForm.festivalName}
+                    onChange={(e) => setFestiveForm({ ...festiveForm, festivalName: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Greeting Subject Header</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Wishing you and your family a very Happy Diwali!"
+                    value={festiveForm.title}
+                    onChange={(e) => setFestiveForm({ ...festiveForm, title: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Wishes & Message Body</label>
+                <textarea
+                  rows="5"
+                  placeholder="Type your heartfelt greetings here. Keep it welcoming and festive..."
+                  value={festiveForm.message}
+                  onChange={(e) => setFestiveForm({ ...festiveForm, message: e.target.value })}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-medium leading-relaxed"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="submit"
+                  disabled={sendingFestive}
+                  className="px-6 py-3 bg-[#FC8019] hover:bg-[#e17013] text-white rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50 transition-all animate-pulse"
+                >
+                  <Send size={16} />
+                  {sendingFestive ? 'Triggering Kafka Stream...' : 'Launch Festive Blast'}
                 </button>
               </div>
             </form>

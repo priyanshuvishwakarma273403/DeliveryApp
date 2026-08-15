@@ -128,6 +128,9 @@ const AdminDashboard = () => {
           <Link to="/admin/orders" className="flex items-center gap-3.5 text-gray-400 font-bold hover:text-white hover:bg-white/5 p-3.5 rounded-2xl transition-all">
             <ShoppingBag size={18} /> Manage Orders
           </Link>
+          <Link to="/admin/notifications" className="flex items-center gap-3.5 text-orange-500 font-black hover:text-orange-400 bg-orange-500/5 p-3.5 rounded-2xl border border-orange-500/10 transition-all">
+            <Bell size={18} /> Notification Center
+          </Link>
           <Link to="/admin/iam" className="flex items-center gap-3.5 text-rose-500 font-black hover:text-rose-450 bg-rose-500/5 p-3.5 rounded-2xl border border-rose-500/10 transition-all">
             <ShieldCheck size={18} /> IAM & Security
           </Link>

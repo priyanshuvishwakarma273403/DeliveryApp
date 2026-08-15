@@ -43,6 +43,8 @@ public class KafkaService {
             eventType = "LOCATION_UPDATE";
         } else if (KafkaConfig.SALE_TOPIC.equals(topic)) {
             eventType = "SALE_EVENT";
+        } else if (KafkaConfig.GREETINGS_TOPIC.equals(topic)) {
+            eventType = "FESTIVAL_GREETING";
         }
 
         try {
@@ -86,6 +88,15 @@ public class KafkaService {
             sendMessage(KafkaConfig.SALE_TOPIC, json);
         } catch (Exception e) {
             log.error("Failed to serialize sale event: {}", e.getMessage());
+        }
+    }
+
+    public void sendFestivalGreeting(com.delivery.foodDelivery.dto.FestivalGreetingDTO greetingEvent) {
+        try {
+            String json = objectMapper.writeValueAsString(greetingEvent);
+            sendMessage(KafkaConfig.GREETINGS_TOPIC, json);
+        } catch (Exception e) {
+            log.error("Failed to serialize greeting event: {}", e.getMessage());
         }
     }
 }

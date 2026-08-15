@@ -3,6 +3,9 @@ package com.delivery.foodDelivery.controller;
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.dto.request.BroadcastRequest;
 import com.delivery.foodDelivery.dto.request.NotificationRequest;
+import com.delivery.foodDelivery.dto.FestivalGreetingDTO;
+import com.delivery.foodDelivery.service.KafkaService;
+import java.util.UUID;
 import com.delivery.foodDelivery.entity.NotificationCampaign;
 import com.delivery.foodDelivery.entity.NotificationMessage;
 import com.delivery.foodDelivery.entity.NotificationTemplate;
@@ -34,6 +37,7 @@ public class NotificationController {
     private final UserRepository userRepository;
     private final NotificationTemplateRepository templateRepository;
     private final NotificationCampaignRepository campaignRepository;
+    private final KafkaService kafkaService;
 
     private User getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -132,6 +136,29 @@ public class NotificationController {
     public ResponseEntity<ApiResponse<Void>> broadcast(@RequestBody BroadcastRequest request) {
         notificationService.broadcast(request);
         return ResponseEntity.ok(ApiResponse.success("Broadcast initiated asynchronously across channels", null));
+    }
+
+    @PostMapping("/festival-blast")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> festivalBlast(@RequestBody Map<String, String> request) {
+        String title = request.get("title");
+        String message = request.get("message");
+        String festivalName = request.get("festivalName");
+
+        if (title == null || message == null || festivalName == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("title, message, and festivalName are required"));
+        }
+
+        FestivalGreetingDTO greeting = FestivalGreetingDTO.builder()
+                .greetingId("GREET-" + UUID.randomUUID().toString().substring(0, 8))
+                .title(title)
+                .message(message)
+                .festivalName(festivalName)
+                .build();
+
+        kafkaService.sendFestivalGreeting(greeting);
+
+        return ResponseEntity.ok(ApiResponse.success("Festival greetings broadcast event triggered successfully.", null));
     }
 
     @PostMapping("/campaign")

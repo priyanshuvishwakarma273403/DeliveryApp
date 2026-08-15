@@ -2,6 +2,7 @@ package com.delivery.foodDelivery.service;
 
 import com.delivery.foodDelivery.config.KafkaConfig;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
+import com.delivery.foodDelivery.dto.FestivalGreetingDTO;
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.entity.Order;
 import com.delivery.foodDelivery.enums.Role;
@@ -218,6 +219,58 @@ public class KafkaConsumerService {
             kafkaMetrics.incrementConsumed(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", "ERROR");
         } finally {
             kafkaMetrics.recordProcessingTime(KafkaConfig.DAILY_REMINDERS_TOPIC, "DAILY_REMINDER", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
+    }
+
+    /**
+     * Listener for Festival Greeting Events.
+     */
+    @KafkaListener(
+            topics = KafkaConfig.GREETINGS_TOPIC,
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeFestivalGreeting(FestivalGreetingDTO greetingEvent) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed festival greeting event: {}", greetingEvent.getTitle());
+
+        try {
+            int pageSize = 50; 
+            int pageNumber = 0;
+            Page<User> userPage;
+
+            do {
+                Pageable pageable = PageRequest.of(pageNumber, pageSize);
+                userPage = userRepository.findByActiveTrue(pageable); 
+
+                log.info("Processing batch {} with {} active users for festival greeting", pageNumber, userPage.getNumberOfElements());
+
+                userPage.getContent().forEach(user -> {
+                    if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                        emailService.sendFestivalGreetingEmail(
+                            user.getEmail(), 
+                            user.getName(), 
+                            greetingEvent.getTitle(), 
+                            greetingEvent.getMessage(), 
+                            greetingEvent.getFestivalName()
+                        );
+                    }
+                });
+
+                pageNumber++;
+                try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+                
+            } while (userPage.hasNext());
+
+            log.info("Completed processing all users for festival greeting: {}", greetingEvent.getTitle());
+            kafkaMetrics.incrementConsumed(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", "SUCCESS");
+        } catch (Exception e) {
+            log.error("Error processing consumed festival greeting event: {}", e.getMessage());
+            kafkaMetrics.incrementErrors(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", e.getClass().getSimpleName());
+            kafkaMetrics.incrementConsumed(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", "ERROR");
+            throw e;
+        } finally {
+            kafkaMetrics.recordProcessingTime(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", Duration.ofMillis(System.currentTimeMillis() - startTime));
         }
     }
 }

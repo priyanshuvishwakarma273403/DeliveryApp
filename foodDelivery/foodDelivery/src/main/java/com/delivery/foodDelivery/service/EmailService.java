@@ -516,4 +516,68 @@ public class EmailService {
             log.error("Failed to send admin order notification to {}: {}", adminEmail, e.getMessage());
         }
     }
+
+    @Async("emailExecutor")
+    public void sendFestivalGreetingEmail(String toEmail, String userName, String title, String messageContent, String festivalName) {
+        try {
+            log.info("Sending festival greeting email for {} to: {}", festivalName, toEmail);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, 
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, 
+                    StandardCharsets.UTF_8.name());
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: linear-gradient(135deg, #FF9933 0%, #FF5500 100%); color: white; padding: 40px 20px; text-align: center; }" +
+                    "  .header h1 { margin: 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }" +
+                    "  .content { padding: 30px; background-color: #ffffff; color: #333; line-height: 1.6; }" +
+                    "  .greeting-box { background: #FFF8E1; border: 2px dashed #FF9933; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }" +
+                    "  .btn { display: inline-block; padding: 15px 30px; background-color: #FF5500; color: white !important; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; box-shadow: 0 4px 15px rgba(255,85,0,0.3); }" +
+                    "  .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }" +
+                    "  .wishes { font-size: 20px; font-weight: bold; color: #FF5500; margin: 10px 0; }" +
+                    "  .diya { font-size: 40px; margin-bottom: 10px; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'>" +
+                    "      <div class='diya'>✨🌸🎉</div>" +
+                    "      <h1>" + title + "</h1>" +
+                    "    </div>" +
+                    "    <div class='content'>" +
+                    "      <h3>Dear " + userName + ",</h3>" +
+                    "      <p>" + messageContent + "</p>" +
+                    "      <div class='greeting-box'>" +
+                    "        <div class='wishes'>Happy " + festivalName + "!</div>" +
+                    "        <p style='margin:5px 0; color:#555;'>Wishing you joy, prosperity, and delicious food!</p>" +
+                    "      </div>" +
+                    "      <p style='text-align:center;'>" +
+                    "        <a href='https://foodiq-food.app' class='btn'>Celebrate with FoodIQ!</a>" +
+                    "      </p>" +
+                    "    </div>" +
+                    "    <div class='footer'>" +
+                    "      <p>&copy; 2026 FoodIQ Food Delivery. All Rights Reserved.</p>" +
+                    "      <p>If you have any questions, contact us at support@foodiq.com</p>" +
+                    "    </div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("🎉 " + title + " 🎉");
+            helper.setText(content, true);
+
+            mailSender.send(message);
+            log.info("Successfully sent festival greeting email to: {}", toEmail);
+            
+        } catch (Exception e) {
+            log.error("Failed to send festival greeting email to {}: {}", toEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: 🎉 {} 🎉, To: {}, Festival: {}", 
+                     title, toEmail, festivalName);
+        }
+    }
 }

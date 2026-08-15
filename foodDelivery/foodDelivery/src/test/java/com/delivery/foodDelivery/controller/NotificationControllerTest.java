@@ -9,6 +9,7 @@ import com.delivery.foodDelivery.entity.UserNotificationPreference;
 import com.delivery.foodDelivery.enums.Role;
 import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.service.NotificationService;
+import com.delivery.foodDelivery.service.KafkaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ public class NotificationControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private KafkaService kafkaService;
 
     @BeforeEach
     public void setup() {
@@ -222,5 +226,35 @@ public class NotificationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.name").value("Flash Sale Campaign"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin1", roles = {"ADMIN"})
+    public void testFestivalBlastAllowedForAdmin() throws Exception {
+        HashMap<String, String> request = new HashMap<>();
+        request.put("festivalName", "Diwali");
+        request.put("title", "Happy Diwali!");
+        request.put("message", "Wishing you a happy and safe Diwali!");
+
+        mockMvc.perform(post("/api/notifications/festival-blast")
+                        .content(objectMapper.writeValueAsString(request))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Festival greetings broadcast event triggered successfully."));
+    }
+
+    @Test
+    @WithMockUser(username = "customer1", roles = {"CUSTOMER"})
+    public void testFestivalBlastForbiddenForCustomer() throws Exception {
+        HashMap<String, String> request = new HashMap<>();
+        request.put("festivalName", "Diwali");
+        request.put("title", "Happy Diwali!");
+        request.put("message", "Wishing you a happy and safe Diwali!");
+
+        mockMvc.perform(post("/api/notifications/festival-blast")
+                        .content(objectMapper.writeValueAsString(request))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 }

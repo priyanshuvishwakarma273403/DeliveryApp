@@ -18,6 +18,7 @@ public class KafkaConfig {
     public static final String ORDER_EVENTS_TOPIC = "order-events";
     public static final String ORDER_UPDATES_TOPIC = "order-updates";
     public static final String DAILY_REMINDERS_TOPIC = "daily-reminders";
+    public static final String GREETINGS_TOPIC = "festival-greetings";
 
     @Bean
     public NewTopic saleTopic() {
@@ -62,6 +63,14 @@ public class KafkaConfig {
     @Bean
     public NewTopic dailyRemindersTopic() {
         return TopicBuilder.name(DAILY_REMINDERS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic greetingsTopic() {
+        return TopicBuilder.name(GREETINGS_TOPIC)
                 .partitions(3)
                 .replicas(1)
                 .build();

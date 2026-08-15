@@ -28,7 +28,9 @@ import {
   Sun,
   Moon,
   Star,
-  Bell
+  Bell,
+  Building,
+  Flame
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';

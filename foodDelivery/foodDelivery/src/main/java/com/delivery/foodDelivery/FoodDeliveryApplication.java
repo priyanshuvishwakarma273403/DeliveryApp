@@ -10,6 +10,13 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.*;
+
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableCaching
@@ -96,7 +103,100 @@ public class FoodDeliveryApplication {
 			System.setProperty("spring.kafka.admin.auto-create", "false");
 		}
 		
+		// Setup Kafka truststore dynamically to resolve SSL errors
+		setupKafkaTruststore();
+		
 		SpringApplication.run(FoodDeliveryApplication.class, args);
+	}
+
+	private static void setupKafkaTruststore() {
+		String bootstrap = System.getenv("KAFKA_BOOTSTRAP_SERVERS");
+		if (bootstrap == null || !bootstrap.contains(":")) {
+			return;
+		}
+		try {
+			// Extract host and port
+			String cleanBootstrap = bootstrap.trim()
+					.replace("\\n", "")
+					.replace("\\r", "")
+					.replace("\n", "")
+					.replace("\r", "");
+			if (cleanBootstrap.startsWith("\"") && cleanBootstrap.endsWith("\"")) {
+				cleanBootstrap = cleanBootstrap.substring(1, cleanBootstrap.length() - 1).trim();
+			}
+			String[] parts = cleanBootstrap.split(",");
+			String firstServer = parts[0].trim();
+			String[] hostPort = firstServer.split(":");
+			String host = hostPort[0].trim().replace("\"", "");
+			int port = Integer.parseInt(hostPort[1].trim().replace("\"", ""));
+
+			System.out.println("DEBUG: Dynamically creating truststore for Kafka at " + host + ":" + port);
+
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init((KeyStore) null);
+			X509TrustManager defaultTm = null;
+			for (TrustManager tm : tmf.getTrustManagers()) {
+				if (tm instanceof X509TrustManager) {
+					defaultTm = (X509TrustManager) tm;
+					break;
+				}
+			}
+
+			final X509TrustManager finalDefaultTm = defaultTm;
+			class SavingTrustManager implements X509TrustManager {
+				private X509Certificate[] chain;
+				public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+				public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+					this.chain = chain;
+					if (finalDefaultTm != null) {
+						try {
+							finalDefaultTm.checkServerTrusted(chain, authType);
+						} catch (CertificateException e) {
+							// Capture cert even if untrusted by default trust manager
+						}
+					}
+				}
+			}
+
+			SavingTrustManager tm = new SavingTrustManager();
+			SSLContext context = SSLContext.getInstance("TLS");
+			context.init(null, new TrustManager[]{tm}, null);
+			SSLSocketFactory factory = context.getSocketFactory();
+
+			try (SSLSocket socket = (SSLSocket) factory.createSocket(host, port)) {
+				socket.setSoTimeout(10000);
+				socket.startHandshake();
+			} catch (Exception e) {
+				// Handshake fails when untrusted, but we still capture the chain
+			}
+
+			if (tm.chain == null || tm.chain.length == 0) {
+				System.err.println("DEBUG: Could not retrieve certificate chain from " + host);
+				return;
+			}
+
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(null, null);
+			for (int i = 0; i < tm.chain.length; i++) {
+				ks.setCertificateEntry("kafka-cert-" + i, tm.chain[i]);
+			}
+
+			File trustStoreFile = File.createTempFile("kafka-truststore", ".jks");
+			trustStoreFile.deleteOnExit();
+			String password = "changeit";
+			try (FileOutputStream fos = new FileOutputStream(trustStoreFile)) {
+				ks.store(fos, password.toCharArray());
+			}
+
+			System.setProperty("spring.kafka.properties.ssl.truststore.location", trustStoreFile.getAbsolutePath());
+			System.setProperty("spring.kafka.properties.ssl.truststore.password", password);
+			System.out.println("DEBUG: Dynamically configured Kafka TrustStore at " + trustStoreFile.getAbsolutePath());
+
+		} catch (Exception e) {
+			System.err.println("DEBUG: Failed to dynamically create Kafka truststore: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	private static void cleanAndSetProperty(String envVar, String systemProp) {

@@ -4,6 +4,7 @@ import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.dto.request.BroadcastRequest;
 import com.delivery.foodDelivery.dto.request.NotificationRequest;
 import com.delivery.foodDelivery.dto.FestivalGreetingDTO;
+import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.service.KafkaService;
 import java.util.UUID;
 import com.delivery.foodDelivery.entity.NotificationCampaign;
@@ -159,6 +160,19 @@ public class NotificationController {
         kafkaService.sendFestivalGreeting(greeting);
 
         return ResponseEntity.ok(ApiResponse.success("Festival greetings broadcast event triggered successfully.", null));
+    }
+
+    @PostMapping("/sale-blast")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> saleBlast(@RequestBody SaleEventDTO saleEvent) {
+        if (saleEvent.getTitle() == null || saleEvent.getPromoCode() == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("title and promoCode are required"));
+        }
+        if (saleEvent.getSaleId() == null) {
+            saleEvent.setSaleId("SALE-" + UUID.randomUUID().toString().substring(0, 8));
+        }
+        kafkaService.sendSaleNotification(saleEvent);
+        return ResponseEntity.ok(ApiResponse.success("Sale broadcast event triggered successfully.", null));
     }
 
     @PostMapping("/campaign")

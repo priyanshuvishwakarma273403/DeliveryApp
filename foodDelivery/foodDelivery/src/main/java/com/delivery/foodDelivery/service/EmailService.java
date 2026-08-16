@@ -332,6 +332,8 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send login alert email to {}: {}", toEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: Security Alert: New login to FoodIQ, To: {}, User: {}, IP: {}", 
+                     toEmail, userName, ipAddress);
         }
     }
 
@@ -378,6 +380,8 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send welcome email to {}: {}", toEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: Welcome to FoodIQ - Let's get eating!, To: {}, User: {}", 
+                     toEmail, userName);
         }
     }
 
@@ -466,6 +470,8 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send daily reminder email to {}: {}", toEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: Hungry? Your favorite meal is waiting for you!, To: {}, User: {}", 
+                     toEmail, userName);
         }
     }
 
@@ -514,6 +520,8 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send admin order notification to {}: {}", adminEmail, e.getMessage());
+            log.info("[MOCK EMAIL FALLBACK] Subject: Admin Alert: New Order #{} Placed, To Admin: {}, Customer: {}, Total: {}", 
+                     orderId, adminEmail, customerName, amount);
         }
     }
 

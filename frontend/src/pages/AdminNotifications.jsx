@@ -17,7 +17,8 @@ import {
   CheckCircle,
   Plus,
   RefreshCw,
-  Gift
+  Gift,
+  Percent
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../api/axios';
@@ -81,6 +82,47 @@ const AdminNotifications = () => {
       toast.error('Failed to submit festive blast via Kafka');
     } finally {
       setSendingFestive(false);
+    }
+  };
+
+  // Sale Blast state
+  const [saleForm, setSaleForm] = useState({
+    title: '',
+    description: '',
+    promoCode: '',
+    discountPercentage: 20,
+    message: ''
+  });
+  const [sendingSale, setSendingSale] = useState(false);
+
+  const handleSaleBlast = async (e) => {
+    e.preventDefault();
+    if (!saleForm.title || !saleForm.promoCode || !saleForm.message || !saleForm.discountPercentage) {
+      toast.error('All fields are required for the Promo & Sale Blast');
+      return;
+    }
+    setSendingSale(true);
+    try {
+      const response = await apiClient.post('/notifications/sale-blast', {
+        ...saleForm,
+        discountPercentage: parseFloat(saleForm.discountPercentage)
+      });
+      if (response.data?.success) {
+        toast.success('Promo & Sale Blast published to Kafka! Mass emailing initiated.');
+        setSaleForm({
+          title: '',
+          description: '',
+          promoCode: '',
+          discountPercentage: 20,
+          message: ''
+        });
+      } else {
+        toast.error(response.data?.message || 'Failed to dispatch sale blast');
+      }
+    } catch (error) {
+      toast.error('Failed to submit sale blast via Kafka');
+    } finally {
+      setSendingSale(false);
     }
   };
 
@@ -262,6 +304,7 @@ const AdminNotifications = () => {
             { id: 'ANALYTICS', label: 'Delivery Analytics', icon: TrendingUp },
             { id: 'BROADCAST', label: 'Broadcast Center', icon: Megaphone },
             { id: 'FESTIVE_BLAST', label: 'Festive Blast (Kafka)', icon: Gift },
+            { id: 'SALE_BLAST', label: 'Promo Blast (Kafka)', icon: Percent },
             { id: 'CAMPAIGNS', label: 'Campaign Manager', icon: Sparkles },
             { id: 'TEMPLATES', label: 'Template Engine', icon: FileText }
           ].map(tab => {
@@ -513,6 +556,101 @@ const AdminNotifications = () => {
                 >
                   <Send size={16} />
                   {sendingFestive ? 'Triggering Kafka Stream...' : 'Launch Festive Blast'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeSubTab === 'SALE_BLAST' && (
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm max-w-3xl mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-rose-500/10 text-rose-500 rounded-2xl">
+                <Percent size={24} className="animate-pulse" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black">Promo & Sale Blast (Kafka Event Stream)</h2>
+                <p className="text-xs text-gray-550 dark:text-gray-400">Broadcast hot discount codes and promotional alerts to all platform users instantly.</p>
+              </div>
+            </div>
+            
+            <div className="my-6 p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex gap-3 text-xs text-rose-600 dark:text-rose-400 font-medium">
+              <span className="text-lg">🔥</span>
+              <div>
+                <span className="font-bold">Kafka-Driven Marketing:</span> Submitting this form publishes a message to the <code className="bg-rose-500/10 px-1.5 py-0.5 rounded font-mono">sale-events</code> Kafka topic. Subscribed background consumers will handle dispatching beautifully formatted email newsletters with your custom promo codes in high-throughput batches.
+              </div>
+            </div>
+
+            <form onSubmit={handleSaleBlast} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Sale / Promo Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mega Weekend Feast Sale"
+                    value={saleForm.title}
+                    onChange={(e) => setSaleForm({ ...saleForm, title: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Promo Code</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. FEAST50"
+                    value={saleForm.promoCode}
+                    onChange={(e) => setSaleForm({ ...saleForm, promoCode: e.target.value.toUpperCase() })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-bold text-rose-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Discount Percentage (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    placeholder="e.g. 50"
+                    value={saleForm.discountPercentage}
+                    onChange={(e) => setSaleForm({ ...saleForm, discountPercentage: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-bold"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Brief Tagline Description</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Get flat 50% off up to ₹150 on your favorite meals!"
+                    value={saleForm.description || ''}
+                    onChange={(e) => setSaleForm({ ...saleForm, description: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider mb-2">Detailed Message Body</label>
+                <textarea
+                  rows="4"
+                  placeholder="Type your marketing text here. Describe the offer, list special participating restaurants, and entice customers to order..."
+                  value={saleForm.message}
+                  onChange={(e) => setSaleForm({ ...saleForm, message: e.target.value })}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-250 dark:border-gray-750 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-2xl px-4 py-3 text-sm outline-none font-medium leading-relaxed"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="submit"
+                  disabled={sendingSale}
+                  className="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-rose-500/20 flex items-center gap-2 disabled:opacity-50 transition-all font-bold"
+                >
+                  <Send size={16} />
+                  {sendingSale ? 'Triggering Kafka Stream...' : 'Launch Promo Blast'}
                 </button>
               </div>
             </form>

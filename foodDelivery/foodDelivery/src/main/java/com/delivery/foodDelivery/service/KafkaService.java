@@ -19,8 +19,9 @@ public class KafkaService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final KafkaMetrics kafkaMetrics;
+    private final KafkaConsumerService kafkaConsumerService;
 
-    @Value("${spring.kafka.listener.auto-startup:false}")
+    @Value("${app.kafka.enabled:false}")
     private boolean kafkaEnabled;
 
     /**
@@ -30,10 +31,6 @@ public class KafkaService {
      */
     @Async
     public void sendMessage(String topic, String message) {
-        if (!kafkaEnabled) {
-            log.warn("Kafka is DISABLED. Skipping message to topic: {}", topic);
-            return;
-        }
         String eventType = "GENERIC";
         if ("order-events".equals(topic)) {
             eventType = "ORDER_PLACED";
@@ -45,6 +42,16 @@ public class KafkaService {
             eventType = "SALE_EVENT";
         } else if (KafkaConfig.GREETINGS_TOPIC.equals(topic)) {
             eventType = "FESTIVAL_GREETING";
+        } else if ("auth-events".equals(topic)) {
+            eventType = "AUTH_EVENT";
+        } else if ("daily-reminders".equals(topic)) {
+            eventType = "DAILY_REMINDER";
+        }
+
+        if (!kafkaEnabled) {
+            log.warn("Kafka is DISABLED. Running in local fallback mode. Routing message directly to consumer for topic: {}", topic);
+            routeMessageDirectly(topic, message);
+            return;
         }
 
         try {
@@ -52,10 +59,37 @@ public class KafkaService {
             kafkaTemplate.send(topic, message);
             kafkaMetrics.incrementProduced(topic, eventType, "SUCCESS");
         } catch (Exception e) {
-            log.error("Kafka ERROR: Could not send message to topic {}. Is Kafka connected? Error: {}", 
+            log.error("Kafka ERROR: Could not send message to topic {}. Is Kafka connected? Falling back to direct consumer routing. Error: {}", 
                 topic, e.getMessage());
             kafkaMetrics.incrementErrors(topic, eventType, e.getClass().getSimpleName());
             kafkaMetrics.incrementProduced(topic, eventType, "ERROR");
+            
+            // Auto fallback on exception
+            routeMessageDirectly(topic, message);
+        }
+    }
+
+    private void routeMessageDirectly(String topic, String message) {
+        try {
+            if ("auth-events".equals(topic)) {
+                kafkaConsumerService.consumeAuthEvent(message);
+            } else if ("order-events".equals(topic)) {
+                kafkaConsumerService.consumeOrderEvents(message);
+            } else if ("order-updates".equals(topic)) {
+                kafkaConsumerService.consumeOrderUpdates(message);
+            } else if ("daily-reminders".equals(topic)) {
+                kafkaConsumerService.consumeDailyReminders(message);
+            } else if (KafkaConfig.SALE_TOPIC.equals(topic)) {
+                SaleEventDTO dto = objectMapper.readValue(message, SaleEventDTO.class);
+                kafkaConsumerService.consumeSaleEvent(dto);
+            } else if (KafkaConfig.GREETINGS_TOPIC.equals(topic)) {
+                com.delivery.foodDelivery.dto.FestivalGreetingDTO dto = objectMapper.readValue(message, com.delivery.foodDelivery.dto.FestivalGreetingDTO.class);
+                kafkaConsumerService.consumeFestivalGreeting(dto);
+            } else {
+                log.warn("No direct routing mapping found for local fallback on topic: {}", topic);
+            }
+        } catch (Exception e) {
+            log.error("Failed to route message directly in local fallback mode for topic {}: {}", topic, e.getMessage(), e);
         }
     }
 

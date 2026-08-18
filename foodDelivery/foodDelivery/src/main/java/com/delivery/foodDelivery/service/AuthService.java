@@ -121,9 +121,13 @@ public class AuthService {
                 String.format("{\"userId\": %d, \"action\": \"LOGIN\", \"timestamp\": %d}", 
                 user.getId(), System.currentTimeMillis()));
 
-            // Send Login Alert Email
+            // Send Login Alert Email via Kafka
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), "Local Host (127.0.0.1)", "Web Browser / Device");
+                String payload = String.format(
+                    "{\"action\": \"LOGIN_ALERT\", \"email\": \"%s\", \"name\": \"%s\", \"ipAddress\": \"127.0.0.1\", \"userAgent\": \"Web Browser / Device\"}",
+                    user.getEmail(), user.getName()
+                );
+                kafkaService.sendMessage("auth-events", payload);
             }
 
             String accessToken  = jwtUtils.generateAccessToken(userDetails);
@@ -182,9 +186,13 @@ public class AuthService {
             String accessToken  = jwtUtils.generateAccessToken(userDetails);
             String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
-            // Send Login Alert Email for Google Login
+            // Send Login Alert Email for Google Login via Kafka
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                emailService.sendLoginAlertEmail(user.getEmail(), user.getName(), "Google OAuth 2.0 Integration", "Google Authenticated Client");
+                String kafkaPayload = String.format(
+                    "{\"action\": \"LOGIN_ALERT\", \"email\": \"%s\", \"name\": \"%s\", \"ipAddress\": \"Google OAuth 2.0 Integration\", \"userAgent\": \"Google Authenticated Client\"}",
+                    user.getEmail(), user.getName()
+                );
+                kafkaService.sendMessage("auth-events", kafkaPayload);
             }
 
             return buildAuthResponse(accessToken, refreshToken, user);

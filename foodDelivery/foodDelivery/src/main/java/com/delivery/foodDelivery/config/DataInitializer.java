@@ -49,7 +49,7 @@ public class DataInitializer implements CommandLineRunner {
         // Force cleanup and re-seeding of unique, high-quality data
         // We check if the database has less than 24 restaurants, or contains outdated placeholder data
         long count = restaurantRepository.count();
-        if (count < 20 || count > 90) { 
+        if (count < 25 || count > 90) { 
             log.info("Cleaning up old placeholder database entries to seed high-quality unique data...");
             restaurantRepository.deleteAll();
             menuItemRepository.deleteAll();
@@ -146,9 +146,9 @@ public class DataInitializer implements CommandLineRunner {
                 new MenuItemTemplate("Butter Chicken", "Succulent chicken chunks cooked in sweet and rich buttery tomato gravy.", 399.0, "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600", "NON_VEG", false),
                 new MenuItemTemplate("Paneer Tikka Masala", "Clay oven grilled paneer blocks cooked in aromatic onion tomato masala.", 329.0, "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=600", "VEG", true),
                 new MenuItemTemplate("Hyderabadi Biryani", "Aromatic long grain basmati rice layered with spices and slow cooked.", 349.0, "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600", "NON_VEG", false),
-                new MenuItemTemplate("Butter Garlic Naan", "Traditional leavened flatbread topped with garlic flakes and butter.", 69.0, "https://images.unsplash.com/photo-1601050690597-df056fb4ce78?w=600", "SIDES", true)
+                new MenuItemTemplate("Butter Garlic Naan", "Traditional leavened flatbread topped with garlic flakes and butter.", 69.0, "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600", "SIDES", true)
         );
-        list.add(new RestaurantTemplate("The Curry House", "Indian", "https://images.unsplash.com/photo-1585938338392-50a59220247c?w=800", indianItems));
+        list.add(new RestaurantTemplate("The Curry House", "Indian", "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800", indianItems));
 
         // 4. Japanese
         List<MenuItemTemplate> sushiItems = List.of(
@@ -163,14 +163,14 @@ public class DataInitializer implements CommandLineRunner {
                 new MenuItemTemplate("Avocado Greek Salad", "Crispy cucumbers, red onions, tomatoes, avocado slices, and feta cheese in olive oil dressing.", 279.0, "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600", "VEG", true),
                 new MenuItemTemplate("Protein Quinoa Bowl", "Steamed high-fiber quinoa topped with roasted sprouts, bell peppers, and citrus dressing.", 299.0, "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600", "VEG", true),
                 new MenuItemTemplate("Berry Detox Acai Bowl", "Frozen acai berry blend topped with crunchy granola, chia seeds, and fresh strawberries.", 249.0, "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=600", "DESSERT", true),
-                new MenuItemTemplate("Immune Booster Juice", "Fresh cold-pressed carrots, beetroot, and ginger juice with lemon twist.", 139.0, "https://images.unsplash.com/photo-1610970881699-44a5587caaec?w=600", "BEVERAGES", true)
+                new MenuItemTemplate("Immune Booster Juice", "Fresh cold-pressed carrots, beetroot, and ginger juice with lemon twist.", 139.0, "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=600", "BEVERAGES", true)
         );
         list.add(new RestaurantTemplate("The Green Bowl", "Healthy", "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800", healthyItems));
 
         // 6. Desserts
         List<MenuItemTemplate> dessertItems = List.of(
-                new MenuItemTemplate("Red Velvet Slice", "Indulgent red velvet sponge layered with smooth cream cheese frosting.", 189.0, "https://images.unsplash.com/photo-1586985289688-ca9cf4993ec0?w=600", "DESSERT", true),
-                new MenuItemTemplate("Blueberry Cheesecake", "Rich baked cheesecake topped with premium wild blueberry compote.", 229.0, "https://images.unsplash.com/photo-1524351199679-46cddf530c04?w=600", "DESSERT", true),
+                new MenuItemTemplate("Red Velvet Slice", "Indulgent red velvet sponge layered with smooth cream cheese frosting.", 189.0, "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=600", "DESSERT", true),
+                new MenuItemTemplate("Blueberry Cheesecake", "Rich baked cheesecake topped with premium wild blueberry compote.", 229.0, "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600", "DESSERT", true),
                 new MenuItemTemplate("Hot Chocolate Brownie", "Fudgy warm chocolate brownie loaded with roasted walnuts.", 149.0, "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=600", "DESSERT", true)
         );
         list.add(new RestaurantTemplate("Sweet Tooth", "Desserts", "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800", dessertItems));

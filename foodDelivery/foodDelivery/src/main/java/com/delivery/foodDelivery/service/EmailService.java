@@ -47,7 +47,7 @@ public class EmailService {
             log.error("Please configure spring.mail.username/password in application.properties");
             log.error("DEVELOPMENT TIP: Use master OTP '123456' to bypass this.");
             log.error("****************************************************************");
-            // We DON'T throw exception here to allow user to proceed in local development
+            saveMockEmailToFile(toEmail, "Your FoodDelivery Verification OTP", "Welcome to FoodDelivery! Your verification code is: " + otp);
         }
     }
 
@@ -117,6 +117,7 @@ public class EmailService {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: 🪔 Special Diwali Offer: {} 🪔, To: {}, Promo Code: {}", 
                      saleEvent.getTitle(), toEmail, saleEvent.getPromoCode());
+            saveMockEmailToFile(toEmail, "🪔 Special Diwali Offer: " + saleEvent.getTitle(), saleEvent.getMessage() + " Promo Code: " + saleEvent.getPromoCode());
         }
     }
 
@@ -263,6 +264,7 @@ public class EmailService {
             log.error("Failed to send order email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: FoodIQ Food - {} Update, To: {}, Order ID: {}, Status: {}", 
                      emoji + " " + title, toEmail, orderId, status);
+            saveMockEmailToFile(toEmail, "FoodIQ Food - " + emoji + " " + title, "Order ID: " + orderId + ", Status: " + status);
         }
     }
 
@@ -334,6 +336,7 @@ public class EmailService {
             log.error("Failed to send login alert email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: Security Alert: New login to FoodIQ, To: {}, User: {}, IP: {}", 
                      toEmail, userName, ipAddress);
+            saveMockEmailToFile(toEmail, "🔒 Security Alert: New login to FoodIQ", "Hello " + userName + ", new login detected from IP: " + ipAddress + " using device: " + userAgent);
         }
     }
 
@@ -382,6 +385,7 @@ public class EmailService {
             log.error("Failed to send welcome email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: Welcome to FoodIQ - Let's get eating!, To: {}, User: {}", 
                      toEmail, userName);
+            saveMockEmailToFile(toEmail, "👋 Welcome to FoodIQ - Let's get eating!", "Welcome " + userName + " to FoodIQ! Account registered successfully.");
         }
     }
 
@@ -423,6 +427,7 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send generic notification email to {}: {}", toEmail, e.getMessage());
+            saveMockEmailToFile(toEmail, "🔔 FoodIQ Update: " + subject, body);
         }
     }
 
@@ -472,6 +477,7 @@ public class EmailService {
             log.error("Failed to send daily reminder email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: Hungry? Your favorite meal is waiting for you!, To: {}, User: {}", 
                      toEmail, userName);
+            saveMockEmailToFile(toEmail, "🍽️ Hungry? Your favorite meal is waiting for you!", "Hello " + userName + ", your favorite food is waiting. Order now!");
         }
     }
 
@@ -522,6 +528,7 @@ public class EmailService {
             log.error("Failed to send admin order notification to {}: {}", adminEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: Admin Alert: New Order #{} Placed, To Admin: {}, Customer: {}, Total: {}", 
                      orderId, adminEmail, customerName, amount);
+            saveMockEmailToFile(adminEmail, "🔔 Admin Alert: New Order #" + orderId + " Placed", "Admin Alert: Customer " + customerName + " placed order #" + orderId + " of amount ₹" + amount);
         }
     }
 
@@ -586,6 +593,27 @@ public class EmailService {
             log.error("Failed to send festival greeting email to {}: {}", toEmail, e.getMessage());
             log.info("[MOCK EMAIL FALLBACK] Subject: 🎉 {} 🎉, To: {}, Festival: {}", 
                      title, toEmail, festivalName);
+            saveMockEmailToFile(toEmail, "🎉 " + title + " 🎉", "Happy " + festivalName + "! " + messageContent);
+        }
+    }
+
+    private void saveMockEmailToFile(String to, String subject, String content) {
+        try {
+            java.io.File file = new java.io.File("mock_emails.txt");
+            try (java.io.FileWriter fw = new java.io.FileWriter(file, true);
+                 java.io.PrintWriter pw = new java.io.PrintWriter(fw)) {
+                pw.println("================================================================================");
+                pw.println("Date: " + java.time.LocalDateTime.now());
+                pw.println("To: " + to);
+                pw.println("Subject: " + subject);
+                pw.println("Content:");
+                pw.println(content.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim());
+                pw.println("================================================================================");
+                pw.println();
+            }
+            log.info("[MOCK EMAIL SYSTEM] Saved email details to: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            log.error("Failed to write mock email to file: {}", e.getMessage());
         }
     }
 }

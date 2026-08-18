@@ -115,6 +115,11 @@ public class KafkaConsumerService {
             } else if ("USER_REGISTER".equals(action)) {
                 String name = payload.get("name");
                 emailService.sendWelcomeEmail(email, name);
+            } else if ("LOGIN_ALERT".equals(action)) {
+                String name = payload.get("name");
+                String ipAddress = payload.get("ipAddress");
+                String userAgent = payload.get("userAgent");
+                emailService.sendLoginAlertEmail(email, name, ipAddress, userAgent);
             }
             kafkaMetrics.incrementConsumed(KafkaConfig.AUTH_TOPIC, "AUTH_EVENT", "SUCCESS");
         } catch (Exception e) {

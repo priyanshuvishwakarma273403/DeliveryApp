@@ -75,6 +75,11 @@ const LiveEvents = lazy(() => import('./pages/DiningOut')); // Using DiningOut a
 const RestaurantPortal = lazy(() => import('./pages/RestaurantPortal'));
 const MultiBranchPortal = lazy(() => import('./pages/MultiBranchPortal'));
 const KitchenDisplaySystem = lazy(() => import('./pages/KitchenDisplaySystem'));
+const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard'));
+const BranchManagerDashboard = lazy(() => import('./pages/BranchManagerDashboard'));
+const CashierDashboard = lazy(() => import('./pages/CashierDashboard'));
+const SupportExecutiveDashboard = lazy(() => import('./pages/SupportExecutiveDashboard'));
+const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'));
 
 const queryClient = new QueryClient();
 
@@ -184,6 +189,11 @@ function App() {
 
 
                   <Route path="/delivery/dashboard" element={<ProtectedRoute roles={['DELIVERY_PARTNER']}><DeliveryDashboard /></ProtectedRoute>} />
+                  <Route path="/restaurant/owner" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'ADMIN', 'SUPER_ADMIN']}><OwnerDashboard /></ProtectedRoute>} />
+                  <Route path="/restaurant/manager" element={<ProtectedRoute roles={['BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN']}><BranchManagerDashboard /></ProtectedRoute>} />
+                  <Route path="/restaurant/cashier" element={<ProtectedRoute roles={['CASHIER', 'ADMIN', 'SUPER_ADMIN']}><CashierDashboard /></ProtectedRoute>} />
+                  <Route path="/support/dashboard" element={<ProtectedRoute roles={['SUPPORT_EXECUTIVE', 'ADMIN', 'SUPER_ADMIN']}><SupportExecutiveDashboard /></ProtectedRoute>} />
+                  <Route path="/moderator/dashboard" element={<ProtectedRoute roles={['MODERATOR', 'ADMIN', 'SUPER_ADMIN']}><ModeratorDashboard /></ProtectedRoute>} />
                   <Route path="/restaurant/portal" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN']}><RestaurantPortal /></ProtectedRoute>} />
                   <Route path="/restaurant/branches" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN']}><MultiBranchPortal /></ProtectedRoute>} />
                   <Route path="/restaurant/kds" element={<ProtectedRoute roles={['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'KITCHEN_STAFF', 'ADMIN', 'SUPER_ADMIN']}><KitchenDisplaySystem /></ProtectedRoute>} />

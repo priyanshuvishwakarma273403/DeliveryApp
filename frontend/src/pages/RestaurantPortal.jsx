@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { 
   DollarSign, ShoppingBag, CheckCircle2, XCircle, Clock, Star, Users, ArrowUpRight, 
   ArrowDownRight, TrendingUp, AlertTriangle, UserCheck, Activity, Award, Bell, 
@@ -162,6 +164,25 @@ const MOCK_AUDIT_LOGS = [
 ];
 
 const RestaurantPortal = () => {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'RESTAURANT_OWNER') {
+      navigate('/restaurant/owner', { replace: true });
+    } else if (user?.role === 'BRANCH_MANAGER') {
+      navigate('/restaurant/manager', { replace: true });
+    } else if (user?.role === 'CASHIER') {
+      navigate('/restaurant/cashier', { replace: true });
+    } else if (user?.role === 'KITCHEN_STAFF') {
+      navigate('/restaurant/kds', { replace: true });
+    } else if (user?.role === 'SUPPORT_EXECUTIVE') {
+      navigate('/support/dashboard', { replace: true });
+    } else if (user?.role === 'MODERATOR') {
+      navigate('/moderator/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [restaurantProfile, setRestaurantProfile] = useState(MOCK_RESTAURANT);
   const [categories, setCategories] = useState(MOCK_CATEGORIES);

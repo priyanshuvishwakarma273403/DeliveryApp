@@ -112,14 +112,22 @@ const Login = () => {
   const redirectUser = (role) => {
     if (role === 'ADMIN') {
       navigate('/admin');
-    } else if (role === 'SUPER_ADMIN' || role === 'PLATFORM_ADMIN' || role === 'SUPPORT_EXECUTIVE' || role === 'MODERATOR') {
+    } else if (role === 'SUPER_ADMIN' || role === 'PLATFORM_ADMIN') {
       navigate('/admin/iam');
-    } else if (role === 'RESTAURANT_OWNER' || role === 'BRANCH_MANAGER' || role === 'CASHIER') {
-      navigate('/restaurant/portal');
+    } else if (role === 'RESTAURANT_OWNER') {
+      navigate('/restaurant/owner');
+    } else if (role === 'BRANCH_MANAGER') {
+      navigate('/restaurant/manager');
+    } else if (role === 'CASHIER') {
+      navigate('/restaurant/cashier');
     } else if (role === 'KITCHEN_STAFF') {
       navigate('/restaurant/kds');
     } else if (role === 'DELIVERY_PARTNER') {
       navigate('/delivery/dashboard');
+    } else if (role === 'SUPPORT_EXECUTIVE') {
+      navigate('/support/dashboard');
+    } else if (role === 'MODERATOR') {
+      navigate('/moderator/dashboard');
     } else {
       navigate(from, { replace: true });
     }

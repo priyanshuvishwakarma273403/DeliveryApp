@@ -199,6 +199,15 @@ const Header = () => {
     { icon: UserCircle, label: t('myProfile'), to: isAuthenticated ? '/profile' : '/login' },
   ];
 
+  const getPortalLink = () => {
+    if (user?.role === 'RESTAURANT_OWNER') return '/restaurant/owner';
+    if (user?.role === 'BRANCH_MANAGER') return '/restaurant/manager';
+    if (user?.role === 'CASHIER') return '/restaurant/cashier';
+    if (user?.role === 'SUPPORT_EXECUTIVE') return '/support/dashboard';
+    if (user?.role === 'MODERATOR') return '/moderator/dashboard';
+    if (user?.role === 'KITCHEN_STAFF') return '/restaurant/kds';
+    return '/restaurant/portal';
+  };
 
   return (
     <>
@@ -515,18 +524,28 @@ const Header = () => {
                           </Link>
                         </>
                       )}
-                      {['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'KITCHEN_STAFF', 'ADMIN', 'SUPER_ADMIN'].includes(user?.role) && (
+                      {['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'CASHIER', 'SUPPORT_EXECUTIVE', 'MODERATOR', 'KITCHEN_STAFF', 'ADMIN', 'SUPER_ADMIN'].includes(user?.role) && (
                         <>
                           {user?.role !== 'KITCHEN_STAFF' && (
                             <>
-                              <Link to="/restaurant/portal" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
-                                <UtensilsCrossed size={18} className="text-[#686B78]" /> Restaurant Portal
+                              <Link to={getPortalLink()} className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
+                                <UtensilsCrossed size={18} className="text-[#686B78]" />
+                                <span>
+                                  {user?.role === 'RESTAURANT_OWNER' ? 'Owner Portal' : 
+                                   user?.role === 'BRANCH_MANAGER' ? 'Manager Portal' :
+                                   user?.role === 'CASHIER' ? 'POS Billing' :
+                                   user?.role === 'SUPPORT_EXECUTIVE' ? 'Support Desk' :
+                                   user?.role === 'MODERATOR' ? 'Moderator Deck' :
+                                   'Restaurant Portal'}
+                                </span>
                                 <ChevronRight size={14} className="text-[#686B78] ml-auto" />
                               </Link>
-                              <Link to="/restaurant/branches" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
-                                <Building size={18} className="text-[#686B78]" /> Manage Branches
-                                <ChevronRight size={14} className="text-[#686B78] ml-auto" />
-                              </Link>
+                              {['RESTAURANT_OWNER', 'BRANCH_MANAGER', 'ADMIN', 'SUPER_ADMIN'].includes(user?.role) && (
+                                <Link to="/restaurant/branches" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">
+                                  <Building size={18} className="text-[#686B78]" /> Manage Branches
+                                  <ChevronRight size={14} className="text-[#686B78] ml-auto" />
+                                </Link>
+                              )}
                             </>
                           )}
                           <Link to="/restaurant/kds" className="flex items-center gap-3 px-4 py-3 text-sm text-[#1C1C1C] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors font-medium">

@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import { subscribeTelemetry } from '../utils/telemetrySync';
 import { playNotificationTick, playAlertBleep } from '../utils/audioSynth';
+import { AiCopilotSidebar } from '../components/layout/AiCopilotSidebar';
 
 const LOCAL_OUTLET = {
   name: "Sector 18 Noida Branch",
@@ -436,6 +437,7 @@ const BranchManagerDashboard = () => {
           </motion.div>
         </AnimatePresence>
       </main>
+      <AiCopilotSidebar restaurantName="Sector 18 Noida Branch" />
     </div>
   );
 };

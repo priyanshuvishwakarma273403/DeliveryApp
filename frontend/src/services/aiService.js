@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk';
+import apiClient from '../api/axios';
 
 const groq = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY || 'your_api_key_here',
@@ -174,3 +175,17 @@ Sales are growing by **12% week-on-week**, indicating strong market demand. Howe
 
 *Ask me specific questions about your **ratings**, **kitchen efficiency**, **refunds**, **inventory**, or **staff productivity** for a deep-dive analysis.*`;
 };
+
+export const sendAiMessage = async (message, restaurantName = "Sector 18 Noida Branch") => {
+  try {
+    const response = await apiClient.post('/ai/chat', { message });
+    if (response.data && response.data.data) {
+      return response.data.data;
+    }
+    throw new Error("No data in response");
+  } catch (error) {
+    console.warn("Backend AI chat failed, falling back to local Groq/simulation:", error.message);
+    return getCopilotResponse(restaurantName, message);
+  }
+};
+

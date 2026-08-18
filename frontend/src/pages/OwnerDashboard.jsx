@@ -12,6 +12,7 @@ import {
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import { playNotificationTick, playSuccessChime } from '../utils/audioSynth';
+import { AiCopilotSidebar } from '../components/layout/AiCopilotSidebar';
 
 const BRANCH_SALES = [
   { name: 'Noida Hub', revenue: 420000, orders: 1240, rating: 4.8, profit: 125000 },
@@ -347,6 +348,7 @@ const OwnerDashboard = () => {
           </motion.div>
         </AnimatePresence>
       </main>
+      <AiCopilotSidebar restaurantName="FoodIQ National Chain" />
     </div>
   );
 };

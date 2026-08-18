@@ -9,6 +9,8 @@ import {
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
+import { subscribeTelemetry } from '../utils/telemetrySync';
+import { playSuccessChime, playNotificationTick, playAlertBleep, playEmergencySiren } from '../utils/audioSynth';
 
 const MOCK_RECIPES = {
   "R-1": {
@@ -158,6 +160,22 @@ const KitchenDisplaySystem = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Subscribe to real-time telemetry updates (e.g. POS cashier checkouts)
+  useEffect(() => {
+    const unsubscribe = subscribeTelemetry((event) => {
+      if (event.type === 'CASHIER_ORDER_CREATED') {
+        const newOrder = event.payload;
+        setOrders(prev => {
+          if (prev.some(o => o.id === newOrder.id)) return prev;
+          return [newOrder, ...prev];
+        });
+        if (soundEnabled) playAlertBleep();
+        toast.success(`New ticket ${newOrder.id} received from Cashier POS!`, { icon: '🛎️' });
+      }
+    });
+    return () => unsubscribe();
+  }, [soundEnabled]);
+
   // Stats calculation
   const stats = useMemo(() => {
     const total = orders.length;
@@ -181,7 +199,13 @@ const KitchenDisplaySystem = () => {
 
   const playChime = (type) => {
     if (!soundEnabled) return;
-    toast.success(`${type} Audio alert triggered!`, { id: 'chime' });
+    if (type === 'Checklist Update' || type === 'Status Advance') {
+      playNotificationTick();
+    } else if (type === 'Order Completed') {
+      playSuccessChime();
+    } else if (type === 'Emergency Buzzer') {
+      playEmergencySiren();
+    }
   };
 
   // Action handlers

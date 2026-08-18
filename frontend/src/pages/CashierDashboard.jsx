@@ -6,14 +6,16 @@ import {
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
+import { playSuccessChime, playNotificationTick, playAlertBleep } from '../utils/audioSynth';
+import { publishTelemetry } from '../utils/telemetrySync';
 
 const POS_MENU = [
-  { id: 'pos-1', name: 'Margherita Pizza', price: 299, category: 'Pizza', isVeg: true },
-  { id: 'pos-2', name: 'Truffle Mushroom Pasta', price: 349, category: 'Pasta', isVeg: true },
-  { id: 'pos-3', name: 'Crispy Chicken Burger', price: 289, category: 'Burgers', isVeg: false },
-  { id: 'pos-4', name: 'Peri Peri French Fries', price: 119, category: 'Sides', isVeg: true },
-  { id: 'pos-5', name: 'Salted Caramel Shake', price: 159, category: 'Drinks', isVeg: true },
-  { id: 'pos-6', name: 'Cheesy Garlic Bread', price: 149, category: 'Sides', isVeg: true },
+  { id: 'pos-1', name: 'Classic Neapolitan Margherita Pizza', price: 299, category: 'Pizza', isVeg: true, code: 'R-1' },
+  { id: 'pos-2', name: 'Gourmet Truffle Burger', price: 349, category: 'Burgers', isVeg: false, code: 'R-2' },
+  { id: 'pos-3', name: 'Paneer Butter Masala', price: 289, category: 'Indian', isVeg: true, code: 'R-3' },
+  { id: 'pos-4', name: 'Peri Peri French Fries', price: 119, category: 'Sides', isVeg: true, code: 'D-1' },
+  { id: 'pos-5', name: 'Salted Caramel Shake', price: 159, category: 'Drinks', isVeg: true, code: 'D-2' },
+  { id: 'pos-6', name: 'Cheesy Garlic Bread', price: 149, category: 'Sides', isVeg: true, code: 'D-3' },
 ];
 
 const CashierDashboard = () => {
@@ -25,11 +27,11 @@ const CashierDashboard = () => {
   const [couponApplied, setCouponApplied] = useState(false);
   const [paymentMode, setPaymentMode] = useState('CASH'); // CASH, CARD, UPI
   const [recentBills, setRecentBills] = useState([
-    { id: 'BILL-4821', customer: '+91 9988776655', total: 648, time: '14:20 PM', status: 'PAID' },
-    { id: 'BILL-4820', customer: '+91 8877665544', total: 418, time: '13:55 PM', status: 'PAID' }
+    { id: 'BILL-4820', customer: 'Aarav Sharma', total: 648, time: '14:20 PM', status: 'PAID' },
+    { id: 'BILL-4819', customer: 'Walk-in Customer', total: 418, time: '13:55 PM', status: 'PAID' }
   ]);
 
-  const categories = ['All', 'Pizza', 'Pasta', 'Burgers', 'Sides', 'Drinks'];
+  const categories = ['All', 'Pizza', 'Burgers', 'Indian', 'Sides', 'Drinks'];
 
   const filteredMenu = useMemo(() => {
     return POS_MENU.filter(item => {
@@ -40,6 +42,7 @@ const CashierDashboard = () => {
   }, [search, selectedCategory]);
 
   const addToCart = (item) => {
+    playNotificationTick();
     const existing = cart.find(i => i.id === item.id);
     if (existing) {
       setCart(cart.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i));
@@ -49,6 +52,7 @@ const CashierDashboard = () => {
   };
 
   const updateQty = (itemId, d) => {
+    playNotificationTick();
     const existing = cart.find(i => i.id === itemId);
     if (!existing) return;
     if (existing.qty + d <= 0) {
@@ -61,8 +65,10 @@ const CashierDashboard = () => {
   const applyPromo = () => {
     if (couponCode.toUpperCase() === 'FREE20') {
       setCouponApplied(true);
+      playSuccessChime();
       toast.success('20% promo code applied to cart!');
     } else {
+      playAlertBleep();
       toast.error('Invalid cashier promo code.');
     }
   };
@@ -78,19 +84,50 @@ const CashierDashboard = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) {
+      playAlertBleep();
       toast.error('Add items to cart before checkout.');
       return;
     }
     const billId = `BILL-${Math.floor(4000 + Math.random() * 5999)}`;
+    const customerName = customerPhone ? `Phone: ${customerPhone}` : 'Walk-in Customer';
+    
     const newBill = {
       id: billId,
-      customer: customerPhone ? customerPhone : 'Walk-in Customer',
+      customer: customerName,
       total: totals.grandTotal,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'PAID'
     };
+
+    // Format new kitchen order payload for KDS
+    const kitchenOrderPayload = {
+      id: `KD-${Math.floor(550 + Math.random() * 400)}`,
+      customer: customerName,
+      type: 'DINE-IN',
+      priority: 'NORMAL',
+      timeReceived: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      expectedTime: 15,
+      timeElapsed: 0,
+      assignedChef: 'Unassigned',
+      station: cart[0]?.category || 'General',
+      status: 'ACCEPTED',
+      paymentStatus: 'PAID',
+      allergyNotes: 'None',
+      specialInstructions: 'Urgent POS order',
+      items: cart.map(item => ({
+        code: item.code || 'R-1',
+        name: item.name,
+        qty: item.qty,
+        prepDone: false
+      }))
+    };
+
+    // Publish to Real-Time Telemetry pipeline
+    publishTelemetry('CASHIER_ORDER_CREATED', kitchenOrderPayload);
+
     setRecentBills([newBill, ...recentBills]);
-    toast.success(`Bill generated successfully! Ticket ID: ${billId}`);
+    playSuccessChime();
+    toast.success(`Bill generated successfully! Sent to Kitchen KDS.`, { icon: '🔥' });
     setCart([]);
     setCustomerPhone('');
     setCouponCode('');
@@ -98,6 +135,7 @@ const CashierDashboard = () => {
   };
 
   const handlePrint = (billId) => {
+    playNotificationTick();
     toast.success(`Sending invoice ${billId} to POS receipt thermal printer...`);
   };
 
@@ -122,6 +160,7 @@ const CashierDashboard = () => {
           </div>
           <button 
             onClick={() => {
+              playNotificationTick();
               setCart([]);
               setCustomerPhone('');
               setCouponCode('');
@@ -145,7 +184,7 @@ const CashierDashboard = () => {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => { playNotificationTick(); setSelectedCategory(cat); }}
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                   selectedCategory === cat 
                     ? 'bg-[#FC8019] text-white shadow-md' 
@@ -296,7 +335,7 @@ const CashierDashboard = () => {
               {['CASH', 'CARD', 'UPI'].map((mode) => (
                 <button
                   key={mode}
-                  onClick={() => setPaymentMode(mode)}
+                  onClick={() => { playNotificationTick(); setPaymentMode(mode); }}
                   className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
                     paymentMode === mode 
                       ? 'bg-slate-900 text-white border-[#FC8019]' 

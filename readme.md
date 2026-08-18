@@ -246,3 +246,16 @@ Open your browser and navigate to `http://localhost:5173` (or the fallback port 
 4. **Simulate**: Drive to the restaurant, click **Mark as Picked Up**, and toggle **Live Tracking Simulator**.
 5. **Track**: Log in as a customer, click on your profile -> **Orders** -> **Track Order** to watch the rider move live on the customer map tracking console.
 6. **Complete**: Mark as **Delivered** in the Rider Console to cash out.
+
+
+
+for testing email and dummy password
+Role	            Email ID	            Password
+Super Admin	       superadmin@foodiq.com	FoodIQ@Secure2026
+Restaurant Owner	owner@foodiq.com	    FoodIQ@Secure2026
+Branch Manager    	manager@foodiq.com	    FoodIQ@Secure2026
+Kitchen Staff	    kitchen@foodiq.com	    FoodIQ@Secure2026
+Cashier	              cashier@foodiq.com	FoodIQ@Secure2026
+Delivery Partner	rider@foodiq.com	FoodIQ@Secure2026
+Support Executive	support@foodiq.com	FoodIQ@Secure2026
+Moderator	        moderator@foodiq.com	FoodIQ@Secure2026

@@ -11,6 +11,8 @@ import {
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
+import { subscribeTelemetry } from '../utils/telemetrySync';
+import { playNotificationTick, playAlertBleep } from '../utils/audioSynth';
 
 const LOCAL_OUTLET = {
   name: "Sector 18 Noida Branch",
@@ -53,13 +55,40 @@ const BranchManagerDashboard = () => {
   const [reviews, setReviews] = useState(MOCK_REVIEWS);
   const [replies, setReplies] = useState({});
 
+  // Real-Time POS Sync to Live Orders
+  useEffect(() => {
+    const unsubscribe = subscribeTelemetry((event) => {
+      if (event.type === 'CASHIER_ORDER_CREATED') {
+        const newOrder = event.payload;
+        const formattedOrder = {
+          id: newOrder.id.replace('KD-', 'ORD-'),
+          customerName: newOrder.customer,
+          items: newOrder.items.map(item => `${item.qty}x ${item.name}`).join(', '),
+          total: newOrder.items.reduce((sum, item) => sum + (item.qty * 300), 0),
+          status: 'PENDING',
+          date: newOrder.timeReceived,
+          instructions: newOrder.specialInstructions
+        };
+        setOrders(prev => {
+          if (prev.some(o => o.id === formattedOrder.id)) return prev;
+          return [formattedOrder, ...prev];
+        });
+        playAlertBleep();
+        toast(`Manager Alert: POS Order ${formattedOrder.id} generated!`, { icon: '🛎️' });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleStatusChange = (status) => {
     setOutletStatus(status);
+    playNotificationTick();
     toast.success(`Outlet is now marked as ${status}`);
   };
 
   const handleOrderTransition = (orderId, nextStatus) => {
     setOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
+    playNotificationTick();
     toast.success(`Order ${orderId} moved to ${nextStatus}`);
   };
 
@@ -68,17 +97,43 @@ const BranchManagerDashboard = () => {
     if (!text) return;
     setReviews(reviews.map(r => r.id === revId ? { ...r, reply: text } : r));
     setReplies({ ...replies, [revId]: '' });
+    playNotificationTick();
     toast.success('Reply published to customer feed!');
   };
 
   const handleReorder = (itemName) => {
+    playNotificationTick();
     toast.success(`Procurement requisition raised for ${itemName}`);
   };
 
   return (
     <div className="min-h-screen bg-[#FAFAFC] flex flex-col lg:flex-row">
-      {/* Sidebar navigation */}
-      <aside className="w-full lg:w-72 bg-[#1E293B] text-white p-6 shrink-0 flex flex-col justify-between">
+      {/* Mobile Top Header (hidden on desktop) */}
+      <header className="lg:hidden bg-[#1E293B] text-white p-4 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 bg-[#FC8019] rounded-lg flex items-center justify-center font-black text-white">
+            IQ
+          </div>
+          <div>
+            <h2 className="text-xs font-black tracking-tight">FoodIQ Manager</h2>
+            <p className="text-[8px] text-gray-400 font-bold uppercase">Noida Branch</p>
+          </div>
+        </div>
+        
+        <select 
+          value={activeTab} 
+          onChange={(e) => setActiveTab(e.target.value)}
+          className="bg-slate-800 border border-slate-700 text-white font-black text-xs py-1.5 px-3 rounded-xl outline-none"
+        >
+          <option value="orders">Live Orders ({orders.filter(o => o.status !== 'DELIVERED').length})</option>
+          <option value="inventory">Stock & Inventory</option>
+          <option value="staff">Shift Roster</option>
+          <option value="reviews">Customer Reviews</option>
+        </select>
+      </header>
+
+      {/* Sidebar navigation (desktop) */}
+      <aside className="hidden lg:flex w-full lg:w-72 bg-[#1E293B] text-white p-6 shrink-0 flex-col justify-between">
         <div className="space-y-8">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-[#FC8019] rounded-xl flex items-center justify-center font-black shadow-lg text-white">
@@ -118,7 +173,6 @@ const BranchManagerDashboard = () => {
               { id: 'inventory', label: 'Stock & Inventory', icon: AlertTriangle },
               { id: 'staff', label: 'Shift Roster', icon: Users },
               { id: 'reviews', label: 'Customer Reviews', icon: Star },
-              { id: 'settings', label: 'Outlet Config', icon: SlidersHorizontal }
             ].map((item) => (
               <button
                 key={item.id}
@@ -223,7 +277,7 @@ const BranchManagerDashboard = () => {
                           <span>{o.date}</span>
                         </div>
                         <p className="text-xs font-bold text-slate-700">{o.items}</p>
-                        {o.instructions && <p className="text-[10px] text-rose-500 font-bold bg-rose-50/50 p-2 rounded-lg border border-rose-100">💡 {o.instructions}</p>}
+                        {o.instructions && <p className="text-[10px] text-rose-500 font-bold bg-rose-50/50 p-2 rounded-lg border border-rose-100 font-semibold">💡 {o.instructions}</p>}
                         <div className="pt-2 flex gap-2">
                           <button onClick={() => handleOrderTransition(o.id, 'PREPARING')} className="flex-1 py-1.5 bg-[#FC8019] text-white font-black text-[10px] rounded-lg">Accept</button>
                           <button onClick={() => handleOrderTransition(o.id, 'CANCELLED')} className="py-1.5 px-2 bg-slate-50 border text-red-500 font-black text-[10px] rounded-lg">Cancel</button>
@@ -296,9 +350,9 @@ const BranchManagerDashboard = () => {
                     </thead>
                     <tbody>
                       {inventory.map((item, idx) => (
-                        <tr key={idx} className="border-b border-slate-550 last:border-none">
+                        <tr key={idx} className="border-b border-slate-100 last:border-none">
                           <td className="py-4 font-black text-slate-900">{item.name}</td>
-                          <td className="py-4 text-slate-750">{item.current}</td>
+                          <td className="py-4 text-slate-700">{item.current}</td>
                           <td className="py-4 text-slate-400">{item.min}</td>
                           <td className="py-4">
                             <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
@@ -358,7 +412,7 @@ const BranchManagerDashboard = () => {
                       </div>
                       <p className="text-slate-600 leading-relaxed font-semibold italic">"{rev.comment}"</p>
                       {rev.reply ? (
-                        <div className="p-3 bg-emerald-50 border border-emerald-150 rounded-xl text-emerald-700">
+                        <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700">
                           <span className="text-[9px] font-black uppercase tracking-wider block mb-1">Manager Reply:</span>
                           <p className="text-[11px] leading-relaxed">{rev.reply}</p>
                         </div>

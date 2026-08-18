@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
+import { playNotificationTick, playSuccessChime, playAlertBleep } from '../utils/audioSynth';
+import { sendAiMessage } from '../services/aiService'; 
 
 const MOCK_TICKETS = [
   { id: 'TKT-101', customer: 'Siddharth Roy', phone: '+91 9988776655', issue: 'Cold food delivered', orderId: 'OD-9921', priority: 'HIGH', status: 'ACTIVE', chat: [
@@ -32,6 +34,8 @@ const SupportExecutiveDashboard = () => {
     return tickets.find(t => t.id === selectedTicketId);
   }, [tickets, selectedTicketId]);
 
+  const [aiDraftLoading, setAiDraftLoading] = useState(false);
+
   const handleSendChat = () => {
     if (!chatInput.trim() || !selectedTicket) return;
     const updated = tickets.map(t => {
@@ -45,12 +49,35 @@ const SupportExecutiveDashboard = () => {
     });
     setTickets(updated);
     setChatInput('');
+    playNotificationTick();
     toast.success('Reply dispatched to customer app!');
+  };
+
+  const handleAiDraft = async () => {
+    if (!selectedTicket) return;
+    setAiDraftLoading(true);
+    playNotificationTick();
+    
+    const lastCustomerMsg = selectedTicket.chat.filter(c => c.sender === 'customer').pop()?.text || selectedTicket.issue;
+    const prompt = `Customer says: "${lastCustomerMsg}". Ticket issue: "${selectedTicket.issue}". Order ID: "${selectedTicket.orderId}". Provide a brief, polite, empathetic support resolution draft in 2 sentences. Don't include formatting or placeholders.`;
+    
+    try {
+      const response = await sendAiMessage(prompt, "Customer Support Desk");
+      const cleaned = response.replace(/^"|"$/g, '').trim();
+      setChatInput(cleaned);
+      playSuccessChime();
+      toast.success("AI draft populated!");
+    } catch (err) {
+      playAlertBleep();
+      toast.error("Failed to generate AI reply draft.");
+    } finally {
+      setAiDraftLoading(false);
+    }
   };
 
   const handleOrderLookup = () => {
     if (!searchOrder.trim()) return;
-    // Simulated lookup
+    playNotificationTick();
     if (searchOrder.includes('9921')) {
       setOrderLookupResult({
         id: 'OD-9921',
@@ -76,10 +103,12 @@ const SupportExecutiveDashboard = () => {
   };
 
   const triggerRefund = (orderId) => {
+    playSuccessChime();
     toast.success(`IMPS Refund initiated for order ${orderId}. Reference ID: RFD-${Math.floor(100000 + Math.random() * 899999)}`, { icon: '💰', duration: 4000 });
   };
 
   const cancelOrder = (orderId) => {
+    playAlertBleep();
     toast.success(`Order ${orderId} has been manually cancelled. Notifying kitchen & rider.`);
   };
 
@@ -176,6 +205,15 @@ const SupportExecutiveDashboard = () => {
 
               {/* Chat Inputs */}
               <div className="flex gap-2">
+                <button 
+                  onClick={handleAiDraft}
+                  disabled={aiDraftLoading}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-4 rounded-2xl font-black text-xs flex items-center gap-1.5 shadow-md transition-all shrink-0"
+                  title="Generate AI reply draft"
+                >
+                  <Sparkles size={14} className={aiDraftLoading ? "animate-spin" : ""} />
+                  {aiDraftLoading ? "Drafting..." : "AI Draft"}
+                </button>
                 <input 
                   type="text" 
                   placeholder="Type professional reply..."
@@ -186,7 +224,7 @@ const SupportExecutiveDashboard = () => {
                 />
                 <button 
                   onClick={handleSendChat}
-                  className="bg-[#FC8019] text-white p-3 hover:bg-orange-600 rounded-2xl font-black shadow-lg shadow-orange-100 flex items-center justify-center"
+                  className="bg-[#FC8019] text-white p-3 hover:bg-orange-600 rounded-2xl font-black shadow-lg shadow-orange-100 flex items-center justify-center shrink-0"
                 >
                   <Send size={16} />
                 </button>

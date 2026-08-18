@@ -9,7 +9,7 @@ import {
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
-import { subscribeTelemetry } from '../utils/telemetrySync';
+import { subscribeTelemetry, emitTelemetry } from '../utils/telemetrySync';
 import { playSuccessChime, playNotificationTick, playAlertBleep, playEmergencySiren } from '../utils/audioSynth';
 
 const MOCK_RECIPES = {
@@ -263,6 +263,21 @@ const KitchenDisplaySystem = () => {
     }));
     setIsPackingModalOpen(false);
     playChime('Order Completed');
+    emitTelemetry({
+      type: 'KITCHEN_ORDER_READY',
+      payload: {
+        orderId: packingOrder.id,
+        restaurant: "Tuscany Grill - South Ext",
+        pickupAddr: "E-4, South Extension Part II, New Delhi",
+        customerName: packingOrder.customer,
+        customerAddr: "Block B-12, Green Park Apartments, New Delhi",
+        distance: "4.2 km",
+        fee: 95,
+        itemsCount: packingOrder.items ? packingOrder.items.length : 3,
+        specialInstructions: "Leave with security guard if call not answered.",
+        priority: "Express"
+      }
+    });
     toast.success(`Order ${packingOrder.id} ready at dispatch lane!`);
   };
 

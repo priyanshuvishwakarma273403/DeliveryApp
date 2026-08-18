@@ -14,6 +14,8 @@ import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import { subscribeTelemetry } from '../utils/telemetrySync';
+import { playNotificationTick, playAlertBleep, playSuccessChime } from '../utils/audioSynth';
 
 const MOCK_HOTSPOTS = [
   { zone: "Sector 18 Market, Noida", distance: "1.2 km", surge: "+₹50 / delivery", demand: "HIGH" },
@@ -92,18 +94,34 @@ const DeliveryDashboard = () => {
     return () => clearInterval(timer);
   }, [activeTask]);
 
+  // Subscribe to real-time KDS order ready alerts
+  useEffect(() => {
+    const unsubscribe = subscribeTelemetry((event) => {
+      if (event.type === 'KITCHEN_ORDER_READY') {
+        if (!isOnline) return;
+        setIncomingOrder(event.payload);
+        playAlertBleep();
+        toast.success(`New Delivery Request Ready: ${event.payload.orderId}!`, { icon: '🛵' });
+      }
+    });
+    return () => unsubscribe();
+  }, [isOnline]);
+
   const toggleOnline = () => {
     setIsOnline(!isOnline);
+    playNotificationTick();
     toast.success(isOnline ? 'You are now Offline' : 'You are now Online');
   };
 
   const handleAcceptOrder = () => {
     setActiveTask('ACCEPTED');
     setIncomingOrder(null);
+    playSuccessChime();
     toast.success('Order Accepted! Route map dispatched.');
   };
 
   const handleAdvanceTask = () => {
+    playNotificationTick();
     if (activeTask === 'ACCEPTED') {
       setActiveTask('REACHED_RESTAURANT');
       toast.success('Arrived at Restaurant. Loading order...');
@@ -126,8 +144,10 @@ const DeliveryDashboard = () => {
       setWalletBalance(prev => prev + 95);
       setDeliveriesCount(prev => prev + 1);
       setEarningGoal(prev => ({ ...prev, current: prev.current + 95 }));
+      playSuccessChime();
       toast.success('Shipment completed! Earned ₹95.00', { icon: '💰' });
     } else {
+      playAlertBleep();
       toast.error('Invalid OTP. Please verify with customer.');
     }
   };

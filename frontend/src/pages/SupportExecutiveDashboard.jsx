@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, MessageSquare, Search, Send, Phone, Clipboard, AlertCircle, 
@@ -9,6 +9,7 @@ import Button from '../components/common/Button';
 import { toast } from 'react-hot-toast';
 import { playNotificationTick, playSuccessChime, playAlertBleep } from '../utils/audioSynth';
 import { sendAiMessage } from '../services/aiService'; 
+import { useWebSocket } from '../providers/WebSocketProvider'; 
 
 const MOCK_TICKETS = [
   { id: 'TKT-101', customer: 'Siddharth Roy', phone: '+91 9988776655', issue: 'Cold food delivered', orderId: 'OD-9921', priority: 'HIGH', status: 'ACTIVE', chat: [
@@ -29,6 +30,32 @@ const SupportExecutiveDashboard = () => {
   const [chatInput, setChatInput] = useState('');
   const [searchOrder, setSearchOrder] = useState('');
   const [orderLookupResult, setOrderLookupResult] = useState(null);
+
+  const { client } = useWebSocket();
+
+  useEffect(() => {
+    if (!client) return;
+
+    const subscription = client.subscribe('/topic/admin/escalation', (message) => {
+      if (message.body) {
+        const ticket = JSON.parse(message.body);
+        playAlertBleep();
+        setTickets(prev => {
+          if (prev.some(t => t.id === ticket.id)) return prev;
+          return [ticket, ...prev];
+        });
+        setSelectedTicketId(ticket.id);
+        toast.error(`📞 Live Call Escalated: ${ticket.customer} is on line!`, {
+          duration: 6000,
+          icon: '☎️'
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client]);
 
   const selectedTicket = useMemo(() => {
     return tickets.find(t => t.id === selectedTicketId);

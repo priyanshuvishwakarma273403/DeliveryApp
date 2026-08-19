@@ -2,7 +2,7 @@ package com.delivery.foodDelivery.support.escalation.service;
 
 import com.delivery.foodDelivery.support.conversation.model.CallSession;
 import com.delivery.foodDelivery.support.conversation.model.SupportTicket;
-import com.delivery.foodDelivery.support.conversation.repository.SupportTicketRepository;
+import com.delivery.foodDelivery.repository.mongo.SupportTicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

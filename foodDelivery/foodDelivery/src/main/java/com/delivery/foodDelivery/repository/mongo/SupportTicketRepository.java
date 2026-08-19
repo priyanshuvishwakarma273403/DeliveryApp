@@ -1,4 +1,4 @@
-package com.delivery.foodDelivery.support.conversation.repository;
+package com.delivery.foodDelivery.repository.mongo;
 
 import com.delivery.foodDelivery.support.conversation.model.SupportTicket;
 import org.springframework.data.mongodb.repository.MongoRepository;

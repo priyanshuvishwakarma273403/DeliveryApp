@@ -12,7 +12,7 @@ import com.delivery.foodDelivery.service.FinancialService;
 import com.delivery.foodDelivery.support.config.VoiceSupportConfig;
 import com.delivery.foodDelivery.support.conversation.model.CallSession;
 import com.delivery.foodDelivery.support.conversation.model.SupportTicket;
-import com.delivery.foodDelivery.support.conversation.repository.SupportTicketRepository;
+import com.delivery.foodDelivery.repository.mongo.SupportTicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

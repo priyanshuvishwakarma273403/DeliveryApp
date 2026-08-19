@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,6 +30,12 @@ public class VoiceAiOrchestrator {
     private final CallEscalationService escalationService;
     private final VoiceEngine voiceEngine;
     private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${openrouter.api.key:}")
+    private String openRouterApiKey;
+
+    @Value("${sambanova.api.key:}")
+    private String sambaNovaApiKey;
 
     private static final Pattern TOOL_PATTERN = Pattern.compile("\\[TOOL_CALL:\\s*(\\w+)\\s*,\\s*([^\\]]+)\\]");
 
@@ -225,28 +232,88 @@ public class VoiceAiOrchestrator {
         payloadMessages.add(Map.of("role", "system", "content", systemPrompt));
         payloadMessages.addAll(session.getChatHistory());
 
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + config.getGroqApiKey().trim());
+        // 1. Try Groq
+        if (config.getGroqApiKey() != null && !config.getGroqApiKey().isBlank()) {
+            log.info("Voice AI - Trying Groq...");
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + config.getGroqApiKey().trim());
 
-            Map<String, Object> body = new HashMap<>();
-            body.put("model", "llama-3.3-70b-versatile");
-            body.put("messages", payloadMessages);
-            body.put("temperature", 0.3); // Keep it highly deterministic
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", "llama-3.3-70b-versatile");
+                body.put("messages", payloadMessages);
+                body.put("temperature", 0.3);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            Map<String, Object> response = restTemplate.postForObject(config.getGroqApiUrl(), entity, Map.class);
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+                Map<String, Object> response = restTemplate.postForObject(config.getGroqApiUrl(), entity, Map.class);
 
-            if (response != null && response.containsKey("choices")) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                if (response != null && response.containsKey("choices")) {
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
                 }
+            } catch (Exception e) {
+                log.warn("Voice AI - Groq call failed: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            log.error("LLM execution error: {}", e.getMessage());
+        }
+
+        // 2. Try SambaNova
+        if (sambaNovaApiKey != null && !sambaNovaApiKey.isBlank()) {
+            log.info("Voice AI - Trying SambaNova...");
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + sambaNovaApiKey.trim());
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", "Meta-Llama-3.1-8B-Instruct");
+                body.put("messages", payloadMessages);
+                body.put("temperature", 0.3);
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+                Map<String, Object> response = restTemplate.postForObject("https://api.sambanova.ai/v1/chat/completions", entity, Map.class);
+
+                if (response != null && response.containsKey("choices")) {
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Voice AI - SambaNova call failed: {}", e.getMessage());
+            }
+        }
+
+        // 3. Try OpenRouter
+        if (openRouterApiKey != null && !openRouterApiKey.isBlank()) {
+            log.info("Voice AI - Trying OpenRouter...");
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + openRouterApiKey.trim());
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("model", "meta-llama/llama-3.1-8b-instruct:free");
+                body.put("messages", payloadMessages);
+                body.put("temperature", 0.3);
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+                Map<String, Object> response = restTemplate.postForObject("https://openrouter.ai/api/v1/chat/completions", entity, Map.class);
+
+                if (response != null && response.containsKey("choices")) {
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Voice AI - OpenRouter call failed: {}", e.getMessage());
+            }
         }
 
         return "Main aapki call support executive ko transfer kar raha hoon. [TOOL_CALL: transfer_to_agent, Connection Error]";

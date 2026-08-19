@@ -255,7 +255,7 @@ Super Admin	       superadmin@foodiq.com	FoodIQ@Secure2026
 Restaurant Owner	owner@foodiq.com	    FoodIQ@Secure2026
 Branch Manager    	manager@foodiq.com	    FoodIQ@Secure2026
 Kitchen Staff	    kitchen@foodiq.com	    FoodIQ@Secure2026
-Cashier	              cashier@foodiq.com	FoodIQ@Secure2026
+Cashier	             cashier@foodiq.com	FoodIQ@Secure2026
 Delivery Partner	rider@foodiq.com	FoodIQ@Secure2026
 Support Executive	support@foodiq.com	FoodIQ@Secure2026
 Moderator	        moderator@foodiq.com	FoodIQ@Secure2026

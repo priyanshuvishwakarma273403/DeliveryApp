@@ -171,14 +171,14 @@ const Login = () => {
         }
 
         let token = 'mock-jwt-token-' + Date.now();
-        if (loweredEmail === 'admin@foodiq.com') {
+        if (['admin@foodiq.com', 'support@foodiq.com', 'customer@foodiq.com'].includes(loweredEmail)) {
           try {
-            const apiRes = await authService.login('admin@foodiq.com', 'admin123');
+            const apiRes = await authService.login(loweredEmail, 'FoodIQ@Secure2026');
             if (apiRes.success && apiRes.data?.accessToken) {
               token = apiRes.data.accessToken;
             }
           } catch (e) {
-            console.warn('Real API login failed for mock admin fallback, using mock token', e);
+            console.warn('Real API login failed for mock fallback, using mock token', e);
           }
         }
 

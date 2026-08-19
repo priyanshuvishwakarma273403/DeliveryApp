@@ -28,7 +28,7 @@ public class ExotelVoiceController {
     /**
      * Webhook called by Exotel when a new call is dialed.
      */
-    @PostMapping(value = "/incoming", produces = MediaType.APPLICATION_XML_VALUE)
+    @RequestMapping(value = "/incoming", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_XML_VALUE)
     public String handleIncomingCall(
             @RequestParam("CallSid") String callSid,
             @RequestParam("From") String fromPhone,
@@ -68,7 +68,7 @@ public class ExotelVoiceController {
     /**
      * Webhook called by Exotel when user recording is completed.
      */
-    @PostMapping(value = "/process", produces = MediaType.APPLICATION_XML_VALUE)
+    @RequestMapping(value = "/process", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_XML_VALUE)
     public String handleProcessRecording(
             @RequestParam("CallSid") String callSid,
             @RequestParam(value = "RecordingUrl", required = false) String recordingUrl,
@@ -132,7 +132,7 @@ public class ExotelVoiceController {
     /**
      * Webhook called by Exotel when the call terminates.
      */
-    @PostMapping("/status")
+    @RequestMapping(value = "/status", method = {RequestMethod.GET, RequestMethod.POST})
     public void handleCallStatus(@RequestParam("CallSid") String callSid, @RequestParam("Status") String status) {
         log.info("Call status callback received. CallSid: {}, Status: {}", callSid, status);
         if ("completed".equalsIgnoreCase(status) || "terminated".equalsIgnoreCase(status) || "failed".equalsIgnoreCase(status)) {

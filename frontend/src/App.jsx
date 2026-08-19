@@ -80,6 +80,7 @@ const BranchManagerDashboard = lazy(() => import('./pages/BranchManagerDashboard
 const CashierDashboard = lazy(() => import('./pages/CashierDashboard'));
 const SupportExecutiveDashboard = lazy(() => import('./pages/SupportExecutiveDashboard'));
 const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'));
+const Support = lazy(() => import('./pages/Support'));
 
 const queryClient = new QueryClient();
 
@@ -158,6 +159,7 @@ function App() {
                   <Route path="/celebration-planner" element={<CelebrationPlanner />} />
                   <Route path="/checkout" element={<ProtectedRoute roles={['CUSTOMER']}><Checkout /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                  <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
                   <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/wallet" element={<ProtectedRoute><WalletDashboard /></ProtectedRoute>} />

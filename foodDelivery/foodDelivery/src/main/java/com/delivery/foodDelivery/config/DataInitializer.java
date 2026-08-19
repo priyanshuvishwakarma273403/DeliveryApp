@@ -32,18 +32,48 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Seed Admin User
-        if (!userRepository.existsByEmail("admin@foodiq.com") && !userRepository.existsByPhone("9988776655")) {
+        if (!userRepository.existsByEmail("admin@foodiq.com")) {
             User admin = User.builder()
                     .name("FoodIQ Admin")
                     .email("admin@foodiq.com")
-                    .password(passwordEncoder.encode("admin123"))
-                    .passwordHash(passwordEncoder.encode("admin123"))
+                    .password(passwordEncoder.encode("FoodIQ@Secure2026"))
+                    .passwordHash(passwordEncoder.encode("FoodIQ@Secure2026"))
                     .phone("9988776655")
                     .role(Role.ADMIN)
                     .active(true)
                     .build();
             userRepository.save(admin);
             log.info("Admin user seeded.");
+        }
+
+        // Seed Support User
+        if (!userRepository.existsByEmail("support@foodiq.com")) {
+            User support = User.builder()
+                    .name("Support Executive")
+                    .email("support@foodiq.com")
+                    .password(passwordEncoder.encode("FoodIQ@Secure2026"))
+                    .passwordHash(passwordEncoder.encode("FoodIQ@Secure2026"))
+                    .phone("2222222222")
+                    .role(Role.ADMIN) // Role ADMIN allows them to access all endpoints
+                    .active(true)
+                    .build();
+            userRepository.save(support);
+            log.info("Support user seeded.");
+        }
+
+        // Seed Customer User
+        if (!userRepository.existsByEmail("customer@foodiq.com")) {
+            User customer = User.builder()
+                    .name("Premium Customer")
+                    .email("customer@foodiq.com")
+                    .password(passwordEncoder.encode("FoodIQ@Secure2026"))
+                    .passwordHash(passwordEncoder.encode("FoodIQ@Secure2026"))
+                    .phone("9876543210")
+                    .role(Role.CUSTOMER)
+                    .active(true)
+                    .build();
+            userRepository.save(customer);
+            log.info("Customer user seeded.");
         }
 
         // Force cleanup and re-seeding of unique, high-quality data

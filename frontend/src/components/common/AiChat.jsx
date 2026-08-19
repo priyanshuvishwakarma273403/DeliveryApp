@@ -42,6 +42,13 @@ const AiChat = () => {
     }
   }, [messages, isTyping]);
 
+  // Open AI Chat externally via custom event
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-ai-chat', handleOpen);
+    return () => window.removeEventListener('open-ai-chat', handleOpen);
+  }, []);
+
   // Speech Recognition Setup
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;

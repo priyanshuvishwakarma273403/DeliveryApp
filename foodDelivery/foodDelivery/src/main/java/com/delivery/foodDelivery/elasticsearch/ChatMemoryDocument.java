@@ -13,7 +13,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(indexName = "chat_memory")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "chat_memory")
+@org.springframework.data.mongodb.core.mapping.Document(collection = "chat_memory")
 public class ChatMemoryDocument {
 
     @Id

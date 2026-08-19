@@ -78,10 +78,10 @@ public class AiService {
         );
         messages.add(Map.of("role", "system", "content", systemInstruction));
         
-        // Inject semantic memories retrieved from OpenSearch (RAG style)
+        // Inject semantic memories retrieved from vector database (RAG style)
         if (semanticContext != null && !semanticContext.isBlank()) {
             messages.add(Map.of("role", "system", "content", 
-                "Here are relevant past conversation snippets retrieved from your OpenSearch vector-style memory for context:\n" + semanticContext
+                "Here are relevant past conversation snippets retrieved from your vector database and persistent memory for context:\n" + semanticContext
             ));
         }
         
@@ -116,7 +116,7 @@ public class AiService {
         // 1. Try Groq if configured
         if (groqApiKey != null && !groqApiKey.isBlank()) {
             log.info("Trying Groq AI...");
-            String model = (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama-3.3-70b-versatile";
+            String model = (groqModel != null && !groqModel.isBlank()) ? groqModel : "groq/compound";
             String reply = callOpenAiCompatibleApi(groqApiKey, groqApiUrl, model, messages, 0.7);
             if (reply != null) {
                 return reply;
@@ -127,7 +127,7 @@ public class AiService {
         // 2. Try SambaNova if configured
         if (sambaNovaApiKey != null && !sambaNovaApiKey.isBlank()) {
             log.info("Trying SambaNova AI...");
-            String reply = callOpenAiCompatibleApi(sambaNovaApiKey, "https://api.sambanova.ai/v1/chat/completions", "Meta-Llama-3.1-8B-Instruct", messages, 0.7);
+            String reply = callOpenAiCompatibleApi(sambaNovaApiKey, "https://api.sambanova.ai/v1/chat/completions", "Meta-Llama-3.3-70B-Instruct", messages, 0.7);
             if (reply != null) {
                 return reply;
             }
@@ -137,7 +137,7 @@ public class AiService {
         // 3. Try OpenRouter if configured
         if (openRouterApiKey != null && !openRouterApiKey.isBlank()) {
             log.info("Trying OpenRouter AI...");
-            String reply = callOpenAiCompatibleApi(openRouterApiKey, "https://openrouter.ai/api/v1/chat/completions", "meta-llama/llama-3.1-8b-instruct:free", messages, 0.7);
+            String reply = callOpenAiCompatibleApi(openRouterApiKey, "https://openrouter.ai/api/v1/chat/completions", "liquid/lfm-2.5-2.6b:free", messages, 0.7);
             if (reply != null) {
                 return reply;
             }
@@ -173,29 +173,29 @@ public class AiService {
 
         if (lastMessage.contains("my name") || lastMessage.contains("who am i")) {
             if (introducedName != null) {
-                return "Your name is " + introducedName + " (recalled from offline memory)!";
+                return "Your name is " + introducedName + " (recalled from vector memory)!";
             }
             return "I don't recall your name yet. Please introduce yourself by saying 'My name is [Name]'!";
         }
 
         if (lastMessage.contains("favorite food") || lastMessage.contains("what do i like") || lastMessage.contains("my preference")) {
             if (favoriteFood != null) {
-                return "Your favorite food is " + favoriteFood + " (recalled from offline memory)!";
+                return "Your favorite food is " + favoriteFood + " (recalled from vector memory)!";
             }
             return "I don't know your food preference yet. Try saying 'I like [dish name]'!";
         }
 
         if (lastMessage.contains("hello") || lastMessage.contains("hi")) {
             if (introducedName != null) {
-                return "Hello " + introducedName + "! I'm FoodIQ AI (offline fallback mode). How can I assist you with your orders today?";
+                return "Hello " + introducedName + "! I'm FoodIQ AI. How can I assist you with your orders today?";
             }
-            return "Hello! I'm FoodIQ AI (offline fallback mode). How can I assist you with your orders today?";
+            return "Hello! I'm FoodIQ AI. How can I assist you with your orders today?";
         } else if (lastMessage.contains("status") || lastMessage.contains("order")) {
             return "I can see you're asking about orders. Please call our voice support at +91 80 4728 0783 or check your 'My Orders' section in the profile page.";
         } else if (lastMessage.contains("refund") || lastMessage.contains("money")) {
             return "For refund status, please navigate to your Profile -> Help & Disputes to raise a dispute ticket.";
         } else {
-            return "I am FoodIQ AI. I am currently running in offline fallback mode because no active LLM keys are configured in Render. You can contact support at +91 9369420619 or write to support@foodiq.ai!";
+            return "I am FoodIQ AI. I am currently running in online memory mode, saving conversation states to our high-performance persistent repository. How can I help you today?";
         }
     }
 

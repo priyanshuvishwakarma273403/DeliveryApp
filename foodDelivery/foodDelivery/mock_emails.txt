@@ -150,3 +150,147 @@ Content:
 Hello Premium Customer, your favorite food is waiting. Order now!
 ================================================================================
 
+================================================================================
+Date: 2026-08-19T16:05:39.275856800
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:06:27.601785
+To: customer@foodiq.com
+Subject: ? Security Alert: New login to FoodIQ
+Content:
+Hello Premium Customer, new login detected from IP: 127.0.0.1 using device: Web Browser / Device
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:07:38.690587300
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:09:38.685339200
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:11:38.749426100
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:13:38.686038900
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:15:38.910036700
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:17:38.690268200
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:19:38.750585900
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:21:38.849723500
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:23:38.696975100
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:25:38.767287
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:27:41.903521600
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:28:26.617872500
+To: customer@foodiq.com
+Subject: ? Security Alert: New login to FoodIQ
+Content:
+Hello Premium Customer, new login detected from IP: 127.0.0.1 using device: Web Browser / Device
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:29:41.433108700
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:33:16.434057
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:33:50.358070200
+To: customer@foodiq.com
+Subject: ? Security Alert: New login to FoodIQ
+Content:
+Hello Premium Customer, new login detected from IP: 127.0.0.1 using device: Web Browser / Device
+================================================================================
+
+================================================================================
+Date: 2026-08-19T16:35:15.821391500
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+

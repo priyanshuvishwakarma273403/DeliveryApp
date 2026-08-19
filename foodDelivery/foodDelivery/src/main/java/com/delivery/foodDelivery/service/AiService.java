@@ -146,7 +146,49 @@ public class AiService {
 
         // 4. Offline Rule-Based Fallback
         String lastMessage = messages.get(messages.size() - 1).get("content").toLowerCase();
+
+        // Scan history for user name introduction
+        String introducedName = null;
+        String favoriteFood = null;
+        for (Map<String, String> msg : messages) {
+            if ("user".equals(msg.get("role"))) {
+                String content = msg.get("content").toLowerCase();
+                if (content.contains("my name is ")) {
+                    int index = content.indexOf("my name is ") + "my name is ".length();
+                    introducedName = msg.get("content").substring(index).trim().replaceAll("[^a-zA-Z0-9\\s]", "");
+                } else if (content.contains("i am ")) {
+                    int index = content.indexOf("i am ") + "i am ".length();
+                    introducedName = msg.get("content").substring(index).trim().replaceAll("[^a-zA-Z0-9\\s]", "");
+                }
+
+                if (content.contains("i like ")) {
+                    int index = content.indexOf("i like ") + "i like ".length();
+                    favoriteFood = msg.get("content").substring(index).trim().replaceAll("[^a-zA-Z0-9\\s]", "");
+                } else if (content.contains("my favorite food is ")) {
+                    int index = content.indexOf("my favorite food is ") + "my favorite food is ".length();
+                    favoriteFood = msg.get("content").substring(index).trim().replaceAll("[^a-zA-Z0-9\\s]", "");
+                }
+            }
+        }
+
+        if (lastMessage.contains("my name") || lastMessage.contains("who am i")) {
+            if (introducedName != null) {
+                return "Your name is " + introducedName + " (recalled from offline memory)!";
+            }
+            return "I don't recall your name yet. Please introduce yourself by saying 'My name is [Name]'!";
+        }
+
+        if (lastMessage.contains("favorite food") || lastMessage.contains("what do i like") || lastMessage.contains("my preference")) {
+            if (favoriteFood != null) {
+                return "Your favorite food is " + favoriteFood + " (recalled from offline memory)!";
+            }
+            return "I don't know your food preference yet. Try saying 'I like [dish name]'!";
+        }
+
         if (lastMessage.contains("hello") || lastMessage.contains("hi")) {
+            if (introducedName != null) {
+                return "Hello " + introducedName + "! I'm FoodIQ AI (offline fallback mode). How can I assist you with your orders today?";
+            }
             return "Hello! I'm FoodIQ AI (offline fallback mode). How can I assist you with your orders today?";
         } else if (lastMessage.contains("status") || lastMessage.contains("order")) {
             return "I can see you're asking about orders. Please call our voice support at +91 80 4728 0783 or check your 'My Orders' section in the profile page.";

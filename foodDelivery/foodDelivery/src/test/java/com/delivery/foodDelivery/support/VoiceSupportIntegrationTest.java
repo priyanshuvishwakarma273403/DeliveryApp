@@ -48,6 +48,8 @@ public class VoiceSupportIntegrationTest {
                 .role(Role.CUSTOMER)
                 .active(true)
                 .build();
+        
+        lenient().when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
     }
 
     @Test

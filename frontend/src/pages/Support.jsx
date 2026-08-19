@@ -140,6 +140,9 @@ const Support = () => {
                   <p className="text-[9px] text-gray-500 font-bold leading-normal">
                     *Verification Code: 123456 (or your email OTP)
                   </p>
+                  <p className="text-[8px] text-amber-400 font-bold leading-normal mt-1">
+                    ⚠️ Trial Account: Ensure your caller number is whitelisted in your Exotel Dashboard.
+                  </p>
                 </div>
 
                 <a 

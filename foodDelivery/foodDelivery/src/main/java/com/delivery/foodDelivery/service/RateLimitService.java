@@ -18,6 +18,12 @@ public class RateLimitService {
         return buckets.computeIfAbsent(key, this::newBucket);
     }
 
+    public Bucket resolveAiBucket(String key) {
+        return buckets.computeIfAbsent("ai_" + key, k -> Bucket.builder()
+                .addLimit(Bandwidth.classic(30, Refill.greedy(30, Duration.ofMinutes(1))))
+                .build());
+    }
+
     private Bucket newBucket(String key) {
         // Limit: 5 requests per hour (as requested by user)
         return Bucket.builder()

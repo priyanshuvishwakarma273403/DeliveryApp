@@ -10,4 +10,5 @@ import java.util.List;
 public interface MenuItemRepository extends MongoRepository<MenuItem, String> {
     List<MenuItem> findByRestaurantId(String restaurantId);
     List<MenuItem> findByCategory(String category);
+    List<MenuItem> findByNameContainingIgnoreCase(String name);
 }

@@ -85,6 +85,12 @@ public class KafkaService {
             } else if (KafkaConfig.GREETINGS_TOPIC.equals(topic)) {
                 com.delivery.foodDelivery.dto.FestivalGreetingDTO dto = objectMapper.readValue(message, com.delivery.foodDelivery.dto.FestivalGreetingDTO.class);
                 kafkaConsumerService.consumeFestivalGreeting(dto);
+            } else if (KafkaConfig.USER_BEHAVIOR_TOPIC.equals(topic) ||
+                       KafkaConfig.ORDER_COMPLETED_TOPIC.equals(topic) ||
+                       KafkaConfig.ORDER_RATED_TOPIC.equals(topic) ||
+                       KafkaConfig.CART_EVENTS_TOPIC.equals(topic) ||
+                       KafkaConfig.RECOMMENDATION_EVENTS_TOPIC.equals(topic)) {
+                kafkaConsumerService.consumeTasteDnaEvent(message);
             } else {
                 log.warn("No direct routing mapping found for local fallback on topic: {}", topic);
             }

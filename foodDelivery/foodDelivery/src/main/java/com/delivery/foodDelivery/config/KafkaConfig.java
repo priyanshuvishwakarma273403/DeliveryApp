@@ -20,6 +20,13 @@ public class KafkaConfig {
     public static final String DAILY_REMINDERS_TOPIC = "daily-reminders";
     public static final String GREETINGS_TOPIC = "festival-greetings";
 
+    public static final String USER_BEHAVIOR_TOPIC = "foodiq.user.behavior";
+    public static final String ORDER_COMPLETED_TOPIC = "foodiq.order.completed";
+    public static final String ORDER_RATED_TOPIC = "foodiq.order.rated";
+    public static final String CART_EVENTS_TOPIC = "foodiq.cart.events";
+    public static final String RECOMMENDATION_EVENTS_TOPIC = "foodiq.recommendation.events";
+
+
     @Bean
     public NewTopic saleTopic() {
         return TopicBuilder.name(SALE_TOPIC)
@@ -75,6 +82,47 @@ public class KafkaConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic userBehaviorTopic() {
+        return TopicBuilder.name(USER_BEHAVIOR_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic orderCompletedTopic() {
+        return TopicBuilder.name(ORDER_COMPLETED_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic orderRatedTopic() {
+        return TopicBuilder.name(ORDER_RATED_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic cartEventsTopic() {
+        return TopicBuilder.name(CART_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic recommendationEventsTopic() {
+        return TopicBuilder.name(RECOMMENDATION_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
 
     /**
      * Error Handler with Retry Mechanism and Dead Letter Queue (DLQ)

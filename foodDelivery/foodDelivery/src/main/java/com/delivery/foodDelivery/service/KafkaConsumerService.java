@@ -3,6 +3,7 @@ package com.delivery.foodDelivery.service;
 import com.delivery.foodDelivery.config.KafkaConfig;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.dto.FestivalGreetingDTO;
+import com.delivery.foodDelivery.dto.UserBehaviorEventDto;
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.entity.Order;
 import com.delivery.foodDelivery.enums.Role;
@@ -32,6 +33,7 @@ public class KafkaConsumerService {
     private final EmailService emailService;
     private final KafkaMetrics kafkaMetrics;
     private final ObjectMapper objectMapper;
+    private final TasteSignalProcessor tasteSignalProcessor;
 
     /**
      * Listener for Sale Events.
@@ -276,6 +278,28 @@ public class KafkaConsumerService {
             throw e;
         } finally {
             kafkaMetrics.recordProcessingTime(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", Duration.ofMillis(System.currentTimeMillis() - startTime));
+        }
+    }
+
+    @KafkaListener(
+            topics = {
+                KafkaConfig.USER_BEHAVIOR_TOPIC,
+                KafkaConfig.ORDER_COMPLETED_TOPIC,
+                KafkaConfig.ORDER_RATED_TOPIC,
+                KafkaConfig.CART_EVENTS_TOPIC,
+                KafkaConfig.RECOMMENDATION_EVENTS_TOPIC
+            },
+            groupId = "taste-dna-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeTasteDnaEvent(String message) {
+        long startTime = System.currentTimeMillis();
+        log.info("Consumed Taste DNA event: {}", message);
+        try {
+            UserBehaviorEventDto eventDto = objectMapper.readValue(message, UserBehaviorEventDto.class);
+            tasteSignalProcessor.processEvent(eventDto);
+        } catch (Exception e) {
+            log.error("Error processing consumed Taste DNA event: {}", e.getMessage(), e);
         }
     }
 }

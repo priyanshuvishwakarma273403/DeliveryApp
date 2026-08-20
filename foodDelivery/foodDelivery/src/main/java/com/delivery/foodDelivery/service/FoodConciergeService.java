@@ -7,9 +7,9 @@ import com.delivery.foodDelivery.exception.BusinessException;
 import com.delivery.foodDelivery.dto.response.AiToolDtos.*;
 import com.delivery.foodDelivery.entity.*;
 import com.delivery.foodDelivery.repository.jpa.*;
+import com.delivery.foodDelivery.repository.jpa.UserTasteProfileRepository;
 import com.delivery.foodDelivery.repository.mongo.MenuItemRepository;
 import com.delivery.foodDelivery.repository.mongo.RestaurantRepository;
-import com.delivery.foodDelivery.repository.mongo.UserTasteProfileRepository;
 import com.delivery.foodDelivery.observability.metrics.AiMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bucket;
@@ -42,6 +42,7 @@ public class FoodConciergeService {
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
     private final UserTasteProfileRepository tasteProfileRepository;
+    private final UserTasteDimensionRepository tasteDimensionRepository;
 
     private final FoodConciergeToolService toolService;
     private final FoodConciergeRankingEngine rankingEngine;
@@ -165,7 +166,7 @@ public class FoodConciergeService {
         sendStatusUpdate(userId, conversation.getId(), "AI_TOOL_COMPLETED");
 
         // 6. Generate final chat response using LLM or rule-based fallback
-        String finalResponseContent = generateFinalResponse(userName, sanitizedMessage, conversation.getMessages(), rankedRecommendations, draftCartResponse, toolExecutionLogs);
+        String finalResponseContent = generateFinalResponse(userId, userName, sanitizedMessage, conversation.getMessages(), rankedRecommendations, draftCartResponse, toolExecutionLogs);
 
         // Save assistant message to database
         AIMessage assistantMessageEntity = AIMessage.builder()
@@ -480,7 +481,7 @@ public class FoodConciergeService {
      * Generates the final user-facing response using the LLM with injected context, falling back to rule-based templates.
      */
     private String generateFinalResponse(
-            String userName, String userMessage, List<AIMessage> history,
+            Long userId, String userName, String userMessage, List<AIMessage> history,
             List<AiRecommendationResponse> recommendations, CartResponse draftCart, String toolErrors) {
 
         String apiKey = getAvailableApiKey();
@@ -513,6 +514,30 @@ public class FoodConciergeService {
         // Build prompt context
         StringBuilder ctx = new StringBuilder("CONTEXT FOR RESPONSE:\n\n");
         ctx.append("User Name: ").append(userName).append("\n");
+
+        // Fetch User Taste DNA (Section 29)
+        try {
+            Optional<UserTasteProfile> profileOpt = tasteProfileRepository.findByUserId("user-" + userId);
+            if (profileOpt.isPresent()) {
+                UserTasteProfile profile = profileOpt.get();
+                ctx.append("--- USER TASTE DNA (ground truth) ---\n");
+                ctx.append("Preferred Cuisines: ").append(profile.getPreferredCuisines()).append("\n");
+                ctx.append("Dietary Preferences: ").append(profile.getDietaryPreferences()).append("\n");
+                ctx.append("Budget Tier: ").append(profile.getBudgetTier()).append("\n");
+                
+                List<UserTasteDimension> dimensions = tasteDimensionRepository.findByUserId(userId);
+                if (!dimensions.isEmpty()) {
+                    ctx.append("Taste Dimension Preferences:\n");
+                    dimensions.stream()
+                            .sorted((d1, d2) -> Double.compare(d2.getScore(), d1.getScore()))
+                            .limit(10)
+                            .forEach(d -> ctx.append(String.format("  - %s (%s): %.2f\n", d.getDimensionKey(), d.getDimensionType(), d.getScore())));
+                }
+                ctx.append("\n");
+            }
+        } catch (Exception e) {
+            log.error("Failed to append Taste DNA to LLM context", e);
+        }
 
         if (recommendations != null && !recommendations.isEmpty()) {
             ctx.append("--- RECOMMENDED ITEMS (ground truth - recommend ONLY these) ---\n");

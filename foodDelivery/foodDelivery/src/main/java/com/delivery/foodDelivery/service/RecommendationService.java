@@ -2,6 +2,7 @@ package com.delivery.foodDelivery.service;
 
 import com.delivery.foodDelivery.entity.*;
 import com.delivery.foodDelivery.repository.mongo.*;
+import com.delivery.foodDelivery.repository.jpa.UserTasteProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

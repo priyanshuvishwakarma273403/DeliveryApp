@@ -243,11 +243,13 @@ public class TasteDnaRecommendationEngine {
         }
 
         // Cuisine matching via restaurant
-        restaurantRepository.findById(item.getRestaurantId()).ifPresent(r -> {
+        Optional<Restaurant> restOpt = restaurantRepository.findById(item.getRestaurantId());
+        if (restOpt.isPresent()) {
+            Restaurant r = restOpt.get();
             if (r.getCuisineType() != null) {
                 score += dimensionMap.getOrDefault("CUISINE:" + r.getCuisineType().toUpperCase(), 0.0) * 0.4;
             }
-        });
+        }
 
         // Specific category match
         if (item.getCategory() != null) {

@@ -47,11 +47,12 @@ public class KafkaConsumerService {
             groupId = "email-service-group",
             autoStartup = "${spring.kafka.listener.auto-startup:true}"
     )
-    public void consumeSaleEvent(SaleEventDTO saleEvent) {
+    public void consumeSaleEvent(String message) {
         long startTime = System.currentTimeMillis();
-        log.info("Consumed sale event: {}", saleEvent.getTitle());
+        log.info("Consumed sale event: {}", message);
 
         try {
+            SaleEventDTO saleEvent = objectMapper.readValue(message, SaleEventDTO.class);
             int pageSize = 50; // Smaller batch size to prevent OOM on Render
             int pageNumber = 0;
             Page<User> userPage;
@@ -80,7 +81,7 @@ public class KafkaConsumerService {
             log.error("Error processing consumed sale event: {}", e.getMessage());
             kafkaMetrics.incrementErrors(KafkaConfig.SALE_TOPIC, "SALE_EVENT", e.getClass().getSimpleName());
             kafkaMetrics.incrementConsumed(KafkaConfig.SALE_TOPIC, "SALE_EVENT", "ERROR");
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             kafkaMetrics.recordProcessingTime(KafkaConfig.SALE_TOPIC, "SALE_EVENT", Duration.ofMillis(System.currentTimeMillis() - startTime));
         }
@@ -94,8 +95,8 @@ public class KafkaConsumerService {
             groupId = "email-service-dlt-group",
             autoStartup = "${spring.kafka.listener.auto-startup:true}"
     )
-    public void consumeDlt(SaleEventDTO saleEvent) {
-        log.error("EVENT MOVED TO DLT: {}", saleEvent);
+    public void consumeDlt(String message) {
+        log.error("EVENT MOVED TO DLT: {}", message);
         kafkaMetrics.incrementConsumed(KafkaConfig.SALE_DLT_TOPIC, "SALE_DLT", "SUCCESS");
     }
 
@@ -243,11 +244,12 @@ public class KafkaConsumerService {
             groupId = "email-service-group",
             autoStartup = "${spring.kafka.listener.auto-startup:true}"
     )
-    public void consumeFestivalGreeting(FestivalGreetingDTO greetingEvent) {
+    public void consumeFestivalGreeting(String message) {
         long startTime = System.currentTimeMillis();
-        log.info("Consumed festival greeting event: {}", greetingEvent.getTitle());
+        log.info("Consumed festival greeting event: {}", message);
 
         try {
+            FestivalGreetingDTO greetingEvent = objectMapper.readValue(message, FestivalGreetingDTO.class);
             int pageSize = 50; 
             int pageNumber = 0;
             Page<User> userPage;
@@ -281,7 +283,7 @@ public class KafkaConsumerService {
             log.error("Error processing consumed festival greeting event: {}", e.getMessage());
             kafkaMetrics.incrementErrors(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", e.getClass().getSimpleName());
             kafkaMetrics.incrementConsumed(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", "ERROR");
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             kafkaMetrics.recordProcessingTime(KafkaConfig.GREETINGS_TOPIC, "FESTIVAL_GREETING", Duration.ofMillis(System.currentTimeMillis() - startTime));
         }

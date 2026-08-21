@@ -80,11 +80,9 @@ public class KafkaService {
             } else if ("daily-reminders".equals(topic)) {
                 kafkaConsumerService.consumeDailyReminders(message);
             } else if (KafkaConfig.SALE_TOPIC.equals(topic)) {
-                SaleEventDTO dto = objectMapper.readValue(message, SaleEventDTO.class);
-                kafkaConsumerService.consumeSaleEvent(dto);
+                kafkaConsumerService.consumeSaleEvent(message);
             } else if (KafkaConfig.GREETINGS_TOPIC.equals(topic)) {
-                com.delivery.foodDelivery.dto.FestivalGreetingDTO dto = objectMapper.readValue(message, com.delivery.foodDelivery.dto.FestivalGreetingDTO.class);
-                kafkaConsumerService.consumeFestivalGreeting(dto);
+                kafkaConsumerService.consumeFestivalGreeting(message);
             } else if (KafkaConfig.USER_BEHAVIOR_TOPIC.equals(topic) ||
                        KafkaConfig.ORDER_COMPLETED_TOPIC.equals(topic) ||
                        KafkaConfig.ORDER_RATED_TOPIC.equals(topic) ||

@@ -41,7 +41,11 @@ public class DigitalTwinService {
     private final SimpMessagingTemplate messagingTemplate;
     private final List<DemandForecastModel> forecastModels;
     private final ObjectMapper objectMapper;
-    private final KitchenIntelligenceService kitchenIntelligenceService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    @org.springframework.context.annotation.Lazy
+    private KitchenIntelligenceService kitchenIntelligenceService;
+
 
 
     // Idempotency: Keep track of processed Kafka event IDs to prevent duplicate processing

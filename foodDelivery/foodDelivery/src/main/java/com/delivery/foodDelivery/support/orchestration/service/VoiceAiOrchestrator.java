@@ -176,7 +176,7 @@ public class VoiceAiOrchestrator {
             } else if ("update_kitchen_station_capacity".equalsIgnoreCase(toolName)) {
                 String[] parts = arg.split(",");
                 String station = parts[0].trim();
-                int cap = parts.length > 1 ? (int) parseId(parts[1]) : 3;
+                int cap = parts.length > 1 ? parseId(parts[1]).intValue() : 3;
                 toolResult = toolsExecutor.updateKitchenStationCapacity(session, station, cap);
             } else if ("transfer_to_agent".equalsIgnoreCase(toolName)) {
                 doEscalate = true;

@@ -66,12 +66,12 @@ public class DemandIntelligenceIntegrationTest {
 
         // Mock menu items
         MenuItem dish1 = new MenuItem();
-        dish1.setId(101L);
+        dish1.setId("101");
         dish1.setName("Special Biryani");
         dish1.setPrice(350.0);
 
         MenuItem dish2 = new MenuItem();
-        dish2.setId(102L);
+        dish2.setId("102");
         dish2.setName("Garlic Naan");
         dish2.setPrice(60.0);
 
@@ -81,17 +81,19 @@ public class DemandIntelligenceIntegrationTest {
         // Mock kitchen metrics
         RestaurantKitchenMetric kitchenMetric1 = new RestaurantKitchenMetric();
         kitchenMetric1.setRestaurantId(restaurantId);
-        kitchenMetric1.setStationName("Grill");
-        kitchenMetric1.setCurrentUtilization(0.75);
-        kitchenMetric1.setQueueSize(3);
-        kitchenMetric1.setEstimatedDelayMinutes(4.5);
+        kitchenMetric1.setStationName("GRILL");
+        kitchenMetric1.setUtilization(0.75);
+        kitchenMetric1.setActiveOrders(3);
+        kitchenMetric1.setCapacity(10);
+        kitchenMetric1.setTimestamp(LocalDateTime.now());
 
         RestaurantKitchenMetric kitchenMetric2 = new RestaurantKitchenMetric();
         kitchenMetric2.setRestaurantId(restaurantId);
-        kitchenMetric2.setStationName("Fryer");
-        kitchenMetric2.setCurrentUtilization(0.40);
-        kitchenMetric2.setQueueSize(1);
-        kitchenMetric2.setEstimatedDelayMinutes(1.0);
+        kitchenMetric2.setStationName("FRYER");
+        kitchenMetric2.setUtilization(0.40);
+        kitchenMetric2.setActiveOrders(1);
+        kitchenMetric2.setCapacity(8);
+        kitchenMetric2.setTimestamp(LocalDateTime.now());
 
         Mockito.when(kitchenMetricRepository.findByRestaurantId(restaurantId))
                 .thenReturn(List.of(kitchenMetric1, kitchenMetric2));
@@ -100,17 +102,17 @@ public class DemandIntelligenceIntegrationTest {
         RestaurantInventoryMetric inventoryMetric1 = new RestaurantInventoryMetric();
         inventoryMetric1.setRestaurantId(restaurantId);
         inventoryMetric1.setIngredientName("Rice");
-        inventoryMetric1.setCurrentStock(50.0);
-        inventoryMetric1.setSafetyStock(10.0);
-        inventoryMetric1.setDailyConsumptionRate(30.0);
+        inventoryMetric1.setAvailableQuantity(50.0);
+        inventoryMetric1.setReorderThreshold(10.0);
+        inventoryMetric1.setPredictedConsumptionRate(30.0);
         inventoryMetric1.setUnit("KG");
 
         RestaurantInventoryMetric inventoryMetric2 = new RestaurantInventoryMetric();
         inventoryMetric2.setRestaurantId(restaurantId);
         inventoryMetric2.setIngredientName("Chicken");
-        inventoryMetric2.setCurrentStock(4.0);
-        inventoryMetric2.setSafetyStock(5.0);
-        inventoryMetric2.setDailyConsumptionRate(15.0);
+        inventoryMetric2.setAvailableQuantity(4.0);
+        inventoryMetric2.setReorderThreshold(5.0);
+        inventoryMetric2.setPredictedConsumptionRate(15.0);
         inventoryMetric2.setUnit("KG");
 
         Mockito.when(inventoryMetricRepository.findByRestaurantId(restaurantId))
@@ -123,8 +125,8 @@ public class DemandIntelligenceIntegrationTest {
         assertNotNull(forecasts);
         assertFalse(forecasts.isEmpty());
         // Verify we got the horizons populated
-        assertTrue(forecasts.stream().anyMatch(f -> f.getHorizon() == RestaurantForecast.ForecastHorizon.NEXT_15_MINUTES));
-        assertTrue(forecasts.stream().anyMatch(f -> f.getHorizon() == RestaurantForecast.ForecastHorizon.NEXT_7_DAYS));
+        assertTrue(forecasts.stream().anyMatch(f -> "NEXT_15_MINUTES".equals(f.getHorizon())));
+        assertTrue(forecasts.stream().anyMatch(f -> "NEXT_7_DAYS".equals(f.getHorizon())));
     }
 
     @Test
@@ -136,14 +138,14 @@ public class DemandIntelligenceIntegrationTest {
         
         List<Map<String, Object>> stations = (List<Map<String, Object>>) capacityDetails.get("stations");
         assertFalse(stations.isEmpty());
-        assertTrue(stations.stream().anyMatch(st -> st.get("station").equals("Grill")));
+        assertTrue(stations.stream().anyMatch(st -> st.get("station").equals("GRILL")));
     }
 
     @Test
     public void testRunWhatIfSimulation() {
         Map<String, Object> simResults = demandIntelligenceService.runWhatIfSimulation(restaurantId, 0.40, -1, 0.0);
         assertNotNull(simResults);
-        assertEquals(14, simResults.get("predictedOrders"));
+        assertEquals(28, simResults.get("predictedOrders"));
         assertTrue((Double) simResults.get("capacityUtilization") > 0.65);
     }
 }

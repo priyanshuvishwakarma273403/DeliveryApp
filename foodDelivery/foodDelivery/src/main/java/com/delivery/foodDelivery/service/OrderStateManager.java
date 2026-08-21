@@ -23,6 +23,9 @@ public class OrderStateManager {
     private final KafkaService kafkaService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    
+    @org.springframework.context.annotation.Lazy
+    private final OrderBrain orderBrain;
 
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = new EnumMap<>(OrderStatus.class);
 
@@ -140,6 +143,15 @@ public class OrderStateManager {
 
         // Broadcast to WebSocket clients
         broadcastWebSocket(saved);
+
+        // Update OrderBrain Digital Twin & Timeline
+        try {
+            orderBrain.recordTimelineEvent(orderId, "Status Transition", 
+                    "Order moved from " + current + " to " + nextStatus, "STATUS_UPDATE", true);
+            orderBrain.updateAndProcessOrder(orderId);
+        } catch (Exception e) {
+            log.error("Failed to run OrderBrain update for order transition", e);
+        }
 
         return saved;
     }

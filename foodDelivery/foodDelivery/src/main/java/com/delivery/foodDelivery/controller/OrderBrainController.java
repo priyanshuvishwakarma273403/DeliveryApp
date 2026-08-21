@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping("/v1/orders")
 @RequiredArgsConstructor
 @Slf4j
 public class OrderBrainController {

@@ -17,10 +17,14 @@ import {
   Sparkles,
   Send,
   CloudRain,
-  Navigation,
   ShieldCheck,
   TrendingUp,
-  MessageSquare
+  Settings,
+  AlertTriangle,
+  Heart,
+  RotateCcw,
+  XCircle,
+  Activity
 } from 'lucide-react';
 import GoogleLiveMap from '../components/order/GoogleLiveMap';
 import Button from '../components/common/Button';
@@ -30,6 +34,7 @@ import { getGroqResponse } from '../services/aiService';
 import { useWebSocket } from '../providers/WebSocketProvider';
 import { useAuthStore } from '../store/authStore';
 import dayjs from 'dayjs';
+import toast from 'react-hot-toast';
 
 const STEPS = [
   { id: 1, name: 'Placed', icon: CheckCircle2, status: 'PLACED' },
@@ -61,6 +66,24 @@ const OrderDetail = () => {
   const [riderPos, setRiderPos] = useState({ lat: 28.6139, lng: 77.2090 });
   const [eta, setEta] = useState(12);
 
+  // Order Brain States
+  const [digitalTwin, setDigitalTwin] = useState(null);
+  const [timeline, setTimeline] = useState([]);
+  const [risks, setRisks] = useState([]);
+  const [recoveryActions, setRecoveryActions] = useState([]);
+  const [alternatives, setAlternatives] = useState([]);
+  const [selectedItemForSubstitution, setSelectedItemForSubstitution] = useState(null);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+  const [decisionPendingAction, setDecisionPendingAction] = useState(null);
+
+  // Recovery Preferences
+  const [settings, setSettings] = useState({
+    autoUpdateEta: true,
+    autoSubstituteSamePrice: false,
+    autoRemoveItem: false,
+    askEveryTime: true
+  });
+
   const { client, isConnected } = useWebSocket();
   const { user } = useAuthStore();
 
@@ -86,10 +109,115 @@ const OrderDetail = () => {
       if (res.success) {
         setOrder(res.data);
       }
+      
+      // Fetch twin
+      try {
+        const twinRes = await orderService.getOrderTwin(id);
+        if (twinRes.success) {
+          setDigitalTwin(twinRes.data);
+          if (twinRes.data.predictedDeliveryAt) {
+            const diff = dayjs(twinRes.data.predictedDeliveryAt).diff(dayjs(), 'minute');
+            setEta(Math.max(1, diff));
+          }
+        }
+      } catch (err) {
+        console.error("Twin fetch error", err);
+      }
+
+      // Fetch timeline
+      try {
+        const timelineRes = await orderService.getOrderTimeline(id, true);
+        if (timelineRes.success) {
+          setTimeline(timelineRes.data);
+        }
+      } catch (err) {
+        console.error("Timeline fetch error", err);
+      }
+
+      // Fetch risks
+      try {
+        const risksRes = await orderService.getOrderRisks(id);
+        if (risksRes.success) {
+          setRisks(risksRes.data);
+        }
+      } catch (err) {
+        console.error("Risks fetch error", err);
+      }
+
+      // Fetch recovery actions
+      try {
+        const recoveryRes = await orderService.getOrderRecoveryActions(id);
+        if (recoveryRes.success) {
+          setRecoveryActions(recoveryRes.data);
+          const pending = recoveryRes.data.find(a => a.status === 'WAITING_APPROVAL');
+          if (pending) {
+            setDecisionPendingAction(pending);
+            // Fetch alternatives for items in the order
+            if (res.data?.orderItems && res.data.orderItems.length > 0) {
+              setSelectedItemForSubstitution(res.data.orderItems[0]);
+              fetchAlternativesForDish(res.data.orderItems[0].menuItemId);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Recovery actions fetch error", err);
+      }
+
+      // Fetch recovery preferences
+      try {
+        const prefRes = await orderService.getRecoverySettings();
+        if (prefRes.success) {
+          setSettings(prefRes.data);
+        }
+      } catch (err) {
+        console.error("Preferences fetch error", err);
+      }
+
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAlternativesForDish = async (menuItemId) => {
+    try {
+      setLoadingAlternatives(true);
+      const altRes = await orderService.getAlternatives(id, menuItemId);
+      if (altRes.success) {
+        setAlternatives(altRes.data);
+      }
+    } catch (err) {
+      console.error("Alternatives fetch error", err);
+    } finally {
+      setLoadingAlternatives(false);
+    }
+  };
+
+  const handleDecisionSubmit = async (alternativeName) => {
+    if (!decisionPendingAction) return;
+    try {
+      await orderService.submitRecoveryDecision(id, decisionPendingAction.actionId, alternativeName);
+      toast.success(`Selected replacement item: ${alternativeName}`);
+      setDecisionPendingAction(null);
+      setSelectedItemForSubstitution(null);
+      setAlternatives([]);
+      fetchOrderDetails();
+    } catch (err) {
+      console.error("Submit decision error", err);
+      toast.error("Failed to process recovery choice.");
+    }
+  };
+
+  const updatePreferenceSetting = async (key, val) => {
+    try {
+      const updated = { ...settings, [key]: val };
+      setSettings(updated);
+      await orderService.updateRecoverySettings(updated);
+      toast.success("Recovery settings updated");
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not update settings");
     }
   };
 
@@ -100,7 +228,8 @@ const OrderDetail = () => {
   // Real-time status update via WebSockets
   useEffect(() => {
     if (!client || !user?.id) return;
-    const sub = client.subscribe(`/topic/order/${user.id}`, (message) => {
+
+    const subOrder = client.subscribe(`/topic/order/${user.id}`, (message) => {
       if (message.body) {
         const updated = JSON.parse(message.body);
         if (updated.id === Number(id)) {
@@ -108,7 +237,34 @@ const OrderDetail = () => {
         }
       }
     });
-    return () => sub.unsubscribe();
+
+    const subTwin = client.subscribe(`/topic/order/${id}/twin`, (message) => {
+      if (message.body) {
+        const updatedTwin = JSON.parse(message.body);
+        setDigitalTwin(updatedTwin);
+        if (updatedTwin.predictedDeliveryAt) {
+          const diff = dayjs(updatedTwin.predictedDeliveryAt).diff(dayjs(), 'minute');
+          setEta(Math.max(1, diff));
+        }
+      }
+    });
+
+    const subRecovery = client.subscribe(`/topic/order/${id}/recovery`, (message) => {
+      if (message.body) {
+        const event = JSON.parse(message.body);
+        if (event.eventType === 'CUSTOMER_DECISION_REQUIRED') {
+          fetchOrderDetails();
+        } else {
+          fetchOrderDetails();
+        }
+      }
+    });
+
+    return () => {
+      subOrder.unsubscribe();
+      subTwin.unsubscribe();
+      subRecovery.unsubscribe();
+    };
   }, [client, user?.id, id]);
 
   // Simulate rider movement
@@ -118,10 +274,12 @@ const OrderDetail = () => {
         lat: prev.lat - 0.0001,
         lng: prev.lng - 0.0001
       }));
-      setEta(prev => Math.max(1, prev - 1));
+      if (!digitalTwin) {
+        setEta(prev => Math.max(1, prev - 1));
+      }
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [digitalTwin]);
 
   // Auto-scroll chat window
   useEffect(() => {
@@ -240,7 +398,7 @@ Keep answers extremely helpful, highly concise, reassuring, and related to this 
       <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
           
-          {/* Col 1: Stepper (Desktop) */}
+          {/* Col 1: Stepper, Digital Twin HUD, preferences */}
           <div className="hidden md:block lg:col-span-3 space-y-6">
             <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden relative">
               <div className="absolute top-0 right-0 h-20 w-20 bg-primary/5 rounded-bl-full" />
@@ -292,6 +450,102 @@ Keep answers extremely helpful, highly concise, reassuring, and related to this 
               )}
             </div>
 
+            {/* Digital Twin HUD */}
+            {digitalTwin && (
+              <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Activity size={18} className="text-primary animate-pulse" />
+                    <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Digital Twin HUD</span>
+                  </div>
+                  <Badge variant={
+                    digitalTwin.overallHealth === 'HEALTHY' ? 'success' :
+                    digitalTwin.overallHealth === 'WATCH' ? 'warning' : 'error'
+                  } className="text-[9px]">{digitalTwin.overallHealth}</Badge>
+                </div>
+                
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Prep Progress</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{Math.round((digitalTwin.kitchenProgress || 0) * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Predicted Food Ready</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {digitalTwin.predictedFoodReadyAt ? dayjs(digitalTwin.predictedFoodReadyAt).format('hh:mm A') : 'Calculating'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Predicted Delivery</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {digitalTwin.predictedDeliveryAt ? dayjs(digitalTwin.predictedDeliveryAt).format('hh:mm A') : 'Calculating'}
+                    </span>
+                  </div>
+                </div>
+
+                {risks.length > 0 && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1.5">
+                    <span className="text-[10px] font-black text-red-500 uppercase tracking-wider">Active Risks</span>
+                    {risks.map((risk, index) => (
+                      <div key={index} className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 p-2 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <AlertTriangle size={14} className="flex-shrink-0" />
+                        <span className="font-bold truncate">{risk.type}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recovery Preferences Settings Panel */}
+            <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
+                <Settings size={18} className="text-gray-500" />
+                <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Auto-Recovery Settings</span>
+              </div>
+              
+              <div className="space-y-3.5">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Auto Update ETA</span>
+                    <span className="text-[10px] text-gray-400">Adjust delivery expectation without confirmation</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settings.autoUpdateEta} 
+                    onChange={(e) => updatePreferenceSetting('autoUpdateEta', e.target.checked)} 
+                    className="accent-primary h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Auto Substitute Similar</span>
+                    <span className="text-[10px] text-gray-400">Instantly replace item if out-of-stock</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settings.autoSubstituteSamePrice} 
+                    onChange={(e) => updatePreferenceSetting('autoSubstituteSamePrice', e.target.checked)} 
+                    className="accent-primary h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-800 dark:text-gray-200">Ask Every Time</span>
+                    <span className="text-[10px] text-gray-400">Require approval for all recovery actions</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settings.askEveryTime} 
+                    onChange={(e) => updatePreferenceSetting('askEveryTime', e.target.checked)} 
+                    className="accent-primary h-4 w-4"
+                  />
+                </label>
+              </div>
+            </div>
+
             {/* Rider Card */}
             {order.delivery && (
               <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-gray-800">
@@ -303,7 +557,7 @@ Keep answers extremely helpful, highly concise, reassuring, and related to this 
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Delivery Partner</p>
                     <h4 className="text-sm font-black text-gray-950 dark:text-white truncate">{order.delivery.deliveryPartnerName || 'Rider Agent'}</h4>
                     <div className="flex items-center gap-1 text-orange-500 text-xs font-bold">
-                      <Star size={10} fill="currentColor" /> 4.9
+                       <Star size={10} fill="currentColor" /> 4.9
                     </div>
                   </div>
                   {order.delivery.deliveryPartnerPhone && (
@@ -316,14 +570,130 @@ Keep answers extremely helpful, highly concise, reassuring, and related to this 
             )}
           </div>
 
-          {/* Col 2: Live Map */}
-          <div className="lg:col-span-5">
-            <div className="h-[360px] md:h-[460px] lg:h-[500px] rounded-[2.5rem] overflow-hidden shadow-sm border-4 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-900 relative">
+          {/* Col 2: Live Map, Recovery Actions prompt, Operational Timeline */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="h-[320px] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-sm border-4 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-900 relative">
               <GoogleLiveMap 
                 riderPos={riderPos}
                 restaurantPos={restaurantPos}
                 userPos={userPos}
               />
+            </div>
+
+            {/* Order Recovery Center - Customer Decision required */}
+            <AnimatePresence>
+              {decisionPendingAction && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 shadow-xl border-2 border-primary/20 dark:border-primary/30 space-y-4 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Sparkles size={48} className="text-primary animate-pulse" />
+                  </div>
+
+                  <div className="flex items-start gap-3.5">
+                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+                      <AlertTriangle size={20} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black text-primary uppercase tracking-widest">Order Recovery Center</span>
+                      <h3 className="text-sm font-black text-gray-900 dark:text-white mt-0.5">Substitution Required</h3>
+                      <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                        The kitchen is out of an item. Choose a Taste DNA-approved alternative below, or request a refund.
+                      </p>
+                    </div>
+                  </div>
+
+                  {loadingAlternatives ? (
+                    <div className="py-4 text-center">
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      <span className="text-xs text-gray-400 font-bold">Ranking Taste DNA alternatives...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-2">
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">AI Recommended Alternatives</span>
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {alternatives.map((alt) => (
+                          <div 
+                            key={alt.id} 
+                            onClick={() => handleDecisionSubmit(alt.name)}
+                            className="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-primary/5 dark:bg-gray-850 dark:hover:bg-gray-800 rounded-2xl border border-gray-100 hover:border-primary/20 dark:border-gray-800 transition-all cursor-pointer group"
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <div className="h-8 w-8 bg-orange-100 dark:bg-orange-950/20 rounded-lg flex items-center justify-center text-primary font-bold">
+                                <Heart size={14} className="group-hover:scale-110 transition-transform" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{alt.name}</h4>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[9px] text-gray-400 uppercase font-bold">{alt.category}</span>
+                                  {alt.vegetarian && <Badge variant="success" className="text-[7px] py-0 px-1">VEG</Badge>}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-black text-gray-900 dark:text-white">₹{alt.price}</span>
+                              <div className="h-6 w-6 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center text-primary shadow-sm">
+                                <Check size={12} strokeWidth={3} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button 
+                          onClick={() => handleDecisionSubmit("REFUND_ITEM")}
+                          className="flex-1 py-3 bg-gray-50 hover:bg-red-50 hover:text-red-500 text-gray-600 dark:bg-gray-850 dark:hover:bg-red-950/20 rounded-xl text-xs font-bold border border-gray-100 dark:border-gray-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <RotateCcw size={14} /> Remove & Refund
+                        </button>
+                        <button 
+                          onClick={() => handleDecisionSubmit("CANCEL_ORDER")}
+                          className="flex-1 py-3 bg-gray-50 hover:bg-red-50 hover:text-red-500 text-gray-600 dark:bg-gray-850 dark:hover:bg-red-950/20 rounded-xl text-xs font-bold border border-gray-100 dark:border-gray-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <XCircle size={14} /> Cancel Order
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Operational Timeline */}
+            <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-4 mb-5">
+                <TrendingUp size={18} className="text-primary" />
+                <h3 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Live Journey Timeline</h3>
+              </div>
+
+              <div className="space-y-6 relative ml-3">
+                <div className="absolute left-[-11px] top-2 bottom-2 w-0.5 bg-gray-100 dark:bg-gray-850" />
+                
+                {timeline.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-gray-400">No events logged yet. Tracking is initializing...</div>
+                ) : (
+                  timeline.map((item, idx) => (
+                    <div key={item.id || idx} className="relative flex items-start gap-4">
+                      <div className="z-10 h-5.5 w-5.5 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-900 bg-primary shadow-sm text-white flex-shrink-0">
+                        <Check size={9} strokeWidth={4} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-gray-900 dark:text-white">{item.title}</span>
+                          <span className="text-[9px] text-gray-400 font-medium">
+                            {dayjs(item.timestamp).format('hh:mm A')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 

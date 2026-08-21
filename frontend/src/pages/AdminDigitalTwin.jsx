@@ -15,14 +15,26 @@ import Badge from '../components/common/Badge';
 import { toast } from 'react-hot-toast';
 import restaurantService from '../services/restaurantService';
 import { ALL_RESTAURANTS } from '../data/restaurants';
+import { useWebSocket } from '../providers/WebSocketProvider';
 
 const AdminDigitalTwin = () => {
   const { id } = useParams();
+  const { client, isConnected } = useWebSocket();
+
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isTraining, setIsTraining] = useState(false);
   const [appliedOptimizations, setAppliedOptimizations] = useState({});
+
+  // Backend state storage
+  const [twinState, setTwinState] = useState(null);
+  const [forecasts, setForecasts] = useState([]);
+  const [kitchenMetrics, setKitchenMetrics] = useState([]);
+  const [inventoryMetrics, setInventoryMetrics] = useState([]);
+  const [risks, setRisks] = useState([]);
+  const [simulationResult, setSimulationResult] = useState(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   // Simulation Parameters
   const [weather, setWeather] = useState('sunny'); // sunny, rainy, stormy, heatwave
@@ -70,6 +82,53 @@ const AdminDigitalTwin = () => {
         } else {
           toast.error("Restaurant not found");
         }
+
+        // Fetch Digital Twin metrics from the backend
+        try {
+          const stateRes = await restaurantService.getDigitalTwinState(id);
+          if (stateRes) {
+            setTwinState(stateRes);
+          }
+        } catch (e) {
+          console.warn("Failed to load digital twin state from backend", e);
+        }
+
+        try {
+          const forecastRes = await restaurantService.getDigitalTwinForecast(id);
+          if (forecastRes) {
+            setForecasts(forecastRes);
+          }
+        } catch (e) {
+          console.warn("Failed to load forecast from backend", e);
+        }
+
+        try {
+          const kitchenRes = await restaurantService.getDigitalTwinKitchenState(id);
+          if (kitchenRes) {
+            setKitchenMetrics(kitchenRes);
+          }
+        } catch (e) {
+          console.warn("Failed to load kitchen metrics from backend", e);
+        }
+
+        try {
+          const inventoryRes = await restaurantService.getDigitalTwinInventoryRisk(id);
+          if (inventoryRes) {
+            setInventoryMetrics(inventoryRes);
+          }
+        } catch (e) {
+          console.warn("Failed to load inventory metrics from backend", e);
+        }
+
+        try {
+          const risksRes = await restaurantService.getDigitalTwinRisks(id);
+          if (risksRes) {
+            setRisks(risksRes);
+          }
+        } catch (e) {
+          console.warn("Failed to load active risks from backend", e);
+        }
+
       } catch (err) {
         console.error(err);
         toast.error("Failed to load restaurant digital twin data");
@@ -80,6 +139,31 @@ const AdminDigitalTwin = () => {
 
     fetchRestaurantData();
   }, [id]);
+
+  // WebSocket Subscription for Real-time Digital Twin State Updates
+  useEffect(() => {
+    if (!client || !isConnected) return;
+
+    console.log("Subscribing to WebSocket digital-twin topic for restaurant:", id);
+    const subscription = client.subscribe(`/topic/digital-twin/${id}`, (message) => {
+      if (message.body) {
+        try {
+          const payload = JSON.parse(message.body);
+          console.log("Received live digital twin update via WebSocket:", payload);
+          if (payload.state) {
+            setTwinState(payload.state);
+            toast.success("Twin state synchronized in real-time! 🔄", { id: "ws-update" });
+          }
+        } catch (err) {
+          console.error("Error parsing WebSocket update:", err);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client, isConnected, id]);
 
   const handleRetrain = () => {
     setIsTraining(true);
@@ -124,11 +208,67 @@ const AdminDigitalTwin = () => {
     );
   }
 
+  // Trigger What-If Simulation on backend
+  useEffect(() => {
+    if (!restaurant) return;
+
+    const executeSimulation = async () => {
+      try {
+        setIsSimulating(true);
+        // Map frontend values to backend SimulationRequest parameters
+        let orderIncrease = 0.0;
+        if (demandFactor === 'low') orderIncrease = -0.30;
+        if (demandFactor === 'high_surge') orderIncrease = 0.40;
+        if (simulationEvent === 'diwali') orderIncrease += 0.80;
+        if (simulationEvent === 'weekend') orderIncrease += 0.30;
+        if (simulationEvent === 'cricket') orderIncrease += 0.45;
+
+        let staffChange = 0;
+        if (staffingLevel === 'understaffed') staffChange = -2;
+        if (staffingLevel === 'overstaffed') staffChange = 2;
+
+        let discountApplied = 0.0;
+        if (appliedOptimizations['discount']) discountApplied = 0.20;
+
+        const res = await restaurantService.runWhatIfSimulation(id, {
+          orderIncrease,
+          staffChange,
+          discountApplied
+        });
+
+        if (res) {
+          setSimulationResult(res);
+        }
+      } catch (err) {
+        console.warn("Failed to compute What-If simulation on backend", err);
+      } finally {
+        setIsSimulating(false);
+      }
+    };
+
+    // Debounce backend simulation to avoid overloading the API
+    const delayDebounceFn = setTimeout(() => {
+      executeSimulation();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [id, weather, simulationEvent, demandFactor, staffingLevel, kitchenCapacity, appliedOptimizations, restaurant]);
+
   // --- DYNAMIC AI CALCULATOR ---
   // Calculates predictions in real-time based on selected simulation parameters and applied optimizations.
 
+  // Parse backend simulation result if available
+  let simulatedData = null;
+  if (simulationResult && simulationResult.resultsJson) {
+    try {
+      simulatedData = JSON.parse(simulationResult.resultsJson);
+    } catch (e) {
+      console.warn("Failed to parse simulation results JSON", e);
+    }
+  }
+
   // Base constants
-  const baseOrderVolume = 85;
+  const baseOrderVolume = twinState?.activeOrders ?? 85;
   const baseAvgPrice = 240;
   
   // 1. Weather Multipliers
@@ -150,8 +290,10 @@ const AdminDigitalTwin = () => {
   if (demandFactor === 'low') demandMult = 0.7;
   if (demandFactor === 'high_surge') demandMult = 1.5;
 
-  // Calculate predicted orders
-  let predictedOrders = Math.round(baseOrderVolume * weatherMult * eventMult * demandMult);
+  // Calculate predicted orders: if backend simulatedData is available, use it!
+  let predictedOrders = simulatedData?.predictedOrders 
+    ? Math.round(simulatedData.predictedOrders)
+    : Math.round(baseOrderVolume * weatherMult * eventMult * demandMult);
   
   // Optimization impact
   if (appliedOptimizations['throttle']) {
@@ -169,11 +311,16 @@ const AdminDigitalTwin = () => {
   if (demandFactor === 'high_surge') confidenceScore -= 6;
   if (isTraining) confidenceScore = 99;
 
-  // Kitchen load calculation
-  let kitchenLoadBase = Math.round((predictedOrders / 120) * 100);
-  if (kitchenCapacity === '50') kitchenLoadBase *= 2.0;
-  if (kitchenCapacity === '150') kitchenLoadBase *= 0.65;
-  let kitchenLoad = Math.min(Math.max(Math.round(kitchenLoadBase), 15), 180);
+  // Kitchen load calculation: if backend simulatedData is available, use it!
+  let kitchenLoad = simulatedData?.kitchenUtilization 
+    ? Math.round(simulatedData.kitchenUtilization * 100)
+    : 0;
+  if (!kitchenLoad) {
+    let kitchenLoadBase = Math.round((predictedOrders / 120) * 100);
+    if (kitchenCapacity === '50') kitchenLoadBase *= 2.0;
+    if (kitchenCapacity === '150') kitchenLoadBase *= 0.65;
+    kitchenLoad = Math.min(Math.max(Math.round(kitchenLoadBase), 15), 180);
+  }
 
   // Apply staff scheduling optimization
   if (appliedOptimizations['staff_up'] && staffingLevel === 'understaffed') {
@@ -194,16 +341,23 @@ const AdminDigitalTwin = () => {
   let currentRiders = staffingLevel === 'understaffed' ? Math.round(optimalRiders * 0.6) : staffingLevel === 'overstaffed' ? Math.round(optimalRiders * 1.4) : optimalRiders;
   let currentChefs = staffingLevel === 'understaffed' ? Math.round(optimalChefs * 0.7) : staffingLevel === 'overstaffed' ? Math.round(optimalChefs * 1.3) : optimalChefs;
 
-  // Ingredient Shortages
-  const mockIngredients = [
-    { name: 'Fresh Produce / Veggies', key: 'veggies', baseStock: 45, consumptionPerOrder: 0.4 },
-    { name: 'Cooking Oil', key: 'oil', baseStock: 30, consumptionPerOrder: 0.25 },
-    { name: 'Dairy & Cheese', key: 'dairy', baseStock: 25, consumptionPerOrder: 0.3 },
-    { name: 'Flour & Rice', key: 'grains', baseStock: 80, consumptionPerOrder: 0.65 },
-    { name: 'Poultry / Meat', key: 'meat', baseStock: 35, consumptionPerOrder: 0.5 },
-  ];
+  // Ingredient Shortages (use backend metrics if available)
+  const baseIngredients = inventoryMetrics.length > 0
+    ? inventoryMetrics.map(item => ({
+        name: item.ingredientName,
+        key: item.ingredientName.toLowerCase(),
+        baseStock: item.currentStock,
+        consumptionPerOrder: item.dailyConsumptionRate / (baseOrderVolume || 50)
+      }))
+    : [
+        { name: 'Fresh Produce / Veggies', key: 'veggies', baseStock: 45, consumptionPerOrder: 0.4 },
+        { name: 'Cooking Oil', key: 'oil', baseStock: 30, consumptionPerOrder: 0.25 },
+        { name: 'Dairy & Cheese', key: 'dairy', baseStock: 25, consumptionPerOrder: 0.3 },
+        { name: 'Flour & Rice', key: 'grains', baseStock: 80, consumptionPerOrder: 0.65 },
+        { name: 'Poultry / Meat', key: 'meat', baseStock: 35, consumptionPerOrder: 0.5 },
+      ];
 
-  const predictedIngredients = mockIngredients.map(ing => {
+  const predictedIngredients = baseIngredients.map(ing => {
     let required = Math.round(predictedOrders * ing.consumptionPerOrder);
     let currentStock = ing.baseStock;
     
@@ -227,25 +381,31 @@ const AdminDigitalTwin = () => {
   // Check if any ingredient is in high/medium risk
   const hasShortageAlert = predictedIngredients.some(i => i.shortage > 0);
 
-  // Top Dishes Demand Forecast
-  const mainDishes = menuItems.slice(0, 4);
-  const dishForecasts = mainDishes.map((dish, i) => {
-    // Distribute demand across dishes
-    const share = i === 0 ? 0.35 : i === 1 ? 0.25 : i === 2 ? 0.20 : 0.20;
-    let expectedOrders = Math.round(predictedOrders * share);
-    
-    // Weather effects dish choices
-    if (weather === 'rainy' && (dish.name.toLowerCase().includes('pizza') || dish.name.toLowerCase().includes('chicken') || dish.name.toLowerCase().includes('biryani'))) {
-      expectedOrders = Math.round(expectedOrders * 1.25);
-    }
+  // Top Dishes Demand Forecast: use actual backend forecast if available!
+  const dishForecasts = forecasts.length > 0
+    ? forecasts.map(f => ({
+        name: f.menuItemId || "Signature Dish",
+        price: 240,
+        orders: Math.round(f.predictedQuantity),
+        waste: Math.round(f.predictedQuantity * 0.15 * (appliedOptimizations['waste_reclaim'] ? 0.4 : 1))
+      }))
+    : menuItems.slice(0, 4).map((dish, i) => {
+        // Distribute demand across dishes
+        const share = i === 0 ? 0.35 : i === 1 ? 0.25 : i === 2 ? 0.20 : 0.20;
+        let expectedOrders = Math.round(predictedOrders * share);
+        
+        // Weather effects dish choices
+        if (weather === 'rainy' && (dish.name.toLowerCase().includes('pizza') || dish.name.toLowerCase().includes('chicken') || dish.name.toLowerCase().includes('biryani'))) {
+          expectedOrders = Math.round(expectedOrders * 1.25);
+        }
 
-    return {
-      name: dish.name,
-      price: dish.price,
-      orders: expectedOrders,
-      waste: Math.round(expectedOrders * 0.15 * (appliedOptimizations['waste_reclaim'] ? 0.4 : 1))
-    };
-  });
+        return {
+          name: dish.name,
+          price: dish.price,
+          orders: expectedOrders,
+          waste: Math.round(expectedOrders * 0.15 * (appliedOptimizations['waste_reclaim'] ? 0.4 : 1))
+        };
+      });
 
   // Recharts Chart Data Generation
   const hourlyLoadData = Array.from({ length: 12 }, (_, index) => {

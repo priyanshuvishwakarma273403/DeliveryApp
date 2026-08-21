@@ -35,8 +35,10 @@ public class KafkaConsumerService {
     private final ObjectMapper objectMapper;
     private final TasteSignalProcessor tasteSignalProcessor;
     private final DigitalTwinService digitalTwinService;
+    private final org.springframework.beans.factory.ObjectProvider<OrderOrchestrator> orderOrchestratorProvider;
 
     /**
+
      * Listener for Sale Events.
      * When a sale starts, it fetches all active users and triggers email notifications.
      */
@@ -151,6 +153,9 @@ public class KafkaConsumerService {
             Long customerId = ((Number) payload.get("customerId")).longValue();
             double total = ((Number) payload.get("total")).doubleValue();
             
+            // Trigger autonomous order lifecycle orchestrator
+            orderOrchestratorProvider.ifAvailable(orchestrator -> orchestrator.handleOrderCreated(orderId));
+
             User customer = userRepository.findById(customerId).orElse(null);
             if (customer != null && customer.getEmail() != null) {
                 // Send confirmation email to customer

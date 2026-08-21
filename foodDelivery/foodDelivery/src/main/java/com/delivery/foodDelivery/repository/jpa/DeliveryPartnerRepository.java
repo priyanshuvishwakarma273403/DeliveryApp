@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner, Long> {
     Optional<DeliveryPartner> findByUserId(Long userId);
     List<DeliveryPartner> findByCurrentCityAndAvailableTrue(String city);
+    List<DeliveryPartner> findByAvailableTrue();
 }

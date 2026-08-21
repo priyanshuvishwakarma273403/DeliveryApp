@@ -28,6 +28,38 @@ const restaurantService = {
   createMenuItem: async (restaurantId, data) => {
     const response = await apiClient.post(`/menu/restaurant/${restaurantId}`, data);
     return response.data;
+  },
+  getDigitalTwinState: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/digital-twin`);
+    return response.data;
+  },
+  getDigitalTwinForecast: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/forecast`);
+    return response.data;
+  },
+  getDigitalTwinDemand: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/demand`);
+    return response.data;
+  },
+  getDigitalTwinHealth: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/health`);
+    return response.data;
+  },
+  getDigitalTwinRisks: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/risks`);
+    return response.data;
+  },
+  getDigitalTwinInventoryRisk: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/inventory-risk`);
+    return response.data;
+  },
+  getDigitalTwinKitchenState: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/kitchen`);
+    return response.data;
+  },
+  runWhatIfSimulation: async (id, data) => {
+    const response = await apiClient.post(`/restaurants/${id}/simulate`, data);
+    return response.data;
   }
 };
 

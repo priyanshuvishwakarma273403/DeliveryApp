@@ -27,6 +27,8 @@ public class DataInitializer implements CommandLineRunner {
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.delivery.foodDelivery.repository.jpa.KitchenStationRepository kitchenStationRepository;
+    private final com.delivery.foodDelivery.repository.jpa.DishPreparationProfileRepository dishPreparationProfileRepository;
     private final Random random = new Random();
 
     @Override
@@ -85,7 +87,92 @@ public class DataInitializer implements CommandLineRunner {
             menuItemRepository.deleteAll();
             seedUniquePremiumData();
         }
+
+        seedKitchenConfig();
     }
+
+    private void seedKitchenConfig() {
+        log.info("Starting kitchen stations and preparation profiles seeding...");
+        List<Restaurant> restaurants = restaurantRepository.findAll();
+        String[] stationTypes = {"GRILL", "FRYER", "TANDOOR", "CURRY", "PIZZA", "BURGER", "SALAD", "DESSERT", "BEVERAGE", "PACKAGING"};
+
+        for (Restaurant rest : restaurants) {
+            List<com.delivery.foodDelivery.entity.KitchenStation> existing = kitchenStationRepository.findByRestaurantId(rest.getId());
+            if (existing.isEmpty()) {
+                for (String stType : stationTypes) {
+                    int capacity = switch (stType) {
+                        case "GRILL", "FRYER", "BURGER" -> 3;
+                        case "TANDOOR", "PIZZA" -> 2;
+                        case "SALAD" -> 4;
+                        case "PACKAGING", "BEVERAGE" -> 5;
+                        default -> 3;
+                    };
+                    com.delivery.foodDelivery.entity.KitchenStation station = com.delivery.foodDelivery.entity.KitchenStation.builder()
+                            .stationId(rest.getId() + "_" + stType)
+                            .restaurantId(rest.getId())
+                            .name(stType)
+                            .status("ACTIVE")
+                            .capacity(capacity)
+                            .currentLoad(0.0)
+                            .queueLength(0)
+                            .averagePrepTime(10.0)
+                            .build();
+                    kitchenStationRepository.save(station);
+                }
+            }
+        }
+
+        List<MenuItem> items = menuItemRepository.findAll();
+        for (MenuItem item : items) {
+            if (dishPreparationProfileRepository.findByDishId(item.getId()).isEmpty()) {
+                String name = item.getName().toLowerCase();
+                String stations = "PACKAGING";
+                double prepTime = 12.0;
+
+                if (name.contains("pizza")) {
+                    stations = "PIZZA,PACKAGING";
+                    prepTime = 20.0;
+                } else if (name.contains("burger")) {
+                    stations = "BURGER,GRILL,PACKAGING";
+                    prepTime = 14.0;
+                } else if (name.contains("fries")) {
+                    stations = "FRYER,PACKAGING";
+                    prepTime = 8.0;
+                } else if (name.contains("biryani")) {
+                    stations = "CURRY,TANDOOR,PACKAGING";
+                    prepTime = 23.0;
+                } else if (name.contains("naan") || name.contains("tikka")) {
+                    stations = "TANDOOR,PACKAGING";
+                    prepTime = 15.0;
+                } else if (name.contains("salad")) {
+                    stations = "SALAD,PACKAGING";
+                    prepTime = 7.0;
+                } else if (name.contains("shake") || name.contains("juice") || name.contains("drink")) {
+                    stations = "BEVERAGE,PACKAGING";
+                    prepTime = 5.0;
+                } else if (name.contains("cake") || name.contains("brownie") || name.contains("tiramisu")) {
+                    stations = "DESSERT,PACKAGING";
+                    prepTime = 6.0;
+                } else if (name.contains("pasta") || name.contains("curry") || name.contains("noodles") || name.contains("momos")) {
+                    stations = "CURRY,PACKAGING";
+                    prepTime = 16.0;
+                }
+
+                com.delivery.foodDelivery.entity.DishPreparationProfile profile = com.delivery.foodDelivery.entity.DishPreparationProfile.builder()
+                        .dishId(item.getId())
+                        .requiredStations(stations)
+                        .estimatedPrepTime(prepTime)
+                        .parallelizableSteps(stations.contains(",") ? "PREPARE_INGREDIENTS" : "")
+                        .sequentialSteps(stations.replace(",", "->"))
+                        .priority(1)
+                        .freshnessWindow(30)
+                        .build();
+                dishPreparationProfileRepository.save(profile);
+            }
+        }
+        log.info("Kitchen configuration seeded.");
+    }
+
 
     private void seedUniquePremiumData() {
         log.info("Starting premium database seeding...");

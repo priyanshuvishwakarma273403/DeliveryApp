@@ -38,6 +38,20 @@ public class KafkaConfig {
     public static final String FORECAST_GENERATED_TOPIC = "foodiq.forecast.generated";
     public static final String DIGITAL_TWIN_UPDATED_TOPIC = "foodiq.digital-twin.updated";
 
+    // New Kitchen Intelligence Topics
+    public static final String KITCHEN_ORDER_RECEIVED_TOPIC = "foodiq.kitchen.order.received";
+    public static final String KITCHEN_ORDER_ACCEPTED_TOPIC = "foodiq.kitchen.order.accepted";
+    public static final String KITCHEN_TASK_STARTED_TOPIC = "foodiq.kitchen.task.started";
+    public static final String KITCHEN_TASK_COMPLETED_TOPIC = "foodiq.kitchen.task.completed";
+    public static final String KITCHEN_ORDER_READY_TOPIC = "foodiq.kitchen.order.ready";
+    public static final String KITCHEN_STATION_UPDATED_TOPIC = "foodiq.kitchen.station.updated";
+    public static final String KITCHEN_LOAD_UPDATED_TOPIC = "foodiq.kitchen.load.updated";
+    public static final String KITCHEN_BOTTLENECK_DETECTED_TOPIC = "foodiq.kitchen.bottleneck.detected";
+    public static final String KITCHEN_DELAY_PREDICTED_TOPIC = "foodiq.kitchen.delay.predicted";
+    public static final String KITCHEN_INVENTORY_RISK_TOPIC = "foodiq.kitchen.inventory.risk";
+    public static final String KITCHEN_ANOMALY_DETECTED_TOPIC = "foodiq.kitchen.anomaly.detected";
+    public static final String KITCHEN_STATUS_CHANGED_TOPIC = "foodiq.kitchen.status.changed";
+
 
     @Bean
     public NewTopic saleTopic() {
@@ -184,6 +198,20 @@ public class KafkaConfig {
     public NewTopic digitalTwinUpdatedTopic() {
         return TopicBuilder.name(DIGITAL_TWIN_UPDATED_TOPIC).partitions(3).replicas(1).build();
     }
+
+    @Bean public NewTopic kitchenOrderReceivedTopic() { return TopicBuilder.name(KITCHEN_ORDER_RECEIVED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenOrderAcceptedTopic() { return TopicBuilder.name(KITCHEN_ORDER_ACCEPTED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenTaskStartedTopic() { return TopicBuilder.name(KITCHEN_TASK_STARTED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenTaskCompletedTopic() { return TopicBuilder.name(KITCHEN_TASK_COMPLETED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenOrderReadyTopic() { return TopicBuilder.name(KITCHEN_ORDER_READY_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenStationUpdatedTopic() { return TopicBuilder.name(KITCHEN_STATION_UPDATED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenLoadUpdatedTopic() { return TopicBuilder.name(KITCHEN_LOAD_UPDATED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenBottleneckDetectedTopic() { return TopicBuilder.name(KITCHEN_BOTTLENECK_DETECTED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenDelayPredictedTopic() { return TopicBuilder.name(KITCHEN_DELAY_PREDICTED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenInventoryRiskTopic() { return TopicBuilder.name(KITCHEN_INVENTORY_RISK_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenAnomalyDetectedTopic() { return TopicBuilder.name(KITCHEN_ANOMALY_DETECTED_TOPIC).partitions(3).replicas(1).build(); }
+    @Bean public NewTopic kitchenStatusChangedTopic() { return TopicBuilder.name(KITCHEN_STATUS_CHANGED_TOPIC).partitions(3).replicas(1).build(); }
+
 
 
     /**

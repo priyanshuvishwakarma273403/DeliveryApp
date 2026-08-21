@@ -89,9 +89,18 @@ public class KafkaService {
                        KafkaConfig.CART_EVENTS_TOPIC.equals(topic) ||
                        KafkaConfig.RECOMMENDATION_EVENTS_TOPIC.equals(topic)) {
                 kafkaConsumerService.consumeTasteDnaEvent(message);
+            } else if (topic.startsWith("foodiq.kitchen") || 
+                       topic.startsWith("foodiq.inventory") ||
+                       topic.startsWith("foodiq.restaurant") ||
+                       topic.startsWith("foodiq.delivery") ||
+                       topic.startsWith("foodiq.weather") ||
+                       topic.startsWith("foodiq.forecast") ||
+                       topic.startsWith("foodiq.digital-twin")) {
+                kafkaConsumerService.consumeDigitalTwinEvent(message);
             } else {
                 log.warn("No direct routing mapping found for local fallback on topic: {}", topic);
             }
+
         } catch (Exception e) {
             log.error("Failed to route message directly in local fallback mode for topic {}: {}", topic, e.getMessage(), e);
         }

@@ -171,10 +171,18 @@ public class VoiceAiOrchestrator {
                 }
             } else if ("create_support_ticket".equalsIgnoreCase(toolName)) {
                 toolResult = "Support ticket generated: " + toolsExecutor.createSupportTicket(session, arg);
+            } else if ("check_kitchen_station_status".equalsIgnoreCase(toolName)) {
+                toolResult = toolsExecutor.checkKitchenStationStatus(session, arg);
+            } else if ("update_kitchen_station_capacity".equalsIgnoreCase(toolName)) {
+                String[] parts = arg.split(",");
+                String station = parts[0].trim();
+                int cap = parts.length > 1 ? (int) parseId(parts[1]) : 3;
+                toolResult = toolsExecutor.updateKitchenStationCapacity(session, station, cap);
             } else if ("transfer_to_agent".equalsIgnoreCase(toolName)) {
                 doEscalate = true;
                 toolResult = "Transferring user call...";
             }
+
 
             if (doEscalate) {
                 String ticketId = escalationService.escalateCall(session, "Escalation requested by agent: " + arg);
@@ -222,6 +230,8 @@ public class VoiceAiOrchestrator {
             "- [TOOL_CALL: cancel_active_order, orderId]\n" +
             "- [TOOL_CALL: initiate_payment_refund, orderId]\n" +
             "- [TOOL_CALL: create_support_ticket, issue_description]\n" +
+            "- [TOOL_CALL: check_kitchen_station_status, stationName]\n" +
+            "- [TOOL_CALL: update_kitchen_station_capacity, stationName, capacity]\n" +
             "- [TOOL_CALL: transfer_to_agent, reason]\n" +
             "IMPORTANT SAFETY RULES:\n" +
             "1. NEVER ask for CVV, password, PIN, or full card numbers. If the user mentions them, ignore them or redact them.\n" +

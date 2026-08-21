@@ -31,6 +31,10 @@ public class SupportToolsExecutor {
     private final SupportTicketRepository ticketRepository;
     private final TransactionRepository transactionRepository;
     private final VoiceSupportConfig config;
+    private final com.delivery.foodDelivery.repository.jpa.KitchenStationRepository stationRepository;
+    private final com.delivery.foodDelivery.repository.jpa.UserRepository userRepository;
+    private final com.delivery.foodDelivery.repository.mongo.RestaurantRepository restaurantRepository;
+
 
     /**
      * Retrieves the status of a specific order.
@@ -191,5 +195,66 @@ public class SupportToolsExecutor {
         ticketRepository.save(ticket);
         log.info("Saved support ticket: {} in MongoDB", ticketId);
         return ticketId;
+    }
+
+    /**
+     * Checks the operational status of a kitchen station.
+     */
+    public String checkKitchenStationStatus(CallSession session, String stationName) {
+        if (!session.isAuthenticated() || session.getUserId() == null) {
+            return "Error: Caller not authenticated.";
+        }
+        try {
+            String restaurantId = "rest-789";
+            List<com.delivery.foodDelivery.entity.Restaurant> restaurants = restaurantRepository.findAll();
+            if (!restaurants.isEmpty()) {
+                restaurantId = restaurants.get(0).getId();
+            }
+
+            Optional<com.delivery.foodDelivery.entity.KitchenStation> stationOpt = stationRepository.findByRestaurantIdAndName(restaurantId, stationName.toUpperCase());
+            if (stationOpt.isPresent()) {
+                com.delivery.foodDelivery.entity.KitchenStation station = stationOpt.get();
+                return String.format("Station %s is currently %s. Load: %.1f%%. Capacity: %d. Queue: %d tasks.",
+                        station.getName(),
+                        station.getStatus(),
+                        station.getCurrentLoad() * 100,
+                        station.getCapacity(),
+                        station.getQueueLength());
+            } else {
+                return String.format("Station %s not found in restaurant kitchen.", stationName);
+            }
+        } catch (Exception e) {
+            return "Failed to check station status: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Updates the capacity of a kitchen station.
+     */
+    public String updateKitchenStationCapacity(CallSession session, String stationName, int capacity) {
+        if (!session.isAuthenticated() || session.getUserId() == null) {
+            return "Error: Caller not authenticated.";
+        }
+        try {
+            String restaurantId = "rest-789";
+            List<com.delivery.foodDelivery.entity.Restaurant> restaurants = restaurantRepository.findAll();
+            if (!restaurants.isEmpty()) {
+                restaurantId = restaurants.get(0).getId();
+            }
+
+            Optional<com.delivery.foodDelivery.entity.KitchenStation> stationOpt = stationRepository.findByRestaurantIdAndName(restaurantId, stationName.toUpperCase());
+            if (stationOpt.isPresent()) {
+                com.delivery.foodDelivery.entity.KitchenStation station = stationOpt.get();
+                int oldCap = station.getCapacity();
+                station.setCapacity(capacity);
+                stationRepository.save(station);
+                return String.format("Success: Station %s capacity updated from %d to %d.",
+                        station.getName(), oldCap, capacity);
+            } else {
+                return String.format("Station %s not found.", stationName);
+            }
+        } catch (Exception e) {
+            return "Failed to update station capacity: " + e.getMessage();
+        }
     }
 }

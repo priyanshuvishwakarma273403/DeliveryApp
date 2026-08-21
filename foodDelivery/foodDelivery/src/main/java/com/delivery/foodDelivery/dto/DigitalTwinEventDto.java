@@ -13,7 +13,9 @@ public class DigitalTwinEventDto {
     private Integer schemaVersion;
     private String timestamp;
     private String restaurantId;
+    private Long orderId;
     private String correlationId;
+
     private String source;
     private Map<String, Object> payload;
 }

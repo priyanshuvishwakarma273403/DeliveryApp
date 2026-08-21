@@ -41,6 +41,8 @@ public class DigitalTwinService {
     private final SimpMessagingTemplate messagingTemplate;
     private final List<DemandForecastModel> forecastModels;
     private final ObjectMapper objectMapper;
+    private final KitchenIntelligenceService kitchenIntelligenceService;
+
 
     // Idempotency: Keep track of processed Kafka event IDs to prevent duplicate processing
     private final Set<String> processedEventIds = ConcurrentHashMap.newKeySet();
@@ -124,6 +126,12 @@ public class DigitalTwinService {
                 }
                 break;
 
+            case "ORDER_KITCHEN_PREPARING":
+                if (event.getOrderId() != null) {
+                    kitchenIntelligenceService.initializeOrderTasks(event.getOrderId());
+                }
+                break;
+
             case "KITCHEN_STARTED":
                 // Increment station active load
                 if (payload.containsKey("stationName")) {
@@ -131,6 +139,7 @@ public class DigitalTwinService {
                     updateKitchenStationLoad(restaurantId, station, 1);
                 }
                 break;
+
 
             case "KITCHEN_COMPLETED":
                 // Decrement station active load

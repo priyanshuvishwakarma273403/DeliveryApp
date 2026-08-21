@@ -25,6 +25,8 @@ public class KitchenIntelligenceController {
     private final com.delivery.foodDelivery.repository.jpa.KitchenTaskRepository taskRepository;
     private final com.delivery.foodDelivery.repository.jpa.DishPreparationProfileRepository profileRepository;
     private final com.delivery.foodDelivery.repository.jpa.RestaurantInventoryMetricRepository inventoryMetricRepository;
+    private final com.delivery.foodDelivery.repository.jpa.OrderRepository orderRepository;
+    private final com.delivery.foodDelivery.service.OrderStateManager orderStateManager;
 
     @GetMapping("/{restaurantId}/state")
     public ResponseEntity<KitchenDigitalTwin> getKitchenState(@PathVariable String restaurantId) {
@@ -93,5 +95,64 @@ public class KitchenIntelligenceController {
         response.put("action", recommendDispatch ? "DISPATCH_NOW" : "HOLD_DISPATCH");
         response.put("recommendedDelayMinutes", recommendDispatch ? 0.0 : Math.max(0.0, predictedPrepTimeRemaining - riderEta));
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{restaurantId}/capacity")
+    public ResponseEntity<Map<String, String>> adjustCapacity(
+            @PathVariable String restaurantId,
+            @RequestParam String stationId,
+            @RequestParam int capacity) {
+        Optional<KitchenStation> stationOpt = stationRepository.findByStationId(stationId);
+        if (stationOpt.isPresent()) {
+            KitchenStation station = stationOpt.get();
+            station.setCapacity(capacity);
+            stationRepository.save(station);
+            kitchenService.updateAndPublishKitchenState(restaurantId);
+            return ResponseEntity.ok(Map.of("message", "Capacity updated successfully."));
+        }
+        return ResponseEntity.status(404).body(Map.of("error", "Station not found."));
+    }
+
+    @PostMapping("/{restaurantId}/stations/{stationId}/toggle")
+    public ResponseEntity<Map<String, String>> toggleStationState(
+            @PathVariable String restaurantId,
+            @PathVariable String stationId) {
+        Optional<KitchenStation> stationOpt = stationRepository.findByStationId(stationId);
+        if (stationOpt.isPresent()) {
+            KitchenStation station = stationOpt.get();
+            String newStatus = "ACTIVE".equalsIgnoreCase(station.getStatus()) ? "OFFLINE" : "ACTIVE";
+            kitchenService.updateStationStatus(restaurantId, stationId, newStatus);
+            return ResponseEntity.ok(Map.of("status", newStatus, "message", "Station status toggled successfully."));
+        }
+        return ResponseEntity.status(404).body(Map.of("error", "Station not found."));
+    }
+
+    @PostMapping("/{restaurantId}/orders/{orderId}/ready")
+    public ResponseEntity<Map<String, String>> markOrderReady(
+            @PathVariable String restaurantId,
+            @PathVariable Long orderId) {
+        try {
+            Optional<Order> orderOpt = orderRepository.findById(orderId);
+            if (orderOpt.isPresent()) {
+                List<KitchenTask> remaining = taskRepository.findByOrderId(orderId);
+                for (KitchenTask task : remaining) {
+                    if (!"COMPLETED".equalsIgnoreCase(task.getStatus())) {
+                        task.setStatus("COMPLETED");
+                        task.setCompletedAt(LocalDateTime.now());
+                        taskRepository.save(task);
+                    }
+                }
+                
+                orderStateManager.transitionTo(orderId, com.delivery.foodDelivery.enums.OrderStatus.FOOD_READY, 
+                        UUID.randomUUID().toString(), "KITCHEN_INTELLIGENCE");
+                riderSyncEngine.recordFoodReady(orderId, restaurantId, LocalDateTime.now());
+                
+                kitchenService.updateAndPublishKitchenState(restaurantId);
+                return ResponseEntity.ok(Map.of("message", "Order marked as ready. Rider notified."));
+            }
+        } catch (Exception e) {
+            log.error("Failed to transition order status", e);
+        }
+        return ResponseEntity.status(400).body(Map.of("error", "Order not found or transition failed"));
     }
 }

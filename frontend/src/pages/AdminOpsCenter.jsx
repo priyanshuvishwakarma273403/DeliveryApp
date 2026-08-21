@@ -12,6 +12,7 @@ import {
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { toast } from 'react-hot-toast';
+import orchestratorService from '../services/orchestratorService';
 
 // ── MOCK DATA ENGINE ──
 const MOCK_CUSTOMERS = [
@@ -80,6 +81,99 @@ const AdminOpsCenter = () => {
     { code: "FOODIQ50", type: "PERCENTAGE", discount: 50, minOrder: 499, maxDiscount: 150 },
     { code: "FREEDEL", type: "FREE_DELIVERY", discount: 100, minOrder: 200, maxDiscount: 40 }
   ]);
+
+  // Orchestrator States
+  const [orchestratorOrders, setOrchestratorOrders] = useState([]);
+  const [orchestratorMetrics, setOrchestratorMetrics] = useState({
+    slaBreachRatePercentage: 4.8,
+    riderUtilizationPercentage: 82.5,
+    autoRecoverySuccessRatePercentage: 94.0,
+    totalActiveRecoveriesCount: 2
+  });
+  const [policyForm, setPolicyForm] = useState({ actionType: 'COMPENSATE', orderId: '', reason: 'SLA delay threshold', confidence: 0.85 });
+  const [policyResult, setPolicyResult] = useState(null);
+  const [recoveryForm, setRecoveryForm] = useState({ orderId: '', actionType: 'COMPENSATE', reason: 'Manual compensation trigger' });
+
+  useEffect(() => {
+    if (activeTab === 'orchestrator') {
+      const fetchOrchestratorData = async () => {
+        try {
+          const orders = await orchestratorService.getActiveOrders();
+          setOrchestratorOrders(orders);
+        } catch (e) {
+          console.warn("Using mock orchestrator orders");
+          setOrchestratorOrders([
+            { orderId: 701, customerName: "Priyanshu Vishwakarma", restaurantId: "Tuscany Grill", status: "KITCHEN_PREPARING", riderName: "Unassigned", riskLevel: "LOW", delayMinutes: 0 },
+            { orderId: 702, customerName: "Ananya Sen", restaurantId: "Bikanervala Sweets", status: "RIDER_ASSIGNED", riderName: "Rider Shiva", riskLevel: "MEDIUM", delayMinutes: 4 },
+            { orderId: 703, customerName: "Rohan Malhotra", restaurantId: "Punjab Grill Delhi", status: "FOOD_READY", riderName: "Unassigned", riskLevel: "CRITICAL", delayMinutes: 12 }
+          ]);
+        }
+
+        try {
+          const metrics = await orchestratorService.getMetrics();
+          setOrchestratorMetrics(metrics);
+        } catch (e) {
+          console.warn("Using mock orchestrator metrics");
+        }
+      };
+      
+      fetchOrchestratorData();
+      const interval = setInterval(fetchOrchestratorData, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
+
+  const handleEvaluatePolicy = async (e) => {
+    e.preventDefault();
+    if (!policyForm.orderId) {
+      toast.error("Please enter an Order ID");
+      return;
+    }
+    try {
+      const res = await orchestratorService.evaluatePolicy({
+        actionType: policyForm.actionType,
+        orderId: parseInt(policyForm.orderId),
+        reason: policyForm.reason,
+        confidence: parseFloat(policyForm.confidence)
+      });
+      setPolicyResult(res.allowed ? "ALLOWED" : "DENIED");
+      if (res.allowed) {
+        toast.success("Policy evaluation: ACTION ALLOWED");
+      } else {
+        toast.error("Policy evaluation: ACTION DENIED");
+      }
+    } catch (e) {
+      const allowed = parseFloat(policyForm.confidence) >= 0.60 && !policyForm.orderId.endsWith("9");
+      setPolicyResult(allowed ? "ALLOWED" : "DENIED");
+      if (allowed) {
+        toast.success("Policy evaluation (Mock): ACTION ALLOWED");
+      } else {
+        toast.error("Policy evaluation (Mock): ACTION DENIED");
+      }
+    }
+  };
+
+  const handleTriggerRecovery = async (e) => {
+    e.preventDefault();
+    if (!recoveryForm.orderId) {
+      toast.error("Please enter an Order ID");
+      return;
+    }
+    try {
+      const res = await orchestratorService.triggerManualRecovery({
+        orderId: parseInt(recoveryForm.orderId),
+        actionType: recoveryForm.actionType,
+        reason: recoveryForm.reason
+      });
+      if (res.success) {
+        toast.success(`Recovery action ${recoveryForm.actionType} triggered successfully!`);
+      } else {
+        toast.error("Recovery action rejected by Policy Engine.");
+      }
+    } catch (e) {
+      toast.success(`Recovery action ${recoveryForm.actionType} triggered successfully (Mock)!`);
+    }
+  };
 
   // Operational toggles
   const handleToggleCustomerStatus = (id, currentStatus) => {

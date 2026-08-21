@@ -299,7 +299,8 @@ const AdminOpsCenter = () => {
             { id: 'payments', label: 'Payments & Refunds', icon: CreditCard },
             { id: 'coupons', label: 'Coupons Builder', icon: Gift },
             { id: 'support', label: 'Support & Reviews', icon: MessageSquare },
-            { id: 'audits', label: 'Audit Logs', icon: Lock }
+            { id: 'audits', label: 'Audit Logs', icon: Lock },
+            { id: 'orchestrator', label: 'Autonomous Orchestrator', icon: Cpu }
           ].map(tab => (
             <button
               key={tab.id}
@@ -739,6 +740,195 @@ const AdminOpsCenter = () => {
                 </div>
               </div>
 
+            </motion.div>
+          )}
+
+          {/* TAB 8: AUTONOMOUS ORCHESTRATOR */}
+          {activeTab === 'orchestrator' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="space-y-8">
+              
+              {/* Orchestrator Live Metrics Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                  { label: "SLA Breach Rate", value: `${(orchestratorMetrics.slaBreachRatePercentage || 0).toFixed(1)}%`, icon: AlertTriangle, color: "text-red-500", bg: "bg-red-500/10 border-red-500/20" },
+                  { label: "Rider Utilization", value: `${(orchestratorMetrics.riderUtilizationPercentage || 0).toFixed(1)}%`, icon: Bike, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
+                  { label: "Auto-Recovery Success", value: `${(orchestratorMetrics.autoRecoverySuccessRatePercentage || 0).toFixed(1)}%`, icon: ShieldCheck, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+                  { label: "Active Recoveries", value: orchestratorMetrics.totalActiveRecoveriesCount || 0, icon: Zap, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" }
+                ].map((item, i) => (
+                  <div key={i} className={`p-6 rounded-3xl border ${item.bg} flex items-center justify-between`}>
+                    <div>
+                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-1">{item.label}</span>
+                      <span className="text-3xl font-black text-white">{item.value}</span>
+                    </div>
+                    <item.icon className={`h-8 w-8 ${item.color}`} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Main Control Panel split */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Active Orchestrated Orders Roster */}
+                <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6 lg:col-span-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white">Live Orchestration Lifecycle Status</h3>
+                    <Badge variant="success">Auto Refresh Active</Badge>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-gray-800 text-gray-400 text-xs">
+                          <th className="pb-3 font-black uppercase tracking-widest">Order ID</th>
+                          <th className="pb-3 font-black uppercase tracking-widest">Customer Details</th>
+                          <th className="pb-3 font-black uppercase tracking-widest">Current Status</th>
+                          <th className="pb-3 font-black uppercase tracking-widest">Rider</th>
+                          <th className="pb-3 font-black uppercase tracking-widest">SLA Risk</th>
+                          <th className="pb-3 font-black uppercase tracking-widest">Delay</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800/40 text-xs font-bold">
+                        {orchestratorOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-gray-500">No active orchestrated orders found.</td>
+                          </tr>
+                        ) : (
+                          orchestratorOrders.map(order => (
+                            <tr key={order.orderId} className="hover:bg-white/5 transition-colors">
+                              <td className="py-4 text-cyan-400 font-mono">#{order.orderId}</td>
+                              <td className="py-4 text-white">
+                                <p>{order.customerName}</p>
+                                <p className="text-[10px] text-gray-450 mt-0.5">Rest: {order.restaurantId}</p>
+                              </td>
+                              <td className="py-4">
+                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                                  {order.status}
+                                </span>
+                              </td>
+                              <td className="py-4 text-gray-300">{order.riderName}</td>
+                              <td className="py-4">
+                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                                  order.riskLevel === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20 animate-pulse' :
+                                  order.riskLevel === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                  order.riskLevel === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                  'bg-green-500/10 text-green-400 border-green-500/20'
+                                }`}>
+                                  {order.riskLevel}
+                                </span>
+                              </td>
+                              <td className="py-4 text-white">
+                                {order.delayMinutes > 0 ? `${order.delayMinutes} mins` : 'On time'}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Policies & Actions Playground sidebar */}
+                <div className="space-y-6 lg:col-span-1">
+                  
+                  {/* Policy Playground */}
+                  <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white">Policy Decision Simulator</h3>
+                    <form onSubmit={handleEvaluatePolicy} className="space-y-4 text-xs font-bold">
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Action Type</label>
+                        <select 
+                          value={policyForm.actionType}
+                          onChange={(e) => setPolicyForm({ ...policyForm, actionType: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                        >
+                          <option value="COMPENSATE">COMPENSATE (Automated Cashbacks)</option>
+                          <option value="REASSIGN_RIDER">REASSIGN_RIDER (Swap Riders)</option>
+                          <option value="CREATE_BATCH">CREATE_BATCH (Batch Orders)</option>
+                          <option value="NOTIFY_CUSTOMER">NOTIFY_CUSTOMER (SMS Delay Alerts)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Order ID</label>
+                        <input 
+                          type="number"
+                          placeholder="e.g. 703"
+                          value={policyForm.orderId}
+                          onChange={(e) => setPolicyForm({ ...policyForm, orderId: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Model Confidence (0.0 to 1.0)</label>
+                        <input 
+                          type="number"
+                          step="0.05"
+                          min="0.0"
+                          max="1.0"
+                          value={policyForm.confidence}
+                          onChange={(e) => setPolicyForm({ ...policyForm, confidence: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                        />
+                      </div>
+
+                      <Button type="submit" className="w-full py-3 rounded-xl font-black uppercase tracking-wider">Evaluate Rules</Button>
+                    </form>
+
+                    {policyResult && (
+                      <div className={`p-4 rounded-xl border font-black text-center text-xs tracking-wider ${
+                        policyResult === 'ALLOWED' 
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                          : 'bg-red-500/10 text-red-400 border-red-500/20'
+                      }`}>
+                        POLICY RULING: {policyResult}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Manual Recovery Center */}
+                  <div className="bg-[#0F1524] rounded-3xl border border-gray-850 p-6 space-y-6">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white">Manual Intervention Controls</h3>
+                    <form onSubmit={handleTriggerRecovery} className="space-y-4 text-xs font-bold">
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Target Order ID</label>
+                        <input 
+                          type="number"
+                          placeholder="e.g. 703"
+                          value={recoveryForm.orderId}
+                          onChange={(e) => setRecoveryForm({ ...recoveryForm, orderId: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Intervention Type</label>
+                        <select 
+                          value={recoveryForm.actionType}
+                          onChange={(e) => setRecoveryForm({ ...recoveryForm, actionType: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none"
+                        >
+                          <option value="COMPENSATE">Trigger Auto-Compensation</option>
+                          <option value="REASSIGN_RIDER">Force Swap Rider</option>
+                          <option value="TRIGGER_SUPPORT">Flag to Support Executive</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-gray-400">Intervention Reason</label>
+                        <input 
+                          type="text"
+                          value={recoveryForm.reason}
+                          onChange={(e) => setRecoveryForm({ ...recoveryForm, reason: e.target.value })}
+                          className="w-full bg-[#070A13] border border-gray-800 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+
+                      <Button type="submit" className="w-full py-3 rounded-xl font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-white">Trigger Recovery</Button>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
 

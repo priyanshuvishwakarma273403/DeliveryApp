@@ -68,6 +68,7 @@ const AdminPlateDesigner = lazy(() => import('./pages/AdminPlateDesigner'));
 const AdminDeliveryRisk = lazy(() => import('./pages/AdminDeliveryRisk'));
 const RestaurantBattle = lazy(() => import('./pages/RestaurantBattle'));
 const CelebrationPlanner = lazy(() => import('./pages/CelebrationPlanner'));
+const TasteDiscover = lazy(() => import('./pages/TasteDiscover'));
 const AdminRestaurantCockpit = lazy(() => import('./pages/AdminRestaurantCockpit'));
 const FoodieFeed = lazy(() => import('./pages/FoodieFeed'));
 const DiningOut = lazy(() => import('./pages/DiningOut'));
@@ -162,6 +163,8 @@ function App() {
                   <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
                   <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/profile/taste" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/discover" element={<TasteDiscover />} />
                   <Route path="/wallet" element={<ProtectedRoute><WalletDashboard /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/restaurants" element={<ProtectedRoute roles={['ADMIN']}><AdminRestaurants /></ProtectedRoute>} />

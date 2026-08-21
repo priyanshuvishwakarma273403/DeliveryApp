@@ -76,8 +76,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/menu-items/**", "/api/menu-items/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/**", "/api/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/search/**", "/api/search/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/recommendations/**", "/api/recommendations/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/recommendations/track", "/api/recommendations/track").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/recommendations/**", "/api/recommendations/**", "/api/v1/recommendations/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/recommendations/track", "/api/recommendations/track", "/api/v1/discovery/query", "/api/v1/cart/recommendations", "/api/v1/recommendations/feedback").permitAll()
                         .requestMatchers(HttpMethod.GET, "/blogs/**", "/api/blogs/**").permitAll()
 
                         .requestMatchers("/admin/**", "/api/admin/**").hasAuthority("ROLE_ADMIN")

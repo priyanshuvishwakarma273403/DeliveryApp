@@ -33,7 +33,4 @@ public class RestaurantSimulation extends BaseEntity {
 
     @Column(name = "results_json", columnDefinition = "TEXT")
     private String resultsJson;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
 }

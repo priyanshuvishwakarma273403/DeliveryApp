@@ -152,8 +152,8 @@ public class RestaurantDigitalTwinControllerTest {
                 .staffChange(-1)
                 .discountApplied(0.20)
                 .resultsJson("{\"predictedOrders\": 10}")
-                .createdAt(LocalDateTime.now())
                 .build();
+        mockSimulation.setCreatedDate(LocalDateTime.now());
 
         Mockito.when(digitalTwinService.runSimulation(
                 Mockito.eq("rest-123"), Mockito.eq(0.30), Mockito.eq(-1), Mockito.eq(0.20)

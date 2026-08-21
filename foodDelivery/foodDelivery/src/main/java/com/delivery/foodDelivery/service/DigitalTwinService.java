@@ -607,8 +607,8 @@ public class DigitalTwinService {
                 .staffChange(staffChange)
                 .discountApplied(discountApplied)
                 .resultsJson(resultsJson)
-                .createdAt(LocalDateTime.now())
                 .build();
+        simulation.setCreatedDate(LocalDateTime.now());
 
         return simulationRepository.save(simulation);
     }

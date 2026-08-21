@@ -22,5 +22,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Double getTotalRevenue();
 
     long countByStatus(OrderStatus status);
+
+    @Query("SELECT o FROM Order o WHERE o.restaurantId = :restaurantId AND o.createdDate >= :since")
+    List<Order> findByRestaurantIdAndCreatedDateAfter(String restaurantId, java.time.LocalDateTime since);
 }
 

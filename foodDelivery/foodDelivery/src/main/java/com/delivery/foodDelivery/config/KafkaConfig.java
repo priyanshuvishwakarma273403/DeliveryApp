@@ -26,6 +26,18 @@ public class KafkaConfig {
     public static final String CART_EVENTS_TOPIC = "foodiq.cart.events";
     public static final String RECOMMENDATION_EVENTS_TOPIC = "foodiq.recommendation.events";
 
+    // AI Restaurant Digital Twin topics
+    public static final String KITCHEN_STARTED_TOPIC = "foodiq.kitchen.started";
+    public static final String KITCHEN_COMPLETED_TOPIC = "foodiq.kitchen.completed";
+    public static final String INVENTORY_UPDATED_TOPIC = "foodiq.inventory.updated";
+    public static final String INVENTORY_LOW_TOPIC = "foodiq.inventory.low";
+    public static final String RESTAURANT_STATUS_TOPIC = "foodiq.restaurant.status";
+    public static final String RESTAURANT_PROMOTION_TOPIC = "foodiq.restaurant.promotion";
+    public static final String DELIVERY_UPDATED_TOPIC = "foodiq.delivery.updated";
+    public static final String WEATHER_UPDATED_TOPIC = "foodiq.weather.updated";
+    public static final String FORECAST_GENERATED_TOPIC = "foodiq.forecast.generated";
+    public static final String DIGITAL_TWIN_UPDATED_TOPIC = "foodiq.digital-twin.updated";
+
 
     @Bean
     public NewTopic saleTopic() {
@@ -121,6 +133,56 @@ public class KafkaConfig {
                 .partitions(3)
                 .replicas(1)
                 .build();
+    }
+
+    @Bean
+    public NewTopic kitchenStartedTopic() {
+        return TopicBuilder.name(KITCHEN_STARTED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic kitchenCompletedTopic() {
+        return TopicBuilder.name(KITCHEN_COMPLETED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic inventoryUpdatedTopic() {
+        return TopicBuilder.name(INVENTORY_UPDATED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic inventoryLowTopic() {
+        return TopicBuilder.name(INVENTORY_LOW_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic restaurantStatusTopic() {
+        return TopicBuilder.name(RESTAURANT_STATUS_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic restaurantPromotionTopic() {
+        return TopicBuilder.name(RESTAURANT_PROMOTION_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic deliveryUpdatedTopic() {
+        return TopicBuilder.name(DELIVERY_UPDATED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic weatherUpdatedTopic() {
+        return TopicBuilder.name(WEATHER_UPDATED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic forecastGeneratedTopic() {
+        return TopicBuilder.name(FORECAST_GENERATED_TOPIC).partitions(3).replicas(1).build();
+    }
+
+    @Bean
+    public NewTopic digitalTwinUpdatedTopic() {
+        return TopicBuilder.name(DIGITAL_TWIN_UPDATED_TOPIC).partitions(3).replicas(1).build();
     }
 
 

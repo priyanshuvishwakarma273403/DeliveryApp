@@ -31,6 +31,14 @@ public class FoodConciergeToolService {
     private final CashbackCampaignRepository campaignRepository;
     private final CartService cartService;
     private final AiMetrics aiMetrics;
+    
+    // Digital Twin injection
+    private final com.delivery.foodDelivery.repository.jpa.RestaurantDigitalTwinStateRepository twinStateRepository;
+    private final com.delivery.foodDelivery.repository.jpa.RestaurantForecastRepository forecastRepository;
+    private final com.delivery.foodDelivery.repository.jpa.RestaurantKitchenMetricRepository kitchenMetricRepository;
+    private final com.delivery.foodDelivery.repository.jpa.RestaurantInventoryMetricRepository inventoryMetricRepository;
+    private final com.delivery.foodDelivery.repository.jpa.RestaurantAnomalyRepository anomalyRepository;
+    private final DigitalTwinService digitalTwinService;
 
     // Timeout protection executor
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -74,6 +82,20 @@ public class FoodConciergeToolService {
                     return createDraftCartTool(currentUserId, (String) args.get("restaurantId"), parseCartItemsList(args.get("items")));
                 case "getSimilarDishes":
                     return getSimilarDishesTool((String) args.get("dishId"));
+                case "getRestaurantHealth":
+                    return getRestaurantHealthTool((String) args.get("restaurantId"));
+                case "getDemandForecast":
+                    return getDemandForecastTool((String) args.get("restaurantId"));
+                case "getRecentDemand":
+                    return getRecentDemandTool((String) args.get("restaurantId"));
+                case "getInventoryRisk":
+                    return getInventoryRiskTool((String) args.get("restaurantId"));
+                case "getKitchenState":
+                    return getKitchenStateTool((String) args.get("restaurantId"));
+                case "getAnomalies":
+                    return getAnomaliesTool((String) args.get("restaurantId"));
+                case "getPromotionImpact":
+                    return getPromotionImpactTool((String) args.get("restaurantId"));
                 default:
                     throw new IllegalArgumentException("Unknown tool: " + toolName);
             }
@@ -449,5 +471,113 @@ public class FoodConciergeToolService {
                 .restaurantId(item.getRestaurantId())
                 .restaurantName(restaurantName)
                 .build();
+    }
+
+    // --- Digital Twin Tool Implementations (Section 43) ---
+
+    public Map<String, Object> getRestaurantHealthTool(String restaurantId) {
+        log.info("Executing AI Tool getRestaurantHealth for restaurantId: {}", restaurantId);
+        // Ensure state is calculated
+        digitalTwinService.updateAndBroadcastTwinState(restaurantId);
+        RestaurantDigitalTwinState state = twinStateRepository.findByRestaurantId(restaurantId).orElse(null);
+        if (state == null) {
+            return Map.of("error", "Digital Twin state not initialized for restaurant: " + restaurantId);
+        }
+        return Map.of(
+            "restaurantId", restaurantId,
+            "status", state.getStatus(),
+            "healthScore", state.getHealthScore(),
+            "activeOrders", state.getActiveOrders(),
+            "averagePreparationTimeMinutes", state.getAveragePreparationTime() != null ? state.getAveragePreparationTime() : 15.0,
+            "kitchenUtilizationPercentage", Math.round(state.getKitchenUtilization() * 100),
+            "staffUtilizationPercentage", Math.round(state.getStaffUtilization() * 100),
+            "inventoryRiskLevel", state.getInventoryRisk(),
+            "slaBreachRiskProbability", state.getSlaRisk()
+        );
+    }
+
+    public List<Map<String, Object>> getDemandForecastTool(String restaurantId) {
+        log.info("Executing AI Tool getDemandForecast for restaurantId: {}", restaurantId);
+        List<RestaurantForecast> list = forecastRepository.findByRestaurantId(restaurantId);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (RestaurantForecast f : list) {
+            results.add(Map.of(
+                "horizon", f.getHorizon(),
+                "predictedOrders", f.getPredictedOrders(),
+                "confidence", f.getConfidence(),
+                "trend", f.getTrend(),
+                "modelVersion", f.getModelVersion(),
+                "generatedAt", f.getGeneratedAt().toString()
+            ));
+        }
+        return results;
+    }
+
+    public Map<String, Long> getRecentDemandTool(String restaurantId) {
+        log.info("Executing AI Tool getRecentDemand for restaurantId: {}", restaurantId);
+        return digitalTwinService.calculateSlidingDemand(restaurantId);
+    }
+
+    public List<Map<String, Object>> getInventoryRiskTool(String restaurantId) {
+        log.info("Executing AI Tool getInventoryRisk for restaurantId: {}", restaurantId);
+        List<RestaurantInventoryMetric> metrics = inventoryMetricRepository.findByRestaurantId(restaurantId);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (RestaurantInventoryMetric m : metrics) {
+            results.add(Map.of(
+                "ingredientName", m.getIngredientName(),
+                "currentQuantity", m.getCurrentQuantity(),
+                "reservedQuantity", m.getReservedQuantity(),
+                "availableQuantity", m.getAvailableQuantity(),
+                "unit", m.getUnit(),
+                "reorderThreshold", m.getReorderThreshold(),
+                "estimatedStockoutMinutes", m.getEstimatedStockoutMinutes()
+            ));
+        }
+        return results;
+    }
+
+    public List<Map<String, Object>> getKitchenStateTool(String restaurantId) {
+        log.info("Executing AI Tool getKitchenState for restaurantId: {}", restaurantId);
+        List<RestaurantKitchenMetric> metrics = kitchenMetricRepository.findByRestaurantId(restaurantId);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (RestaurantKitchenMetric m : metrics) {
+            results.add(Map.of(
+                "stationName", m.getStationName(),
+                "capacity", m.getCapacity(),
+                "activeOrdersCount", m.getActiveOrders(),
+                "stationUtilizationPercentage", Math.round(m.getUtilization() * 100),
+                "timestamp", m.getTimestamp().toString()
+            ));
+        }
+        return results;
+    }
+
+    public List<Map<String, Object>> getAnomaliesTool(String restaurantId) {
+        log.info("Executing AI Tool getAnomalies for restaurantId: {}", restaurantId);
+        List<RestaurantAnomaly> anomalies = anomalyRepository.findByRestaurantId(restaurantId);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (RestaurantAnomaly a : anomalies) {
+            results.add(Map.of(
+                "anomalyType", a.getAnomalyType(),
+                "metricName", a.getMetricName(),
+                "expectedValue", a.getExpectedValue(),
+                "actualValue", a.getActualValue(),
+                "detectedAt", a.getDetectedAt().toString(),
+                "description", a.getDescription(),
+                "potentialCauses", a.getPotentialCauses()
+            ));
+        }
+        return results;
+    }
+
+    public Map<String, Object> getPromotionImpactTool(String restaurantId) {
+        log.info("Executing AI Tool getPromotionImpact for restaurantId: {}", restaurantId);
+        // Returns simulated promotions or historical promotion impacts
+        return Map.of(
+            "restaurantId", restaurantId,
+            "promotionMultiplier", 1.20, // +20% demand during promotions
+            "estimatedSlaRiskIncrease", 0.15, // Utilization increases risk by 15%
+            "inventoryDepletionRateFactor", 1.25 // depletion accelerates by 25%
+        );
     }
 }

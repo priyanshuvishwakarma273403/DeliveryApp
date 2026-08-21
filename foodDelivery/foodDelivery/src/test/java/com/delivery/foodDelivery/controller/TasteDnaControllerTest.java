@@ -55,6 +55,9 @@ public class TasteDnaControllerTest {
     @MockBean
     private TasteDnaCacheService cacheService;
 
+    @MockBean
+    private com.delivery.foodDelivery.config.DataInitializer dataInitializer;
+
     private User mockUser;
     private UserTasteProfile mockProfile;
 

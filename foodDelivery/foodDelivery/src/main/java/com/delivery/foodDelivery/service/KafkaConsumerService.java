@@ -34,6 +34,7 @@ public class KafkaConsumerService {
     private final KafkaMetrics kafkaMetrics;
     private final ObjectMapper objectMapper;
     private final TasteSignalProcessor tasteSignalProcessor;
+    private final DigitalTwinService digitalTwinService;
 
     /**
      * Listener for Sale Events.
@@ -300,6 +301,34 @@ public class KafkaConsumerService {
             tasteSignalProcessor.processEvent(eventDto);
         } catch (Exception e) {
             log.error("Error processing consumed Taste DNA event: {}", e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(
+            topics = {
+                KafkaConfig.KITCHEN_STARTED_TOPIC,
+                KafkaConfig.KITCHEN_COMPLETED_TOPIC,
+                KafkaConfig.INVENTORY_UPDATED_TOPIC,
+                KafkaConfig.INVENTORY_LOW_TOPIC,
+                KafkaConfig.RESTAURANT_STATUS_TOPIC,
+                KafkaConfig.RESTAURANT_PROMOTION_TOPIC,
+                KafkaConfig.DELIVERY_UPDATED_TOPIC,
+                KafkaConfig.WEATHER_UPDATED_TOPIC,
+                KafkaConfig.FORECAST_GENERATED_TOPIC,
+                KafkaConfig.DIGITAL_TWIN_UPDATED_TOPIC
+            },
+            groupId = "digital-twin-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
+    public void consumeDigitalTwinEvent(String message) {
+        log.info("Consumed Digital Twin event: {}", message);
+        try {
+            com.delivery.foodDelivery.dto.DigitalTwinEventDto eventDto = objectMapper.readValue(
+                message, com.delivery.foodDelivery.dto.DigitalTwinEventDto.class
+            );
+            digitalTwinService.processEvent(eventDto);
+        } catch (Exception e) {
+            log.error("Error processing consumed Digital Twin event: {}", e.getMessage(), e);
         }
     }
 }

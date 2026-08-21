@@ -60,6 +60,50 @@ const restaurantService = {
   runWhatIfSimulation: async (id, data) => {
     const response = await apiClient.post(`/restaurants/${id}/simulate`, data);
     return response.data;
+  },
+  getMultiHorizonForecast: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/forecast`);
+    return response.data;
+  },
+  getKitchenCapacityIntelligence: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/capacity`);
+    return response.data;
+  },
+  getInventoryForecastIntelligence: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/inventory-forecast`);
+    return response.data;
+  },
+  getMenuIntelligenceDetails: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/menu`);
+    return response.data;
+  },
+  getPrepPlanDetails: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/prep-plan`);
+    return response.data;
+  },
+  approvePrepPlan: async (id, planId) => {
+    const response = await apiClient.post(`/restaurants/${id}/intelligence/prep-plan/${planId}/approve`);
+    return response.data;
+  },
+  editPrepPlan: async (id, planId, value) => {
+    const response = await apiClient.post(`/restaurants/${id}/intelligence/prep-plan/${planId}/edit`, { value });
+    return response.data;
+  },
+  rejectPrepPlan: async (id, planId) => {
+    const response = await apiClient.post(`/restaurants/${id}/intelligence/prep-plan/${planId}/reject`);
+    return response.data;
+  },
+  runSimulationWhatIf: async (id, data) => {
+    const response = await apiClient.post(`/restaurants/${id}/intelligence/simulation`, data);
+    return response.data;
+  },
+  getForecastMonitoring: async (id) => {
+    const response = await apiClient.get(`/restaurants/${id}/intelligence/monitoring`);
+    return response.data;
+  },
+  getAdminDemandMap: async () => {
+    const response = await apiClient.get(`/restaurants/admin/intelligence/map`);
+    return response.data;
   }
 };
 

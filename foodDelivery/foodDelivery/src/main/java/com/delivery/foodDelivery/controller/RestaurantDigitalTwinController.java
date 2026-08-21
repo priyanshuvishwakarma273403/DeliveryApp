@@ -31,6 +31,7 @@ public class RestaurantDigitalTwinController {
     private final RestaurantInventoryMetricRepository inventoryMetricRepository;
     private final RestaurantRiskEventRepository riskEventRepository;
     private final DigitalTwinService digitalTwinService;
+    private final com.delivery.foodDelivery.service.DemandIntelligenceService demandIntelligenceService;
 
     @Data
     public static class SimulationRequest {
@@ -164,5 +165,126 @@ public class RestaurantDigitalTwinController {
                 request.getDiscountApplied() != null ? request.getDiscountApplied() : 0.0
         );
         return ResponseEntity.ok(sim);
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/forecast")
+    public ResponseEntity<Map<String, Object>> getMultiHorizonForecast(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("org", "foodiq");
+        data.put("multiHorizon", demandIntelligenceService.generateMultiHorizonForecasts(restaurantId));
+        data.put("dishForecasts", demandIntelligenceService.generateDishForecasts(restaurantId));
+        data.put("heatmap", demandIntelligenceService.getDemandHeatmap(restaurantId));
+        
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/capacity")
+    public ResponseEntity<Map<String, Object>> getKitchenCapacityIntelligence(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.predictKitchenCapacity(restaurantId));
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/inventory-forecast")
+    public ResponseEntity<List<Map<String, Object>>> getInventoryForecastIntelligence(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.getIngredientForecasts(restaurantId));
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/menu")
+    public ResponseEntity<Map<String, Object>> getMenuIntelligenceDetails(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.getMenuIntelligence(restaurantId));
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/prep-plan")
+    public ResponseEntity<List<com.delivery.foodDelivery.entity.RestaurantPrepPlan>> getPrepPlanDetails(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.getOrCreatePrepPlan(restaurantId));
+    }
+
+    @PostMapping("/{restaurantId}/intelligence/prep-plan/{planId}/approve")
+    public ResponseEntity<Map<String, String>> approvePlan(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId,
+            @PathVariable Long planId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        demandIntelligenceService.approvePrepPlan(restaurantId, planId);
+        return ResponseEntity.ok(Map.of("message", "Prep plan approved successfully"));
+    }
+
+    @PostMapping("/{restaurantId}/intelligence/prep-plan/{planId}/edit")
+    public ResponseEntity<Map<String, String>> editPlan(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId,
+            @PathVariable Long planId,
+            @RequestBody Map<String, Integer> payload) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        int value = payload.getOrDefault("value", 10);
+        demandIntelligenceService.editPrepPlan(restaurantId, planId, value);
+        return ResponseEntity.ok(Map.of("message", "Prep plan edited successfully"));
+    }
+
+    @PostMapping("/{restaurantId}/intelligence/prep-plan/{planId}/reject")
+    public ResponseEntity<Map<String, String>> rejectPlan(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId,
+            @PathVariable Long planId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        demandIntelligenceService.rejectPrepPlan(restaurantId, planId);
+        return ResponseEntity.ok(Map.of("message", "Prep plan rejected successfully"));
+    }
+
+    @PostMapping("/{restaurantId}/intelligence/simulation")
+    public ResponseEntity<Map<String, Object>> runSimulationWhatIf(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId,
+            @RequestBody SimulationRequest request) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.runWhatIfSimulation(
+                restaurantId, 
+                request.getOrderIncrease() != null ? request.getOrderIncrease() : 0.0, 
+                request.getStaffChange() != null ? request.getStaffChange() : 0, 
+                request.getDiscountApplied() != null ? request.getDiscountApplied() : 0.0
+        ));
+    }
+
+    @GetMapping("/{restaurantId}/intelligence/monitoring")
+    public ResponseEntity<Map<String, Object>> getForecastMonitoring(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String restaurantId) {
+        User user = resolveUser(userDetails);
+        validateRestaurantAccess(user, restaurantId);
+        return ResponseEntity.ok(demandIntelligenceService.getForecastMonitoringMetrics(restaurantId));
+    }
+
+    @GetMapping("/admin/intelligence/map")
+    public ResponseEntity<List<Map<String, Object>>> getAdminDemandMapMetrics(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = resolveUser(userDetails);
+        if (user.getRole() != Role.ADMIN) {
+            throw new BusinessException("Only administrators can view platform-wide demand aggregations.");
+        }
+        return ResponseEntity.ok(demandIntelligenceService.getAdminDemandMap());
     }
 }

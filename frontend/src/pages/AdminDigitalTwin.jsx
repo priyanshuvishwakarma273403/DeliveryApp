@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Cpu, CloudRain, CloudSun, AlertTriangle, CheckCircle2, 
   Users, ShoppingBag, TrendingUp, Sparkles, Plus, Clock, Info, ShieldAlert,
-  Flame, Utensils, RefreshCw, BarChart2, DollarSign, Calendar
+  Flame, Utensils, RefreshCw, BarChart2, DollarSign, Calendar, Check, X, Edit2,
+  Sliders, Activity, ShieldCheck, Heart, AlertOctagon
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -22,137 +23,103 @@ const AdminDigitalTwin = () => {
   const { client, isConnected } = useWebSocket();
 
   const [restaurant, setRestaurant] = useState(null);
-  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isTraining, setIsTraining] = useState(false);
-  const [appliedOptimizations, setAppliedOptimizations] = useState({});
 
-  // Backend state storage
+  // Real backend metrics states
   const [twinState, setTwinState] = useState(null);
-  const [forecasts, setForecasts] = useState([]);
-  const [kitchenMetrics, setKitchenMetrics] = useState([]);
-  const [inventoryMetrics, setInventoryMetrics] = useState([]);
-  const [risks, setRisks] = useState([]);
-  const [simulationResult, setSimulationResult] = useState(null);
-  const [isSimulating, setIsSimulating] = useState(false);
+  const [forecastData, setForecastData] = useState({ multiHorizon: [], dishForecasts: [], heatmap: { data: [] } });
+  const [kitchenCapacity, setKitchenCapacity] = useState({ stations: [], bottleneckCascade: [] });
+  const [inventoryForecasts, setInventoryForecasts] = useState([]);
+  const [menuIntelligence, setMenuIntelligence] = useState({ items: [], cannibalization: [], demandGaps: [] });
+  const [prepPlans, setPrepPlans] = useState([]);
+  const [monitoringMetrics, setMonitoringMetrics] = useState(null);
+
+  // Editing Prep Plan state
+  const [editingPlanId, setEditingPlanId] = useState(null);
+  const [editingValue, setEditingValue] = useState("");
 
   // Simulation Parameters
-  const [weather, setWeather] = useState('sunny'); // sunny, rainy, stormy, heatwave
-  const [simulationEvent, setSimulationEvent] = useState('none'); // none, diwali, weekend, cricket
-  const [demandFactor, setDemandFactor] = useState('standard'); // low, standard, high_surge
-  const [staffingLevel, setStaffingLevel] = useState('optimal'); // understaffed, optimal, overstaffed
-  const [kitchenCapacity, setKitchenCapacity] = useState('100'); // 50, 100, 150
+  const [weather, setWeather] = useState('sunny');
+  const [simulationEvent, setSimulationEvent] = useState('none');
+  const [demandFactor, setDemandFactor] = useState('standard');
+  const [staffingLevel, setStaffingLevel] = useState('optimal');
+  const [simulatingActive, setSimulatingActive] = useState(false);
+  const [simResults, setSimResults] = useState(null);
+
+  const fetchIntelligenceData = async () => {
+    try {
+      // 1. Get twin state
+      const stateRes = await restaurantService.getDigitalTwinState(id);
+      if (stateRes) setTwinState(stateRes);
+
+      // 2. Get forecasts
+      const forecastRes = await restaurantService.getMultiHorizonForecast(id);
+      if (forecastRes) setForecastData(forecastRes);
+
+      // 3. Get kitchen capacity
+      const kitchenRes = await restaurantService.getKitchenCapacityIntelligence(id);
+      if (kitchenRes) setKitchenCapacity(kitchenRes);
+
+      // 4. Get inventory forecasts
+      const inventoryRes = await restaurantService.getInventoryForecastIntelligence(id);
+      if (inventoryRes) setInventoryForecasts(inventoryRes);
+
+      // 5. Get menu intelligence
+      const menuRes = await restaurantService.getMenuIntelligenceDetails(id);
+      if (menuRes) setMenuIntelligence(menuRes);
+
+      // 6. Get prep planner
+      const prepRes = await restaurantService.getPrepPlanDetails(id);
+      if (prepRes) setPrepPlans(prepRes);
+
+      // 7. Get model tracking metrics
+      const monitorRes = await restaurantService.getForecastMonitoring(id);
+      if (monitorRes) setMonitoringMetrics(monitorRes);
+
+    } catch (e) {
+      console.warn("Failed to load backend intelligence services. Using fallback mock state.", e);
+    }
+  };
 
   useEffect(() => {
-    const fetchRestaurantData = async () => {
+    const initPage = async () => {
+      setLoading(true);
+      // Fetch restaurant basic metadata
       try {
-        setLoading(true);
-        // Try fetching from server first
-        let resData = null;
-        try {
-          const res = await restaurantService.getRestaurantById(id);
-          if (res && res.success) {
-            resData = res.data;
-          }
-        } catch (e) {
-          console.warn("Backend restaurant fetch failed, falling back to mock catalog", e);
-        }
-
-        // Fallback to static catalog if server fails or returns empty
-        if (!resData) {
-          resData = ALL_RESTAURANTS.find(r => String(r.id) === String(id));
-        }
-
-        if (resData) {
-          setRestaurant(resData);
-          // Get menu items
-          let menuList = [];
-          if (resData.menu && resData.menu.length > 0) {
-            menuList = resData.menu.flatMap(m => m.items || []);
-          } else {
-            // Generate mock menu items based on cuisine if empty
-            menuList = [
-              { id: 101, name: 'Signature Dish A', price: 299 },
-              { id: 102, name: 'Popular Appetizer B', price: 189 },
-              { id: 103, name: 'Chef Special C', price: 349 },
-              { id: 104, name: 'Beverage D', price: 89 },
-            ];
-          }
-          setMenuItems(menuList);
+        const res = await restaurantService.getRestaurantById(id);
+        if (res && res.success) {
+          setRestaurant(res.data);
         } else {
-          toast.error("Restaurant not found");
+          setRestaurant(ALL_RESTAURANTS.find(r => String(r.id) === String(id)));
         }
-
-        // Fetch Digital Twin metrics from the backend
-        try {
-          const stateRes = await restaurantService.getDigitalTwinState(id);
-          if (stateRes) {
-            setTwinState(stateRes);
-          }
-        } catch (e) {
-          console.warn("Failed to load digital twin state from backend", e);
-        }
-
-        try {
-          const forecastRes = await restaurantService.getDigitalTwinForecast(id);
-          if (forecastRes) {
-            setForecasts(forecastRes);
-          }
-        } catch (e) {
-          console.warn("Failed to load forecast from backend", e);
-        }
-
-        try {
-          const kitchenRes = await restaurantService.getDigitalTwinKitchenState(id);
-          if (kitchenRes) {
-            setKitchenMetrics(kitchenRes);
-          }
-        } catch (e) {
-          console.warn("Failed to load kitchen metrics from backend", e);
-        }
-
-        try {
-          const inventoryRes = await restaurantService.getDigitalTwinInventoryRisk(id);
-          if (inventoryRes) {
-            setInventoryMetrics(inventoryRes);
-          }
-        } catch (e) {
-          console.warn("Failed to load inventory metrics from backend", e);
-        }
-
-        try {
-          const risksRes = await restaurantService.getDigitalTwinRisks(id);
-          if (risksRes) {
-            setRisks(risksRes);
-          }
-        } catch (e) {
-          console.warn("Failed to load active risks from backend", e);
-        }
-
       } catch (err) {
-        console.error(err);
-        toast.error("Failed to load restaurant digital twin data");
-      } finally {
-        setLoading(false);
+        setRestaurant(ALL_RESTAURANTS.find(r => String(r.id) === String(id)));
       }
+      
+      await fetchIntelligenceData();
+      setLoading(false);
     };
 
-    fetchRestaurantData();
+    initPage();
   }, [id]);
 
-  // WebSocket Subscription for Real-time Digital Twin State Updates
+  // WebSocket Subscription for Real-time Updates
   useEffect(() => {
     if (!client || !isConnected) return;
 
-    console.log("Subscribing to WebSocket digital-twin topic for restaurant:", id);
-    const subscription = client.subscribe(`/topic/digital-twin/${id}`, (message) => {
+    const topic = `/topic/digital-twin/${id}`;
+    console.log("Subscribing to WebSocket digital twin updates:", topic);
+    
+    const subscription = client.subscribe(topic, (message) => {
       if (message.body) {
         try {
           const payload = JSON.parse(message.body);
-          console.log("Received live digital twin update via WebSocket:", payload);
           if (payload.state) {
             setTwinState(payload.state);
-            toast.success("Twin state synchronized in real-time! 🔄", { id: "ws-update" });
+            toast.success("AI operations synchronized in real-time! 🔄", { id: "ws-twin" });
+            // Re-fetch forecasts/capacities in background to keep data fresh
+            fetchIntelligenceData();
           }
         } catch (err) {
           console.error("Error parsing WebSocket update:", err);
@@ -167,30 +134,94 @@ const AdminDigitalTwin = () => {
 
   const handleRetrain = () => {
     setIsTraining(true);
-    toast.loading("AI Twin reprocessing historical logs...", { id: "retrain" });
-    setTimeout(() => {
+    toast.loading("AI models recalculating multi-horizon weights...", { id: "retrain" });
+    setTimeout(async () => {
       setIsTraining(false);
-      toast.success("AI Twin model retrained with latest parameters!", { id: "retrain" });
+      await fetchIntelligenceData();
+      toast.success("AI models successfully updated!", { id: "retrain" });
     }, 2000);
   };
 
-  const toggleOptimization = (optId, successMessage) => {
-    setAppliedOptimizations(prev => {
-      const isApplied = !prev[optId];
-      if (isApplied) {
-        toast.success(successMessage || "Optimization applied!");
-      } else {
-        toast.error("Optimization reverted");
+  // Prep Planner Actions
+  const handleApprovePlan = async (planId) => {
+    try {
+      await restaurantService.approvePrepPlan(id, planId);
+      toast.success("Prep target approved!");
+      // Reload plans
+      const prepRes = await restaurantService.getPrepPlanDetails(id);
+      if (prepRes) setPrepPlans(prepRes);
+    } catch (err) {
+      toast.error("Failed to approve prep plan");
+    }
+  };
+
+  const handleRejectPlan = async (planId) => {
+    try {
+      await restaurantService.rejectPrepPlan(id, planId);
+      toast.error("Prep target rejected");
+      // Reload plans
+      const prepRes = await restaurantService.getPrepPlanDetails(id);
+      if (prepRes) setPrepPlans(prepRes);
+    } catch (err) {
+      toast.error("Failed to reject prep plan");
+    }
+  };
+
+  const handleSaveEditPlan = async (planId) => {
+    try {
+      const val = parseInt(editingValue);
+      if (isNaN(val) || val < 0) {
+        toast.error("Please enter a valid quantity");
+        return;
       }
-      return { ...prev, [optId]: isApplied };
-    });
+      await restaurantService.editPrepPlan(id, planId, val);
+      toast.success("Prep target edited successfully");
+      setEditingPlanId(null);
+      // Reload plans
+      const prepRes = await restaurantService.getPrepPlanDetails(id);
+      if (prepRes) setPrepPlans(prepRes);
+    } catch (err) {
+      toast.error("Failed to edit prep plan");
+    }
+  };
+
+  // Run What-If Simulation
+  const handleRunSimulation = async () => {
+    setSimulatingActive(true);
+    try {
+      let orderIncrease = 0.0;
+      if (demandFactor === 'low') orderIncrease = -0.20;
+      if (demandFactor === 'high_surge') orderIncrease = 0.40;
+      if (simulationEvent === 'diwali') orderIncrease += 0.80;
+      if (simulationEvent === 'weekend') orderIncrease += 0.30;
+      if (simulationEvent === 'cricket') orderIncrease += 0.50;
+
+      let staffChange = 0;
+      if (staffingLevel === 'understaffed') staffChange = -2;
+      if (staffingLevel === 'overstaffed') staffChange = 2;
+
+      const res = await restaurantService.runSimulationWhatIf(id, {
+        orderIncrease,
+        staffChange,
+        discountApplied: weather === 'stormy' ? 0.15 : 0.0
+      });
+
+      if (res) {
+        setSimResults(res);
+        toast.success("Simulation scenario executed!");
+      }
+    } catch (err) {
+      toast.error("Failed to run scenario simulation");
+    } finally {
+      setSimulatingActive(false);
+    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F172A] text-white flex flex-col items-center justify-center gap-4">
         <div className="h-12 w-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-cyan-400 font-black tracking-widest animate-pulse">BOOTING AI DIGITAL TWIN...</p>
+        <p className="text-cyan-400 font-black tracking-widest animate-pulse">BOOTING DEMAND INTELLIGENCE ENGINE...</p>
       </div>
     );
   }
@@ -199,731 +230,473 @@ const AdminDigitalTwin = () => {
     return (
       <div className="min-h-screen bg-[#0F172A] text-white flex flex-col items-center justify-center p-8 text-center">
         <AlertTriangle size={64} className="text-red-500 mb-6 animate-bounce" />
-        <h1 className="text-3xl font-black mb-4">Digital Twin Not Available</h1>
-        <p className="text-gray-400 mb-8 max-w-md">The selected restaurant could not be loaded. Please ensure it exists in the database.</p>
+        <h1 className="text-3xl font-black mb-4">Operations Dashboard Offline</h1>
+        <p className="text-gray-400 mb-8 max-w-md">No metadata found for restaurant ID {id}.</p>
         <Link to="/admin/restaurants">
-          <Button className="bg-cyan-500 text-black font-bold rounded-xl px-8">Back to Restaurants</Button>
+          <Button className="bg-cyan-500 text-black font-bold rounded-xl px-8">Return</Button>
         </Link>
       </div>
     );
   }
 
-  // Trigger What-If Simulation on backend
-  useEffect(() => {
-    if (!restaurant) return;
-
-    const executeSimulation = async () => {
-      try {
-        setIsSimulating(true);
-        // Map frontend values to backend SimulationRequest parameters
-        let orderIncrease = 0.0;
-        if (demandFactor === 'low') orderIncrease = -0.30;
-        if (demandFactor === 'high_surge') orderIncrease = 0.40;
-        if (simulationEvent === 'diwali') orderIncrease += 0.80;
-        if (simulationEvent === 'weekend') orderIncrease += 0.30;
-        if (simulationEvent === 'cricket') orderIncrease += 0.45;
-
-        let staffChange = 0;
-        if (staffingLevel === 'understaffed') staffChange = -2;
-        if (staffingLevel === 'overstaffed') staffChange = 2;
-
-        let discountApplied = 0.0;
-        if (appliedOptimizations['discount']) discountApplied = 0.20;
-
-        const res = await restaurantService.runWhatIfSimulation(id, {
-          orderIncrease,
-          staffChange,
-          discountApplied
-        });
-
-        if (res) {
-          setSimulationResult(res);
-        }
-      } catch (err) {
-        console.warn("Failed to compute What-If simulation on backend", err);
-      } finally {
-        setIsSimulating(false);
-      }
-    };
-
-    // Debounce backend simulation to avoid overloading the API
-    const delayDebounceFn = setTimeout(() => {
-      executeSimulation();
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [id, weather, simulationEvent, demandFactor, staffingLevel, kitchenCapacity, appliedOptimizations, restaurant]);
-
-  // --- DYNAMIC AI CALCULATOR ---
-  // Calculates predictions in real-time based on selected simulation parameters and applied optimizations.
-
-  // Parse backend simulation result if available
-  let simulatedData = null;
-  if (simulationResult && simulationResult.resultsJson) {
-    try {
-      simulatedData = JSON.parse(simulationResult.resultsJson);
-    } catch (e) {
-      console.warn("Failed to parse simulation results JSON", e);
-    }
+  // Determine current operating Mode
+  let opMode = "NORMAL";
+  let opColor = "bg-green-500/10 text-green-400 border-green-500/30";
+  const ordersLast15 = twinState?.ordersLast15Minutes || 0;
+  if (ordersLast15 > 25) {
+    opMode = "CRITICAL SURGE";
+    opColor = "bg-rose-500/20 text-rose-400 border-rose-500/50 animate-pulse";
+  } else if (ordersLast15 > 15) {
+    opMode = "HIGH DEMAND";
+    opColor = "bg-amber-500/10 text-amber-400 border-amber-500/30";
   }
 
-  // Base constants
-  const baseOrderVolume = twinState?.activeOrders ?? 85;
-  const baseAvgPrice = 240;
-  
-  // 1. Weather Multipliers
-  let weatherMult = 1.0;
-  let weatherLabel = "Clear Sky";
-  if (weather === 'rainy') { weatherMult = 1.35; weatherLabel = "Heavy Rain (+35% Delivery Demand)"; }
-  if (weather === 'stormy') { weatherMult = 1.55; weatherLabel = "Severe Storm (+55% Delivery Demand)"; }
-  if (weather === 'heatwave') { weatherMult = 0.85; weatherLabel = "Extreme Heatwave (-15% Dine-in)"; }
+  // Map forecast data to Recharts
+  const multiHorizonChartData = forecastData.multiHorizon.map(f => {
+    let lbl = f.horizon;
+    if (lbl === 'NEXT_15_MINUTES') lbl = '15m';
+    if (lbl === 'NEXT_30_MINUTES') lbl = '30m';
+    if (lbl === 'NEXT_60_MINUTES') lbl = '60m';
+    if (lbl === 'NEXT_2_HOURS') lbl = '2h';
+    if (lbl === 'NEXT_6_HOURS') lbl = '6h';
+    if (lbl === 'NEXT_DAY') lbl = '24h';
+    if (lbl === 'NEXT_7_DAYS') lbl = '7d';
 
-  // 2. Events Multipliers
-  let eventMult = 1.0;
-  let eventLabel = "Regular Day";
-  if (simulationEvent === 'diwali') { eventMult = 1.80; eventLabel = "Diwali Festival (+80% Volume)"; }
-  if (simulationEvent === 'weekend') { eventMult = 1.30; eventLabel = "Weekend Rush (+30% Volume)"; }
-  if (simulationEvent === 'cricket') { eventMult = 1.45; eventLabel = "India Match Live (+45% Snack Orders)"; }
-
-  // 3. Demand Factor Multipliers
-  let demandMult = 1.0;
-  if (demandFactor === 'low') demandMult = 0.7;
-  if (demandFactor === 'high_surge') demandMult = 1.5;
-
-  // Calculate predicted orders: if backend simulatedData is available, use it!
-  let predictedOrders = simulatedData?.predictedOrders 
-    ? Math.round(simulatedData.predictedOrders)
-    : Math.round(baseOrderVolume * weatherMult * eventMult * demandMult);
-  
-  // Optimization impact
-  if (appliedOptimizations['throttle']) {
-    predictedOrders = Math.round(predictedOrders * 0.85); // Throttling caps maximum load
-  }
-
-  // Revenue calculation
-  let predictedRevenue = Math.round(predictedOrders * baseAvgPrice);
-  if (simulationEvent === 'diwali') predictedRevenue = Math.round(predictedRevenue * 1.15); // Higher average cart value during festivals
-
-  // Confidence Score logic
-  let confidenceScore = 95;
-  if (weather === 'stormy') confidenceScore -= 8;
-  if (simulationEvent === 'diwali') confidenceScore -= 5;
-  if (demandFactor === 'high_surge') confidenceScore -= 6;
-  if (isTraining) confidenceScore = 99;
-
-  // Kitchen load calculation: if backend simulatedData is available, use it!
-  let kitchenLoad = simulatedData?.kitchenUtilization 
-    ? Math.round(simulatedData.kitchenUtilization * 100)
-    : 0;
-  if (!kitchenLoad) {
-    let kitchenLoadBase = Math.round((predictedOrders / 120) * 100);
-    if (kitchenCapacity === '50') kitchenLoadBase *= 2.0;
-    if (kitchenCapacity === '150') kitchenLoadBase *= 0.65;
-    kitchenLoad = Math.min(Math.max(Math.round(kitchenLoadBase), 15), 180);
-  }
-
-  // Apply staff scheduling optimization
-  if (appliedOptimizations['staff_up'] && staffingLevel === 'understaffed') {
-    // Rebalances load
-    kitchenLoad = Math.round(kitchenLoad * 0.82);
-  }
-
-  // Food Waste calculations
-  let foodWasteKg = Math.round(predictedOrders * 0.35);
-  if (appliedOptimizations['waste_reclaim']) {
-    foodWasteKg = Math.round(foodWasteKg * 0.4); // Reduces waste by 60%
-  }
-
-  // Predicted Staffing
-  let optimalRiders = Math.max(Math.round(predictedOrders * 0.12), 3);
-  let optimalChefs = Math.max(Math.round(predictedOrders * 0.08), 2);
-  
-  let currentRiders = staffingLevel === 'understaffed' ? Math.round(optimalRiders * 0.6) : staffingLevel === 'overstaffed' ? Math.round(optimalRiders * 1.4) : optimalRiders;
-  let currentChefs = staffingLevel === 'understaffed' ? Math.round(optimalChefs * 0.7) : staffingLevel === 'overstaffed' ? Math.round(optimalChefs * 1.3) : optimalChefs;
-
-  // Ingredient Shortages (use backend metrics if available)
-  const baseIngredients = inventoryMetrics.length > 0
-    ? inventoryMetrics.map(item => ({
-        name: item.ingredientName,
-        key: item.ingredientName.toLowerCase(),
-        baseStock: item.currentStock,
-        consumptionPerOrder: item.dailyConsumptionRate / (baseOrderVolume || 50)
-      }))
-    : [
-        { name: 'Fresh Produce / Veggies', key: 'veggies', baseStock: 45, consumptionPerOrder: 0.4 },
-        { name: 'Cooking Oil', key: 'oil', baseStock: 30, consumptionPerOrder: 0.25 },
-        { name: 'Dairy & Cheese', key: 'dairy', baseStock: 25, consumptionPerOrder: 0.3 },
-        { name: 'Flour & Rice', key: 'grains', baseStock: 80, consumptionPerOrder: 0.65 },
-        { name: 'Poultry / Meat', key: 'meat', baseStock: 35, consumptionPerOrder: 0.5 },
-      ];
-
-  const predictedIngredients = baseIngredients.map(ing => {
-    let required = Math.round(predictedOrders * ing.consumptionPerOrder);
-    let currentStock = ing.baseStock;
-    
-    // Auto-replenish optimization
-    if (appliedOptimizations['auto_stock']) {
-      currentStock += Math.round(required * 1.2);
-    }
-
-    const shortage = required > currentStock ? Math.round(required - currentStock) : 0;
-    const risk = shortage > 0 ? (shortage / currentStock > 0.4 ? 'HIGH' : 'MEDIUM') : 'SAFE';
-    
     return {
-      name: ing.name,
-      stock: currentStock,
-      required: required,
-      shortage: shortage,
-      risk: risk
-    };
-  });
-
-  // Check if any ingredient is in high/medium risk
-  const hasShortageAlert = predictedIngredients.some(i => i.shortage > 0);
-
-  // Top Dishes Demand Forecast: use actual backend forecast if available!
-  const dishForecasts = forecasts.length > 0
-    ? forecasts.map(f => ({
-        name: f.menuItemId || "Signature Dish",
-        price: 240,
-        orders: Math.round(f.predictedQuantity),
-        waste: Math.round(f.predictedQuantity * 0.15 * (appliedOptimizations['waste_reclaim'] ? 0.4 : 1))
-      }))
-    : menuItems.slice(0, 4).map((dish, i) => {
-        // Distribute demand across dishes
-        const share = i === 0 ? 0.35 : i === 1 ? 0.25 : i === 2 ? 0.20 : 0.20;
-        let expectedOrders = Math.round(predictedOrders * share);
-        
-        // Weather effects dish choices
-        if (weather === 'rainy' && (dish.name.toLowerCase().includes('pizza') || dish.name.toLowerCase().includes('chicken') || dish.name.toLowerCase().includes('biryani'))) {
-          expectedOrders = Math.round(expectedOrders * 1.25);
-        }
-
-        return {
-          name: dish.name,
-          price: dish.price,
-          orders: expectedOrders,
-          waste: Math.round(expectedOrders * 0.15 * (appliedOptimizations['waste_reclaim'] ? 0.4 : 1))
-        };
-      });
-
-  // Recharts Chart Data Generation
-  const hourlyLoadData = Array.from({ length: 12 }, (_, index) => {
-    const hour = index + 11; // 11 AM to 10 PM
-    const isPeak = (hour >= 13 && hour <= 14) || (hour >= 19 && hour <= 21);
-    const multiplier = isPeak ? 1.5 : 0.6;
-    const ordersPerHour = Math.round((predictedOrders / 12) * multiplier);
-    const capacityLimit = Math.round(15 * (parseInt(kitchenCapacity) / 100));
-    
-    return {
-      time: hour > 12 ? `${hour - 12} PM` : `${hour} AM`,
-      Orders: ordersPerHour,
-      Capacity: capacityLimit,
-      Load: Math.round((ordersPerHour / capacityLimit) * 100)
+      horizon: lbl,
+      predicted: f.predictedOrders,
+      confidence: Math.round(f.confidence * 100)
     };
   });
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-gray-100 font-sans pb-16">
-      {/* ── TOP HERO HEADER ── */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#111827] via-[#0F172A] to-transparent border-b border-gray-800/60 py-6 md:py-8 px-4 md:px-12">
-        {/* Glow decoration */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[150px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute top-0 left-10 w-[200px] h-[200px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#070A13] text-gray-100 pb-16">
+      
+      {/* ── HEADER ── */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#0F172A] to-transparent border-b border-gray-800/60 py-6 px-4 md:px-12">
+        <div className="absolute top-0 right-1/4 w-[400px] h-[150px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
             <Link 
               to="/admin/restaurants" 
-              className="h-12 w-12 bg-white/5 border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 rounded-2xl flex items-center justify-center text-gray-300 hover:text-cyan-400 transition-all duration-300 shadow-lg"
+              className="h-12 w-12 bg-white/5 border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 rounded-2xl flex items-center justify-center text-gray-300 hover:text-cyan-400 transition-all duration-300"
             >
               <ArrowLeft size={20} />
             </Link>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
-                  Twin Synced & Active
+                <span className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${opColor}`}>
+                  {opMode} MODE ACTIVE
                 </span>
-                <span className="text-gray-500 text-xs font-bold">Model v4.1-RealTime</span>
+                <span className="text-gray-500 text-xs font-bold font-mono">Real-time Operations Twin</span>
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                {restaurant.name} <span className="text-cyan-500 font-light text-2xl">Digital Twin</span>
+                {restaurant.name} <span className="text-cyan-500 font-light">Demand Operations Cockpit</span>
               </h1>
               <p className="text-gray-400 text-xs md:text-sm font-medium mt-0.5">
-                AI Agent learning from 365-day ordering patterns, real-time weather logs, and market intelligence
+                Proactive kitchen orchestrator, inventory stockout predictors, prep planners, and what-if simulation suite.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3">
             <button 
               onClick={handleRetrain}
               disabled={isTraining}
-              className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+              className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all"
             >
               <RefreshCw size={14} className={isTraining ? 'animate-spin text-cyan-400' : ''} />
-              Retrain Twin
+              Re-Calculate Models
             </button>
-            <div className="bg-cyan-500 text-black font-black text-xs uppercase tracking-widest px-5 py-3 rounded-2xl flex items-center gap-1.5 shadow-lg shadow-cyan-500/20">
-              <Cpu size={16} /> Live Simulation
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ── MAIN CONTENT GRID ── */}
       <div className="max-w-7xl mx-auto px-4 md:px-12 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* ════ LEFT COLUMN: SIMULATOR CONTROLS ════ */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2rem] border border-gray-800/80 p-8 shadow-xl">
-              <h2 className="text-lg font-black text-white mb-6 flex items-center gap-2">
-                <Flame className="text-cyan-400" size={20} />
-                Simulator Parameters
-              </h2>
-              <p className="text-gray-400 text-xs mb-8 leading-relaxed">
-                Tweak external stress factors below. The AI Twin will instantly simulate the operation changes and update the predictions.
-              </p>
-
-              {/* Weather Input */}
-              <div className="space-y-3 mb-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Weather Condition</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'sunny', label: '☀️ Sunny', color: 'hover:border-amber-500/50 hover:bg-amber-500/5 text-amber-500' },
-                    { id: 'rainy', label: '🌧️ Heavy Rain', color: 'hover:border-cyan-500/50 hover:bg-cyan-500/5 text-cyan-400' },
-                    { id: 'stormy', label: '⛈️ Stormy', color: 'hover:border-purple-500/50 hover:bg-purple-500/5 text-purple-400' },
-                    { id: 'heatwave', label: '🔥 Heatwave', color: 'hover:border-orange-500/50 hover:bg-orange-500/5 text-orange-500' },
-                  ].map(w => (
-                    <button
-                      key={w.id}
-                      onClick={() => setWeather(w.id)}
-                      className={`py-3 px-4 rounded-xl border text-xs font-bold text-left transition-all ${
-                        weather === w.id 
-                          ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-md shadow-cyan-500/5' 
-                          : 'border-gray-800 bg-[#0F172A] text-gray-400'
-                      }`}
-                    >
-                      {w.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Simulation Event */}
-              <div className="space-y-3 mb-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Special Events & Festivals</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'none', label: '📅 Regular Day' },
-                    { id: 'diwali', label: '🪔 Diwali Festival' },
-                    { id: 'weekend', label: '🍹 Weekend Rush' },
-                    { id: 'cricket', label: '🏏 India Match Live' },
-                  ].map(e => (
-                    <button
-                      key={e.id}
-                      onClick={() => setSimulationEvent(e.id)}
-                      className={`py-3 px-4 rounded-xl border text-xs font-bold text-left transition-all ${
-                        simulationEvent === e.id 
-                          ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-md shadow-cyan-500/5' 
-                          : 'border-gray-800 bg-[#0F172A] text-gray-400'
-                      }`}
-                    >
-                      {e.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Local Demand Surge */}
-              <div className="space-y-3 mb-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Local Demand Factor</label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'low', label: 'Low' },
-                    { id: 'standard', label: 'Standard' },
-                    { id: 'high_surge', label: '⚡ Surge High' },
-                  ].map(d => (
-                    <button
-                      key={d.id}
-                      onClick={() => setDemandFactor(d.id)}
-                      className={`flex-1 py-3 text-center rounded-xl border text-xs font-bold transition-all ${
-                        demandFactor === d.id 
-                          ? 'border-cyan-500 bg-cyan-500/10 text-white' 
-                          : 'border-gray-800 bg-[#0F172A] text-gray-400'
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Staffing Levels */}
-              <div className="space-y-3 mb-6">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Simulated Staffing Level</label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'understaffed', label: 'Understaffed' },
-                    { id: 'optimal', label: 'Optimal' },
-                    { id: 'overstaffed', label: 'Overstaffed' },
-                  ].map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setStaffingLevel(s.id)}
-                      className={`flex-1 py-2.5 text-center rounded-xl border text-xs font-bold transition-all ${
-                        staffingLevel === s.id 
-                          ? 'border-cyan-500 bg-cyan-500/10 text-white' 
-                          : 'border-gray-800 bg-[#0F172A] text-gray-400'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Kitchen Capacity Capacity */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Kitchen Active Capacity</label>
-                  <span className="text-xs font-black text-cyan-400">{kitchenCapacity}%</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="50" 
-                  max="150" 
-                  step="50" 
-                  value={kitchenCapacity}
-                  onChange={(e) => setKitchenCapacity(e.target.value)}
-                  className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                />
-                <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">
-                  <span>50% (Maintenance)</span>
-                  <span>100% (Optimal)</span>
-                  <span>150% (Overdrive)</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Simulated Live Environment Insights */}
-            <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2rem] border border-gray-800/80 p-8 shadow-xl">
-              <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
-                <Info size={16} className="text-cyan-400" />
-                Live Twin Status
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-gray-800/50">
-                  <span className="text-xs text-gray-400">Simulation Status</span>
-                  <Badge variant="success">RUNNING</Badge>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-800/50">
-                  <span className="text-xs text-gray-400">Simulation Target</span>
-                  <span className="text-xs font-bold text-white">{weatherLabel}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-800/50">
-                  <span className="text-xs text-gray-400">Target Event</span>
-                  <span className="text-xs font-bold text-cyan-400">{eventLabel}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-xs text-gray-400">Last Synced Data</span>
-                  <span className="text-xs text-gray-400 font-mono">10 min ago</span>
-                </div>
-              </div>
-            </div>
-
+        
+        {/* ── CORE OPERATIONS SNAPSHOT HUD ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-[#111827] border border-gray-850 rounded-2.5xl p-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 text-cyan-500/20"><ShoppingBag size={48} /></div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Active Orders</span>
+            <p className="text-2xl font-black text-white mt-1">{twinState?.activeOrders || 0}</p>
+            <span className="text-[10px] text-cyan-400 font-semibold block mt-1">{twinState?.ordersLast15Minutes || 0} orders in last 15m</span>
           </div>
 
-          {/* ════ RIGHT COLUMN: CORE DASHBOARD PREDICTIONS ════ */}
+          <div className="bg-[#111827] border border-gray-850 rounded-2.5xl p-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 text-violet-500/20"><Activity size={48} /></div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Kitchen Utilization</span>
+            <p className="text-2xl font-black text-violet-400 mt-1">{Math.round((twinState?.kitchenUtilization || 0) * 100)}%</p>
+            <span className="text-[10px] text-gray-400 block mt-1">Staff Utilization: {Math.round((twinState?.staffUtilization || 0) * 100)}%</span>
+          </div>
+
+          <div className="bg-[#111827] border border-gray-850 rounded-2.5xl p-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 text-emerald-500/20"><ShieldCheck size={48} /></div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Twin Health Score</span>
+            <p className="text-2xl font-black text-emerald-400 mt-1">{twinState?.healthScore || 100}/100</p>
+            <span className="text-[10px] text-gray-400 block mt-1">SLA Breach Risk: {Math.round((twinState?.slaRisk || 0) * 100)}%</span>
+          </div>
+
+          <div className="bg-[#111827] border border-gray-850 rounded-2.5xl p-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 text-red-500/20"><AlertTriangle size={48} /></div>
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block">Inventory Depletion Risk</span>
+            <p className="text-2xl font-black text-rose-500 mt-1">{twinState?.inventoryRisk || "LOW"}</p>
+            <span className="text-[10px] text-gray-400 block mt-1">Reorder threshold alerts are live</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* ════ LEFT SECTION: CONTROLS & WHAT-IF SIMULATORS (4 COLS) ════ */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Simulation Controls */}
+            <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-5">
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <Sliders size={18} className="text-cyan-400" /> What-If Stress Simulator
+              </h2>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Test spikes and staff rosters virtual scenarios. This computes outputs immediately without impacting live operations.
+              </p>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Demand Stress Spike</label>
+                  <select 
+                    value={demandFactor} 
+                    onChange={(e) => setDemandFactor(e.target.value)}
+                    className="w-full bg-black/45 border border-gray-800 rounded-xl p-2.5 text-xs text-white outline-none"
+                  >
+                    <option value="standard">Standard Volume</option>
+                    <option value="high_surge">+40% Demand Surge</option>
+                    <option value="low">-20% Demand Dip</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Festival & Events</label>
+                  <select 
+                    value={simulationEvent} 
+                    onChange={(e) => setSimulationEvent(e.target.value)}
+                    className="w-full bg-black/45 border border-gray-800 rounded-xl p-2.5 text-xs text-white outline-none"
+                  >
+                    <option value="none">No Event</option>
+                    <option value="diwali">🪔 Diwali Surge (+80%)</option>
+                    <option value="weekend">🍹 Weekend Rush (+30%)</option>
+                    <option value="cricket">🏏 Match Day Snack Attack (+50%)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Staffing Levels</label>
+                  <select 
+                    value={staffingLevel} 
+                    onChange={(e) => setStaffingLevel(e.target.value)}
+                    className="w-full bg-black/45 border border-gray-800 rounded-xl p-2.5 text-xs text-white outline-none"
+                  >
+                    <option value="optimal">Optimal Roster</option>
+                    <option value="understaffed">Understaffed (-2 chefs)</option>
+                    <option value="overstaffed">Overstaffed (+2 chefs)</option>
+                  </select>
+                </div>
+
+                <button 
+                  onClick={handleRunSimulation}
+                  disabled={simulatingActive}
+                  className="w-full bg-cyan-500 text-black py-3 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1.5 hover:bg-cyan-400"
+                >
+                  <Cpu size={14} /> Run Stress Scenario
+                </button>
+              </div>
+
+              {simResults && (
+                <div className="p-4 bg-white/5 border border-cyan-500/25 rounded-2xl space-y-2.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Simulated Orders</span>
+                    <span className="font-bold text-white">{simResults.predictedOrders}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Simulated Revenue</span>
+                    <span className="font-bold text-emerald-400">₹{simResults.revenue.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Simulated Load</span>
+                    <span className="font-bold text-violet-400">{Math.round(simResults.capacityUtilization * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Stockout Risk</span>
+                    <span className={`font-bold ${simResults.stockoutRisk === 'HIGH' ? 'text-red-500' : 'text-green-500'}`}>{simResults.stockoutRisk}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Primary Bottleneck</span>
+                    <span className="font-bold text-rose-400">{simResults.primaryBottleneck}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Model Monitoring Accuracy */}
+            {monitoringMetrics && (
+              <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                  <Activity size={14} className="text-emerald-400" /> Forecast Accuracy KPI
+                </h3>
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between py-1.5 border-b border-gray-800">
+                    <span className="text-gray-400">Model MAPE Error</span>
+                    <span className="font-bold text-white">{monitoringMetrics.mape}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-800">
+                    <span className="text-gray-400">Model Version</span>
+                    <span className="font-bold text-cyan-400">{monitoringMetrics.modelVersion}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-gray-800">
+                    <span className="text-gray-400">Model Drift Status</span>
+                    <span className="font-bold text-white">{monitoringMetrics.modelDrift}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-gray-400">Data pipeline status</span>
+                    <span className="font-bold text-emerald-400">{monitoringMetrics.featurePipelineStatus}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ════ MIDDLE & RIGHT SECTION: CORE INTELLIGENCE CARDS (8 COLS) ════ */}
           <div className="lg:col-span-8 space-y-6">
 
-            {/* ── SECTION 1: KEY PERFORMANCE TWIN PREDICTIONS ── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Predicted Orders */}
-              <div className="bg-gradient-to-br from-[#111827] to-[#0F172A] border border-gray-800 p-6 rounded-3xl relative overflow-hidden group">
-                <div className="absolute -top-10 -right-10 h-24 w-24 bg-cyan-500/5 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-10 w-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400">
-                    <ShoppingBag size={20} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] bg-cyan-500/20 text-cyan-300 font-bold px-2 py-0.5 rounded-full">{confidenceScore}% Confidence</span>
-                  </div>
-                </div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predicted Orders Today</p>
-                <h3 className="text-3xl font-black text-white flex items-baseline gap-2">
-                  {predictedOrders}
-                  <span className="text-xs text-green-500 font-bold">
-                    {predictedOrders > baseOrderVolume ? `+${Math.round((predictedOrders - baseOrderVolume)/baseOrderVolume*100)}% vs avg` : `${Math.round((predictedOrders - baseOrderVolume)/baseOrderVolume*100)}% vs avg`}
-                  </span>
-                </h3>
-              </div>
-
-              {/* Predicted Revenue */}
-              <div className="bg-gradient-to-br from-[#111827] to-[#0F172A] border border-gray-800 p-6 rounded-3xl relative overflow-hidden group">
-                <div className="absolute -top-10 -right-10 h-24 w-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
-                    <DollarSign size={20} />
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full">92% Margin Acc</span>
-                  </div>
-                </div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predicted Gross Revenue</p>
-                <h3 className="text-3xl font-black text-white flex items-baseline gap-2">
-                  ₹{predictedRevenue.toLocaleString()}
-                  <span className="text-xs text-green-500 font-bold">
-                    {predictedRevenue > (baseOrderVolume * baseAvgPrice) ? 'Surge Revenue' : 'Stable'}
-                  </span>
-                </h3>
-              </div>
-
-              {/* Kitchen Load Stress */}
-              <div className="bg-gradient-to-br from-[#111827] to-[#0F172A] border border-gray-800 p-6 rounded-3xl relative overflow-hidden group">
-                <div className="absolute -top-10 -right-10 h-24 w-24 bg-rose-500/5 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-10 w-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-400">
-                    <Flame size={20} />
-                  </div>
-                  <div className="text-right">
-                    <Badge variant={kitchenLoad > 100 ? 'error' : kitchenLoad > 80 ? 'warning' : 'success'}>
-                      {kitchenLoad > 100 ? 'OVERLOAD' : kitchenLoad > 80 ? 'HIGH STRESS' : 'OPTIMAL'}
-                    </Badge>
-                  </div>
-                </div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Simulated Kitchen Load</p>
-                <h3 className="text-3xl font-black text-white">
-                  {kitchenLoad}%
-                </h3>
-              </div>
-
-            </div>
-
-            {/* ── SECTION 2: CHARTS & HOURLY SIMULATION ── */}
-            <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2.5rem] border border-gray-800/80 p-8 shadow-xl">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            {/* Demand Spike Alerts */}
+            {twinState?.inventoryRisk === 'CRITICAL' && (
+              <div className="bg-red-500/10 border border-red-500/30 p-5 rounded-2.5xl flex items-start gap-4">
+                <AlertOctagon className="text-rose-500 shrink-0" size={24} />
                 <div>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
-                    <BarChart2 className="text-cyan-400" size={20} />
-                    Hourly Load & Order Projection
-                  </h3>
-                  <p className="text-gray-400 text-xs mt-1">Real-time simulation of incoming orders compared to kitchen capacity limits.</p>
+                  <h4 className="font-black text-rose-500 text-sm">CRITICAL INVENTORY ALERT DETECTED</h4>
+                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                    Some ingredients will run out within 60 minutes due to higher demand velocity. Active reorder recommendations are loaded in the stock forecast.
+                  </p>
                 </div>
-                <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-xs font-bold">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400" /> Hourly Target
+              </div>
+            )}
+
+            {/* Multi-Horizon Demand Graph */}
+            {multiHorizonChartData.length > 0 && (
+              <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+                  <TrendingUp className="text-cyan-400" size={16} /> Multi-Horizon Demand Projection (15m to 7 days)
+                </h3>
+                <div className="h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={multiHorizonChartData}>
+                      <defs>
+                        <linearGradient id="projGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#222" />
+                      <XAxis dataKey="horizon" stroke="#6b7280" tick={{ fontSize: 10, fontWeight: 700 }} />
+                      <YAxis stroke="#6b7280" tick={{ fontSize: 10 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none' }} />
+                      <Area type="monotone" dataKey="predicted" stroke="#06b6d4" strokeWidth={3} fill="url(#projGrad)" name="Predicted Orders" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {/* Kitchen Capacity Predictor & Downstream Bottlenecks */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Station utilization */}
+              <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-4">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Flame className="text-amber-500" size={16} /> Kitchen Station Loads
+                </h3>
+                
+                <div className="space-y-3 text-xs">
+                  {kitchenCapacity.stations && kitchenCapacity.stations.map((st, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-300">{st.station}</span>
+                        <span className="text-[10px] text-gray-400">Util: {Math.round(st.currentUtilization * 100)}% -> Pred: {Math.round(st.predictedUtilization * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${st.risk === 'CRITICAL' ? 'bg-red-500' : st.risk === 'HIGH' ? 'bg-amber-500' : 'bg-cyan-500'}`} 
+                          style={{ width: `${Math.round(st.predictedUtilization * 100)}%` }} 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {kitchenCapacity.predictedBottleneck && kitchenCapacity.predictedBottleneck !== 'NONE' && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[11px] text-rose-400 flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0" />
+                    <span><strong>{kitchenCapacity.predictedBottleneck}</strong> is predicted to bottleneck in {kitchenCapacity.timeToOverload || "14 minutes"}.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Downstream Bottleneck Cascade Waterfall */}
+              <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-4">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Cpu className="text-violet-500" size={16} /> Downstream Delay Cascade
+                </h3>
+                <p className="text-[11px] text-gray-400 leading-relaxed">
+                  Waterfall breakdown showing how kitchen overload ripples downstream into delivery SLA delays.
+                </p>
+
+                <div className="space-y-3 text-xs">
+                  {kitchenCapacity.bottleneckCascade && kitchenCapacity.bottleneckCascade.map((cas, i) => (
+                    <div key={i} className="flex gap-3 items-start">
+                      <span className="h-5 w-5 bg-white/5 border border-gray-800 rounded-full flex items-center justify-center text-[10px] font-bold text-cyan-400 shrink-0">{i + 1}</span>
+                      <div>
+                        <h4 className="font-bold text-white text-xs">{cas.step}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{cas.details}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={hourlyLoadData}>
-                    <defs>
-                      <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1f2937" />
-                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 600 }} />
-                    <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '16px', color: '#fff' }} />
-                    <Area type="monotone" dataKey="Orders" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#orderGrad)" />
-                    <Line type="monotone" dataKey="Capacity" stroke="#ef4444" strokeWidth={2} strokeDasharray="4 4" dot={false} name="Kitchen Capacity Cap" />
-                  </AreaChart>
-                </ResponsiveContainer>
+            </div>
+
+            {/* Prep Planner Panel */}
+            <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-4">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="text-emerald-400" size={16} /> Proactive Prep Planner
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Configure preparation quantities based on estimated upcoming order volumes to prevent shelf-life waste.
+              </p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-gray-800 text-[10px] text-gray-500 uppercase tracking-wider">
+                      <th className="py-2.5">Dish</th>
+                      <th className="py-2.5">Estimated Orders</th>
+                      <th className="py-2.5">Current Prep</th>
+                      <th className="py-2.5 text-center">AI Target</th>
+                      <th className="py-2.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prepPlans.map((plan, i) => (
+                      <tr key={i} className="border-b border-gray-800/50 hover:bg-white/5">
+                        <td className="py-3 font-bold text-white">
+                          {plan.menuItemName}
+                          <span className="text-[9px] block text-gray-400 font-normal">{plan.reason}</span>
+                        </td>
+                        <td className="py-3 text-gray-300">{plan.predictedDemand} units</td>
+                        <td className="py-3 text-gray-300">{plan.currentPrep} units</td>
+                        <td className="py-3 text-center font-bold text-cyan-400">
+                          {editingPlanId === plan.id ? (
+                            <input 
+                              type="number"
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              className="w-16 bg-black/60 border border-cyan-500 rounded p-1 text-center outline-none text-white text-xs font-bold"
+                            />
+                          ) : (
+                            `${plan.recommendedPrep} units`
+                          )}
+                        </td>
+                        <td className="py-3 text-right">
+                          {plan.status === 'PENDING' ? (
+                            <div className="flex gap-2 justify-end">
+                              {editingPlanId === plan.id ? (
+                                <>
+                                  <button onClick={() => handleSaveEditPlan(plan.id)} className="h-7 w-7 bg-emerald-500 text-black rounded flex items-center justify-center hover:bg-emerald-400"><Check size={14} /></button>
+                                  <button onClick={() => setEditingPlanId(null)} className="h-7 w-7 bg-gray-800 text-gray-400 rounded flex items-center justify-center hover:bg-gray-700"><X size={14} /></button>
+                                </>
+                              ) : (
+                                <>
+                                  <button onClick={() => handleApprovePlan(plan.id)} className="h-7 w-7 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded flex items-center justify-center hover:bg-emerald-500 hover:text-black"><Check size={14} /></button>
+                                  <button onClick={() => { setEditingPlanId(plan.id); setEditingValue(String(plan.recommendedPrep)); }} className="h-7 w-7 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded flex items-center justify-center hover:bg-cyan-500 hover:text-black"><Edit2 size={14} /></button>
+                                  <button onClick={() => handleRejectPlan(plan.id)} className="h-7 w-7 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded flex items-center justify-center hover:bg-rose-500 hover:text-white"><X size={14} /></button>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant={plan.status === 'APPROVED' ? 'success' : plan.status === 'EDITED' ? 'warning' : 'error'}>{plan.status}</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {/* ── SECTION 3: ACTIONABLE RECOMMENDATIONS & DIALS ── */}
-            <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2.5rem] border border-gray-800/80 p-8 shadow-xl">
-              <h3 className="text-lg font-black text-white mb-6 flex items-center gap-2">
-                <Sparkles className="text-cyan-400 animate-pulse" size={20} />
-                Actionable AI Recommendations
+            {/* Ingredient Replenishment & Reorder Forecasts */}
+            <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-4">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Utensils className="text-cyan-400" size={16} /> Ingredient stock depletion tracker
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Recommendation 1: Replenishment */}
-                <div className={`p-6 rounded-2xl border transition-all ${
-                  appliedOptimizations['auto_stock']
-                    ? 'bg-emerald-500/5 border-emerald-500/40 text-emerald-400'
-                    : hasShortageAlert 
-                      ? 'bg-amber-500/5 border-amber-500/30 text-amber-400' 
-                      : 'bg-white/5 border-gray-800'
-                }`}>
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <div className="h-9 w-9 bg-white/5 rounded-lg flex items-center justify-center">
-                      <ShieldAlert size={18} />
+                {inventoryForecasts.map((inv, i) => (
+                  <div key={i} className="p-4 bg-black/25 border border-gray-800 rounded-2xl flex justify-between items-center text-xs">
+                    <div>
+                      <h4 className="font-bold text-white">{inv.ingredient}</h4>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Stock: {inv.currentStock} {inv.unit} · Need: {inv.predictedUsage} {inv.unit}</p>
+                      <p className="text-[10px] text-gray-500">Depletion ETA: {inv.expectedDepletionMinutes} mins</p>
                     </div>
-                    <button 
-                      onClick={() => toggleOptimization('auto_stock', "Replenishment order sent to suppliers!")}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                        appliedOptimizations['auto_stock']
-                          ? 'bg-emerald-500 text-black'
-                          : 'bg-cyan-500 hover:bg-cyan-400 text-black'
-                      }`}
-                    >
-                      {appliedOptimizations['auto_stock'] ? 'Applied' : 'Apply Fix'}
-                    </button>
-                  </div>
-                  <h4 className="font-bold text-white text-sm mb-1">Stock Replenishment Required</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    {hasShortageAlert 
-                      ? "High risk of ingredient shortage due to surge in simulated demand. Pre-ordering is highly recommended."
-                      : "Stock levels currently optimal for this simulation. Apply replenishment to lock in pre-order prices."}
-                  </p>
-                </div>
 
-                {/* Recommendation 2: Staff Scheduling */}
-                <div className={`p-6 rounded-2xl border transition-all ${
-                  appliedOptimizations['staff_up']
-                    ? 'bg-emerald-500/5 border-emerald-500/40'
-                    : staffingLevel === 'understaffed'
-                      ? 'bg-rose-500/5 border-rose-500/30' 
-                      : 'bg-white/5 border-gray-800'
-                }`}>
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <div className="h-9 w-9 bg-white/5 rounded-lg flex items-center justify-center text-cyan-400">
-                      <Users size={18} />
+                    <div className="text-right space-y-1.5">
+                      <Badge variant={inv.risk === 'CRITICAL' ? 'error' : inv.risk === 'HIGH' ? 'warning' : 'success'}>
+                        {inv.risk}
+                      </Badge>
+                      {inv.recommendedReorder > 0 && (
+                        <p className="text-[9px] font-bold text-cyan-400">Reorder +{inv.recommendedReorder} units</p>
+                      )}
                     </div>
-                    <button 
-                      onClick={() => toggleOptimization('staff_up', "Additional shifts automated and sent to staff!")}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                        appliedOptimizations['staff_up']
-                          ? 'bg-emerald-500 text-black'
-                          : 'bg-cyan-500 hover:bg-cyan-400 text-black'
-                      }`}
-                    >
-                      {appliedOptimizations['staff_up'] ? 'Optimized' : 'Adjust Shifts'}
-                    </button>
                   </div>
-                  <h4 className="font-bold text-white text-sm mb-1">Staffing Adjustment Alert</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    {staffingLevel === 'understaffed' 
-                      ? "Understaffed simulation will lead to a 12-minute delay in order deliveries. Call in 2 extra chefs."
-                      : "Staff scheduling matches current volume. Adjust shifts to simulate dynamic roster optimization."}
-                  </p>
-                </div>
-
-                {/* Recommendation 3: Waste Management */}
-                <div className={`p-6 rounded-2xl border transition-all ${
-                  appliedOptimizations['waste_reclaim']
-                    ? 'bg-emerald-500/5 border-emerald-500/40 text-emerald-400'
-                    : 'bg-white/5 border-gray-800'
-                }`}>
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <div className="h-9 w-9 bg-white/5 rounded-lg flex items-center justify-center text-yellow-500">
-                      <AlertTriangle size={18} />
-                    </div>
-                    <button 
-                      onClick={() => toggleOptimization('waste_reclaim', "Smart kitchen waste reduction activated!")}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                        appliedOptimizations['waste_reclaim']
-                          ? 'bg-emerald-500 text-black'
-                          : 'bg-cyan-500 hover:bg-cyan-400 text-black'
-                      }`}
-                    >
-                      {appliedOptimizations['waste_reclaim'] ? 'Reclaimed' : 'Reclaim Waste'}
-                    </button>
-                  </div>
-                  <h4 className="font-bold text-white text-sm mb-1">Food Waste Mitigation</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    Expected prep surplus will generate {foodWasteKg}kg of food waste. Enable Smart Pre-portioning to reduce waste by 60%.
-                  </p>
-                </div>
-
-                {/* Recommendation 4: Order Throttling */}
-                <div className={`p-6 rounded-2xl border transition-all ${
-                  appliedOptimizations['throttle']
-                    ? 'bg-emerald-500/5 border-emerald-500/40'
-                    : kitchenLoad > 100
-                      ? 'bg-rose-500/5 border-rose-500/30'
-                      : 'bg-white/5 border-gray-800'
-                }`}>
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <div className="h-9 w-9 bg-white/5 rounded-lg flex items-center justify-center text-purple-400">
-                      <Clock size={18} />
-                    </div>
-                    <button 
-                      onClick={() => toggleOptimization('throttle', "Order throttling active! Incoming orders capped.")}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                        appliedOptimizations['throttle']
-                          ? 'bg-emerald-500 text-black'
-                          : 'bg-cyan-500 hover:bg-cyan-400 text-black'
-                      }`}
-                    >
-                      {appliedOptimizations['throttle'] ? 'Throttled' : 'Throttle Orders'}
-                    </button>
-                  </div>
-                  <h4 className="font-bold text-white text-sm mb-1">Kitchen Load Throttling</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    {kitchenLoad > 100 
-                      ? "Kitchen is severely overloaded! Restrict incoming delivery orders by 15% to maintain ratings."
-                      : "Kitchen queue times are normal. Simulate high kitchen load to test auto-throttling limits."}
-                  </p>
-                </div>
-
+                ))}
               </div>
             </div>
 
-            {/* ── SECTION 4: INVENTORY SHORTAGE RISK CHART & LIST ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
-              {/* Ingredient predictions */}
-              <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2.5rem] border border-gray-800/80 p-8 shadow-xl">
-                <h3 className="text-base font-black text-white mb-6 flex items-center gap-2">
-                  <Utensils className="text-cyan-400" size={18} />
-                  Ingredient Stock Forecast
-                </h3>
+            {/* Menu Performance Matrix & Cannibalization */}
+            <div className="bg-[#111827] border border-gray-850 rounded-3xl p-6 space-y-5">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="text-violet-400 animate-pulse" size={16} /> Menu Intelligence Matrix & Gaps
+              </h3>
 
-                <div className="space-y-4">
-                  {predictedIngredients.map((ing, i) => (
-                    <div key={i} className="flex items-center justify-between p-3.5 bg-white/5 border border-gray-800 rounded-xl">
-                      <div>
-                        <h4 className="text-xs font-bold text-white">{ing.name}</h4>
-                        <p className="text-[10px] text-gray-400 mt-0.5">Stock: {ing.stock} units · Need: {ing.required} units</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {ing.shortage > 0 && (
-                          <span className="text-[10px] font-bold text-rose-500">Short: {ing.shortage} units</span>
-                        )}
-                        <Badge variant={ing.risk === 'HIGH' ? 'error' : ing.risk === 'MEDIUM' ? 'warning' : 'success'} className="text-[9px] font-black tracking-widest uppercase">
-                          {ing.risk}
-                        </Badge>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {menuIntelligence.items && menuIntelligence.items.map((item, i) => (
+                  <div key={i} className="p-4 bg-black/25 border border-gray-800 rounded-2xl space-y-2 text-xs">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-white">{item.dish}</h4>
+                      <span className="text-[10px] text-violet-400 font-bold">Score: {item.operationalScore}/100</span>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-[10px] text-cyan-400 font-semibold">{item.matrixClassification}</p>
+                    <p className="text-[10px] text-gray-400">{item.recommendation}</p>
+                    <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase tracking-widest pt-1 border-t border-gray-800/40">
+                      <span>Margin: {item.margin}</span>
+                      <span>Prep: {item.prepTime}</span>
+                      <span className="text-rose-400">Cancellations: {item.cancellations}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Dish sales forecast */}
-              <div className="bg-[#111827]/80 backdrop-blur-md rounded-[2.5rem] border border-gray-800/80 p-8 shadow-xl">
-                <h3 className="text-base font-black text-white mb-6 flex items-center gap-2">
-                  <TrendingUp className="text-cyan-400" size={18} />
-                  Top Dish Demand Projections
-                </h3>
-
-                <div className="space-y-4">
-                  {dishForecasts.map((dish, i) => (
-                    <div key={i} className="p-3.5 bg-white/5 border border-gray-800 rounded-xl">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="text-xs font-bold text-white">{dish.name}</h4>
-                        <span className="text-xs font-black text-cyan-400">{dish.orders} Orders</span>
-                      </div>
-                      <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                        <span>Price: ₹{dish.price}</span>
-                        <span className="text-rose-400">Waste: {dish.waste} units expected</span>
-                      </div>
-                    </div>
-                  ))}
+              {menuIntelligence.cannibalization && menuIntelligence.cannibalization.map((can, i) => (
+                <div key={i} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl text-[11px] text-amber-400 flex items-center gap-2">
+                  <Info size={14} className="shrink-0" />
+                  <span>{can}</span>
                 </div>
-              </div>
+              ))}
 
+              {menuIntelligence.demandGaps && menuIntelligence.demandGaps.map((gap, i) => (
+                <div key={i} className="p-3 bg-violet-500/5 border border-violet-500/20 rounded-xl text-[11px] text-violet-400 flex items-center gap-2">
+                  <Sparkles size={14} className="shrink-0" />
+                  <span>{gap}</span>
+                </div>
+              ))}
             </div>
 
           </div>

@@ -15,6 +15,7 @@ import {
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { toast } from 'react-hot-toast';
+import restaurantService from '../services/restaurantService';
 
 // ── MOCK DATA FOR ENTERPRISE ANALYTICS ──
 const PIE_MARKETING_CHART = [
@@ -51,6 +52,8 @@ const AdminBusinessForecast = () => {
   const [selectedRole, setSelectedRole] = useState('CEO'); // CEO, Admin, Finance, Marketing, Operations
   const [dateRange, setDateRange] = useState('today'); // today, week, month, year
   
+  const [zones, setZones] = useState([]);
+
   // Real-time counter simulation
   const [activeUsers, setActiveUsers] = useState(1420);
   const [liveOrders, setLiveOrders] = useState(84);
@@ -64,6 +67,18 @@ const AdminBusinessForecast = () => {
   });
 
   useEffect(() => {
+    const fetchZones = async () => {
+      try {
+        const res = await restaurantService.getAdminDemandMap();
+        if (res) {
+          setZones(res);
+        }
+      } catch (e) {
+        console.warn("Failed to load admin demand map", e);
+      }
+    };
+    fetchZones();
+
     const interval = setInterval(() => {
       setActiveUsers(prev => prev + Math.floor(Math.random() * 9) - 4);
       setLiveOrders(prev => Math.max(10, prev + Math.floor(Math.random() * 5) - 2));
@@ -312,11 +327,16 @@ const AdminBusinessForecast = () => {
             </h3>
             
             <div className="space-y-3 font-bold text-xs">
-              {GEOGRAPHIC_DENSITY.map((item, idx) => (
+              {(zones.length > 0 ? zones : GEOGRAPHIC_DENSITY.map(item => ({
+                zone: item.city,
+                orderVolume: item.orders,
+                revenue: item.revenue,
+                density: item.density
+              }))).map((item, idx) => (
                 <div key={idx} className="p-3 bg-[#070A13] border border-gray-850 rounded-2xl flex justify-between items-center">
                   <div>
-                    <span className="text-white block">{item.city}</span>
-                    <span className="text-[10px] text-gray-500 mt-0.5">{item.orders} orders</span>
+                    <span className="text-white block">{item.zone}</span>
+                    <span className="text-[10px] text-gray-500 mt-0.5">{item.orderVolume} orders · {item.revenue}</span>
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[8px] font-black border uppercase ${
                     item.density === 'CRITICAL_SURGE' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :

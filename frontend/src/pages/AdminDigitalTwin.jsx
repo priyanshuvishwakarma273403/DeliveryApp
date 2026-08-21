@@ -520,7 +520,7 @@ const AdminDigitalTwin = () => {
                     <div key={i} className="space-y-1">
                       <div className="flex justify-between">
                         <span className="font-bold text-gray-300">{st.station}</span>
-                        <span className="text-[10px] text-gray-400">Util: {Math.round(st.currentUtilization * 100)}% -> Pred: {Math.round(st.predictedUtilization * 100)}%</span>
+                        <span className="text-[10px] text-gray-400">Util: {Math.round(st.currentUtilization * 100)}% {"→"} Pred: {Math.round(st.predictedUtilization * 100)}%</span>
                       </div>
                       <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
                         <div 

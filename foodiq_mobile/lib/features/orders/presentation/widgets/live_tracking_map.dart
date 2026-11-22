@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodiq_mobile/app/theme/app_colors.dart';
 import 'package:foodiq_mobile/features/orders/domain/models/rider_location_model.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 
 class LiveTrackingMap extends StatelessWidget {
   final RiderLocationModel? riderLocation;

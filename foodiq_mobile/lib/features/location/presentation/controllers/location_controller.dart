@@ -8,6 +8,8 @@ final activeAddressProvider = StateNotifierProvider<LocationController, AddressM
   return LocationController(repository);
 });
 
+final locationControllerProvider = activeAddressProvider;
+
 final savedAddressesProvider = FutureProvider<List<AddressModel>>((ref) async {
   final repository = ref.watch(locationRepositoryProvider);
   return await repository.getSavedAddresses();

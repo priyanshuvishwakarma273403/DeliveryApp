@@ -36,7 +36,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final locationState = ref.watch(locationControllerProvider);
     final checkoutState = ref.watch(checkoutControllerProvider);
 
-    final selectedAddress = locationState.selectedAddress;
+    final selectedAddress = locationState;
     final pricing = checkoutState.pricing;
 
     return Scaffold(

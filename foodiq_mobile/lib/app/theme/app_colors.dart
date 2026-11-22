@@ -10,6 +10,23 @@ class AppColors {
   static const Color secondaryDark = Color(0xFFE67316);
   static const Color secondaryLight = Color(0xFFFD9947);
 
+  // Design Token Aliases
+  static const Color primaryRed = primary;
+  static const Color accentOrange = secondary;
+  static const Color vegGreen = Color(0xFF26A541);
+  static const Color nonVegRed = Color(0xFFE23744);
+  static const Color neutralGray = Color(0xFF9E9EA7);
+
+  // Dynamic Theme Helpers
+  static Color cardBackground(dynamic contextOrBrightness) {
+    if (contextOrBrightness is Brightness) {
+      return contextOrBrightness == Brightness.dark ? cardDark : cardLight;
+    } else if (contextOrBrightness is BuildContext) {
+      return Theme.of(contextOrBrightness).brightness == Brightness.dark ? cardDark : cardLight;
+    }
+    return cardLight;
+  }
+
   // Backgrounds & Surfaces (Light)
   static const Color backgroundLight = Color(0xFFF8F9FA);
   static const Color surfaceLight = Color(0xFFFFFFFF);
@@ -41,7 +58,7 @@ class AppColors {
   static const Color gold = Color(0xFFFFB800);
   static const Color goldDark = Color(0xFFD49700);
 
-  // Glassmorphic Overlay Tints
-  static Color glassLight = Colors.white.withOpacity(0.85);
-  static Color glassDark = const Color(0xFF16171E).withOpacity(0.85);
+  // Glassmorphic Overlay Tints (Const 85% alpha)
+  static const Color glassLight = Color(0xD9FFFFFF);
+  static const Color glassDark = Color(0xD916171E);
 }

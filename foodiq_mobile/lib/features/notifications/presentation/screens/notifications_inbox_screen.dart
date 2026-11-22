@@ -53,7 +53,7 @@ class _NotificationsInboxScreenState extends ConsumerState<NotificationsInboxScr
 
               Expanded(
                 child: filtered.isEmpty
-                    ? const EmptyStateView(
+                    ? EmptyStateView(
                         title: 'No notifications',
                         message: 'You are all caught up! Updates regarding your orders and offers will appear here.',
                         icon: Icons.notifications_none_rounded,

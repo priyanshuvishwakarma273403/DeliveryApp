@@ -27,7 +27,7 @@ class HomeRecommendationsSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
-              const Icon(Icons.sparkles, size: 16, color: AppColors.primary),
+              const Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
               const SizedBox(width: 6),
               Text('RECOMMENDED FOR YOUR TASTE', style: AppTypography.labelSmall()),
             ],

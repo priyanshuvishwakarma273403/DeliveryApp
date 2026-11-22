@@ -101,7 +101,7 @@ class _CustomerDashboardShellState extends ConsumerState<CustomerDashboardShell>
         onDestinationSelected: (index) {
           setState(() => _currentNavIndex = index);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),

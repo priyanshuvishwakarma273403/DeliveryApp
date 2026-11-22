@@ -5,7 +5,10 @@ import 'package:foodiq_mobile/app/config/env_config.dart';
 import 'package:foodiq_mobile/bootstrap.dart';
 import 'package:foodiq_mobile/core/storage/secure_storage_service.dart';
 import 'package:foodiq_mobile/core/websocket/websocket_state.dart';
-import 'package:stomp_dart_client/stomp_dart_client.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:stomp_dart_client/stomp_handler.dart';
 
 final stompServiceProvider = Provider<StompService>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);

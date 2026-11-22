@@ -26,7 +26,7 @@ class SupportTicketsScreen extends ConsumerWidget {
       body: ticketsAsync.when(
         data: (tickets) {
           if (tickets.isEmpty) {
-            return const EmptyStateView(
+            return EmptyStateView(
               title: 'No active tickets',
               message: 'If you have any issues with food quality, delivery delays, or refund queries, raise a dispute ticket here.',
               icon: Icons.headset_mic_outlined,

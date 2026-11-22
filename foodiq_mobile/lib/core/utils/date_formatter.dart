@@ -6,6 +6,11 @@ class DateFormatter {
     return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
   }
 
+  static String formatDate(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    return DateFormat('dd MMM yyyy').format(dateTime);
+  }
+
   static String formatTime(DateTime? dateTime) {
     if (dateTime == null) return '';
     return DateFormat('hh:mm a').format(dateTime);

@@ -20,4 +20,6 @@ class CurrencyFormatter {
     }
     return _decimalFormatter.format(amount);
   }
+
+  static String formatINR(num? amount) => format(amount);
 }

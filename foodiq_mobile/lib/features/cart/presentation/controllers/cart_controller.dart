@@ -51,6 +51,7 @@ class CartController extends StateNotifier<CartState> {
     required MenuItemModel menuItem,
     required String restaurantId,
     required String restaurantName,
+    int quantity = 1,
     bool forceReplace = false,
   }) async {
     if (isDifferentRestaurant(restaurantId) && !forceReplace) {

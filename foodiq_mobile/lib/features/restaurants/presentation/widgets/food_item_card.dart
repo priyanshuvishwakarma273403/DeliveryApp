@@ -17,12 +17,13 @@ class FoodItemCard extends StatelessWidget {
   const FoodItemCard({
     super.key,
     required this.item,
-    this.quantityInCart = 0,
+    int? quantity,
+    int? quantityInCart,
     required this.onAdd,
     required this.onIncrement,
     required this.onDecrement,
     this.onTap,
-  });
+  }) : quantityInCart = quantity ?? quantityInCart ?? 0;
 
   @override
   Widget build(BuildContext context) {

@@ -10,14 +10,19 @@ class EmptyStateView extends StatelessWidget {
   final String? buttonText;
   final VoidCallback? onButtonPressed;
 
-  const EmptyStateView({
+  EmptyStateView({
     super.key,
     required this.icon,
     required this.title,
-    required this.description,
-    this.buttonText,
-    this.onButtonPressed,
-  });
+    String? description,
+    String? message,
+    String? buttonText,
+    String? actionLabel,
+    VoidCallback? onButtonPressed,
+    VoidCallback? onAction,
+  })  : description = description ?? message ?? '',
+        buttonText = buttonText ?? actionLabel,
+        onButtonPressed = onButtonPressed ?? onAction;
 
   @override
   Widget build(BuildContext context) {

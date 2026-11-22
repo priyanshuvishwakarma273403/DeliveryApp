@@ -10,7 +10,7 @@ final dioProvider = Provider<Dio>((ref) {
 
   final dio = Dio(
     BaseOptions(
-      baseURL: EnvConfig.apiBaseUrl,
+      baseUrl: EnvConfig.apiBaseUrl,
       connectTimeout: Duration(milliseconds: EnvConfig.connectTimeout),
       receiveTimeout: Duration(milliseconds: EnvConfig.receiveTimeout),
       headers: {

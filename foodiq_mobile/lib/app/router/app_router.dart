@@ -25,6 +25,11 @@ import 'package:foodiq_mobile/features/payments/presentation/screens/payment_sel
 import 'package:foodiq_mobile/features/orders/presentation/screens/order_history_screen.dart';
 import 'package:foodiq_mobile/features/orders/presentation/screens/order_detail_tracking_screen.dart';
 import 'package:foodiq_mobile/features/notifications/presentation/screens/notifications_inbox_screen.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/customer_profile_screen.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/taste_dna_screen.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/wallet_screen.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/support_tickets_screen.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/food_concierge_chat_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = RouterRefreshNotifier(ref, authControllerProvider);
@@ -181,6 +186,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.notifications,
         builder: (context, state) => const NotificationsInboxScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.profile,
+        builder: (context, state) => const CustomerProfileScreen(),
+      ),
+      GoRoute(
+        path: '/taste-dna',
+        builder: (context, state) => const TasteDnaScreen(),
+      ),
+      GoRoute(
+        path: '/wallet',
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: '/support-tickets',
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: '/food-concierge',
+        builder: (context, state) => const FoodConciergeChatScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

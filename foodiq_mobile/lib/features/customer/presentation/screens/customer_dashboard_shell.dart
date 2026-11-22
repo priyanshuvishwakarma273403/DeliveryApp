@@ -14,6 +14,7 @@ import 'package:foodiq_mobile/features/cart/presentation/screens/cart_screen.dar
 import 'package:foodiq_mobile/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:foodiq_mobile/features/orders/presentation/screens/order_history_screen.dart';
 import 'package:foodiq_mobile/features/notifications/presentation/controllers/notification_controller.dart';
+import 'package:foodiq_mobile/features/profile/presentation/screens/customer_profile_screen.dart';
 
 class CustomerDashboardShell extends ConsumerStatefulWidget {
   const CustomerDashboardShell({super.key});
@@ -32,8 +33,8 @@ class _CustomerDashboardShellState extends ConsumerState<CustomerDashboardShell>
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: (_currentNavIndex == 1 || _currentNavIndex == 3)
-          ? null // SearchScreen and CartScreen have their own headers
+      appBar: (_currentNavIndex == 1 || _currentNavIndex == 3 || _currentNavIndex == 4)
+          ? null // SearchScreen, CartScreen, and ProfileScreen have their own headers
           : AppBar(
               title: GestureDetector(
                 onTap: () => LocationPickerSheet.show(context),
@@ -169,49 +170,6 @@ class _CustomerDashboardShellState extends ConsumerState<CustomerDashboardShell>
   }
 
   Widget _buildProfileTab() {
-    final user = ref.watch(authControllerProvider).user;
-
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Center(
-          child: CircleAvatar(
-            radius: 40,
-            backgroundColor: AppColors.primary.withOpacity(0.12),
-            child: Text(
-              user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Center(child: Text(user?.name ?? 'User', style: AppTypography.headlineSmall())),
-        Center(child: Text(user?.email ?? '', style: AppTypography.bodyMedium())),
-        const SizedBox(height: 10),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              user?.role.toDisplayString() ?? 'Customer',
-              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ),
-        ),
-        const SizedBox(height: 32),
-        AppButton(
-          text: 'Sign Out',
-          type: AppButtonType.outline,
-          icon: Icons.logout_rounded,
-          onPressed: () async {
-            await ref.read(authControllerProvider.notifier).logout();
-            if (mounted) context.go(RoutePaths.login);
-          },
-        ),
-      ],
-    );
+    return const CustomerProfileScreen();
   }
 }

@@ -22,6 +22,11 @@ final logger = Logger(
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Modern Flutter crash and unhandled error handling
+  FlutterError.onError = (details) {
+    logger.e('Flutter UI Error', error: details.exception, stackTrace: details.stack);
+  };
+
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -45,18 +50,13 @@ Future<void> bootstrap() async {
 
   final secureStorage = SecureStorageService();
 
-  runZonedGuarded(
-    () => runApp(
-      ProviderScope(
-        overrides: [
-          localStorageProvider.overrideWithValue(localStorage),
-          secureStorageProvider.overrideWithValue(secureStorage),
-        ],
-        child: const FoodIQApp(),
-      ),
+  runApp(
+    ProviderScope(
+      overrides: [
+        localStorageProvider.overrideWithValue(localStorage),
+        secureStorageProvider.overrideWithValue(secureStorage),
+      ],
+      child: const FoodIQApp(),
     ),
-    (error, stackTrace) {
-      logger.e('Uncaught Error in root zone', error: error, stackTrace: stackTrace);
-    },
   );
 }

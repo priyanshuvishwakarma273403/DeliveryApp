@@ -854,3 +854,11 @@ Content:
 Hello Premium Customer, your favorite food is waiting. Order now!
 ================================================================================
 
+================================================================================
+Date: 2026-11-23T14:17:54.929969300
+To: customer@foodiq.com
+Subject: ?? Hungry? Your favorite meal is waiting for you!
+Content:
+Hello Premium Customer, your favorite food is waiting. Order now!
+================================================================================
+
